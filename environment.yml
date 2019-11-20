@@ -1,0 +1,15 @@
+name: reaktoro-jupyter
+
+channels:
+  - conda-forge
+
+dependencies:
+  - reaktoro
+  - python
+  - numpy
+  - pip
+  - pip:
+    - pandas
+    - matplotlib
+    - IPython
+    - voila
