@@ -1,2 +1,6 @@
+# Temporary files
+results/*
+*-checkpoint.ipynb
+
 # Visual Studio Code files
 settings.json
