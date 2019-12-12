@@ -2,13 +2,16 @@
 # ---
 # jupyter:
 #   jupytext:
-#     cell_metadata_filter: -all
 #     formats: py:light,../notebooks//ipynb
 #     text_representation:
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
 #       jupytext_version: 1.3.0
+#   kernelspec:
+#     display_name: Python 3
+#     language: python
+#     name: python3
 # ---
 
 # # Performing a chemical equilibrium calculation
@@ -17,11 +20,11 @@
 
 from reaktoro import *
 
-# Next, we need a thermodynamic database that enable us to compute thermodynamic properties of species and reactions. To initialize it, we execute
+# Next, we need a thermodynamic database that enable us to compute thermodynamic properties of species and reactions. For this, we create an object of class [Database]:
 
 db = Database("supcrt98.xml")
 
-# To indicate the phases of interest (as well as their species) that may potentially exist at equilibrium, we create an object of class `ChemicalEditor`:
+# To indicate the phases of interest (as well as their species) that may potentially exist at equilibrium, we create an object of class [ChemicalEditor]:
 
 editor = ChemicalEditor(db)
 
@@ -43,11 +46,11 @@ editor.addMineralPhase("Magnesite")
 editor.addMineralPhase("Dolomite")
 editor.addMineralPhase("Quartz")
 
-# Next follows an important step, where we create the chemical system with the information so far collected in the `ChemicalEditor` object `editor`:
+# Next follows an important step, where we create the chemical system with the information so far collected in the [ChemicalEditor] object `editor`:
 
 system = ChemicalSystem(editor)
 
-# We use class `EquilibriumProblem` to specify the conditions at which our system should be in equilibrium.
+# We use class [EquilibriumProblem] to specify the conditions at which our system should be in equilibrium.
 
 problem = EquilibriumProblem(system)
 
@@ -70,7 +73,7 @@ state = equilibrate(problem)
 
 # ## Using class ChemicalState to inspect species amounts
 
-# The result of the `equilibrate` call before, `state`, is an object of class `ChemicalState`. This object contains the temperature, pressure, and amounts of the species at the computed chemical equilibrium state. We can access these properties as follows:
+# The result of the `equilibrate` call before, `state`, is an object of class [ChemicalState]. This object contains the temperature, pressure, and amounts of the species at the computed chemical equilibrium state. We can access these properties as follows:
 
 T = state.temperature()
 P = state.pressure()
@@ -93,7 +96,7 @@ state.output("results/state.txt")
 
 # ## Using the class ChemicalProperties to obtain species activities
 
-# If you require chemical properties of a system that depend on temperature (*T*), pressure (*P*), and composition (*n*), then `ChemicalProperties` class is what you need
+# If you require chemical properties of a system that depend on temperature (*T*), pressure (*P*), and composition (*n*), then [ChemicalProperties] class is what you need
 
 properties = ChemicalProperties(system)
 
@@ -105,7 +108,7 @@ properties.update(T, P, n)
 
 properties = state.properties()
 
-# > **Note:** The call above creates a new object of `ChemicalProperties` each time. If you are using Reaktoro in a simulator that needs the chemical properties of the system at millions/billions of states each time step, prefer to the `update` method of an existing `ChemicalProperties` object.
+# > **Note:** The call above creates a new object of [ChemicalProperties] each time. If you are using Reaktoro in a simulator that needs the chemical properties of the system at millions/billions of states each time step, prefer to the `update` method of an existing [ChemicalProperties] object.
 
 # Once we have computed the chemical properties, we can query for some of them. Below we get the natural log of the species activities:
 
@@ -129,3 +132,10 @@ print(f"The pH of the aqueous phase is {pH.val}.")
 print(f"Its sensitivity with respect to speciation, ∂(pH)/∂n, is:")
 for i, species in enumerate(system.species()):
     print(f"{species.name():>15} = {pH.ddn[i]}")
+
+# [ChemicalEditor]: https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html
+# [ChemicalProperties]: https://reaktoro.org/cpp/classReaktoro_1_1ChemicalProperties.html
+# [ChemicalState]: https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html
+# [ChemicalSystem]: https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html
+# [Database]: https://reaktoro.org/cpp/classReaktoro_1_1Database.html
+# [EquilibriumProblem]: https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumProblem.html

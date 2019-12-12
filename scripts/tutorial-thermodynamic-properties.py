@@ -1,67 +1,48 @@
 # ---
 # jupyter:
 #   jupytext:
-#     formats: notebooks//ipynb,scripts//py:percent
+#     cell_metadata_filter: -all
+#     formats: py:light,../notebooks//ipynb
 #     text_representation:
 #       extension: .py
-#       format_name: percent
-#       format_version: '1.3'
+#       format_name: light
+#       format_version: '1.5'
 #       jupytext_version: 1.3.0
-#   kernelspec:
-#     display_name: Python 3
-#     language: python
-#     name: python3
 # ---
 
-# %% [markdown]
 # # Evaluating standard thermodynamic properties of substances and reactions
-#
+
 # This tutorial demonstrates how to use Reaktoro to evaluate standard thermodynamic properties of substances and reactions.
-#
-# > *If your main interest is on computing thermodynamic properties, rather than chemical equilibrium and kinetics modeling, 
-# > you may want to check [ThermoFun](https://thermohub.org/thermofun/thermofun/), which is an excellent project dedicated for this task.*
 
-# %% [markdown]
-# First, we import everything from the `reaktoro` package by
+# > **Note:** If your main interest is on computing thermodynamic properties, rather than chemical equilibrium and kinetics modeling, you may want to check [ThermoFun], which is an excellent project dedicated for this task.
 
-# %%
-from reaktoro import *  
+# First, we import the `reaktoro` package:
 
-# %% [markdown]
-# We need a thermodynamic database that enables us to compute thermodynamic properties of species and reactions. The 
-# object `bd` is an instance of the class `Database`:
+from reaktoro import *
 
-# %%
-db = Database('supcrt98.xml')  
+# Then we create an object of class [Database] to have access to a thermodynamic database that contains the necesary data to allows us to compute thermodynamic properties at a given temperature and pressure condition:
 
-# %% [markdown]
-# To access the thermodynamic property evaluations, we create a `Thermo` object:
+db = Database('supcrt98.xml')
 
-# %%
+# To evaluate the thermodynamic properties, we create a [Thermo] object:
+
 thermo = Thermo(db)
 
-# %% [markdown]
-# For computing the standarGIT d Gibbs energy of $\mathrm{Na+}$ at given temperature and pressure, we use function
-# `standardPartialMolarGibbsEnergy()` 
+# Below we show how the standard Gibbs energy of `Na+` is computed at 360 K and 10 bar:
 
-# %%
-T = 300.0  # temperature in K
+T = 360.0  # temperature in K
 P = 10.0e5  # pressure in Pa (equivalent to 10 bar)
+G0 = thermo.standardPartialMolarGibbsEnergy(T, P, 'Na+')
+print(f'G0(Na+) = {G0.val} J/mol')
 
-G0 = thermo.standardPartialMolarGibbsEnergy(T, P, 'Na+')  
+# > **Note:** Use G0.ddT or G0.ddP to get temperature or pressure derivatives.
 
-# %% [markdown]
-# Similarly, we can compute the $\log(K)$ of given reaction at given $(T, P)$ by using function `logEquilibriumConstant()`: 
+# We can also compute the log(*K*) of a reaction at given *T* and *P* as follows:
 
-# %%
-logK = thermo.logEquilibriumConstant(T, P, 'H2O(l) = H+ + OH-')  
+logK = thermo.logEquilibriumConstant(T, P, 'Ca++ + 2*Cl- = CaCl2(aq)')
+print(f'logK(Ca++ + 2*Cl- = CaCl2(aq)) = {logK.val}')
 
-# %% [markdown]
-# To print computed values, `.val` must be used:
+# > **Note:** Use logK.ddT or logK.ddP to get temperature or pressure derivatives.
 
-# %%
-print(f'G0(Na+) = {G0.val} J/mol')  # use G0.ddT or G0.ddP to get temperature and pressure derivatives
-print(f'logK(H2O(l) = H+ + OH-) = {logK.val}')  # use logK.ddT or logK.ddP to get temperature and pressure derivatives
-
-# %% [markdown]
-# **Note!** To access partial derivatives of `G0` with respect to temperature or pressure, use `G0.ddT` or `G0.ddP`.
+# [Database]: https://reaktoro.org/cpp/classReaktoro_1_1Database.html
+# [Thermo]: https://reaktoro.org/cpp/classReaktoro_1_1Thermo.html
