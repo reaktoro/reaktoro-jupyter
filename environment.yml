@@ -7,8 +7,10 @@ dependencies:
   - reaktoro
   - python
   - numpy
+  - black
   - jupyter
   - jupyterlab
+  - jupytext
   - pip
   - pip:
     - pandas
