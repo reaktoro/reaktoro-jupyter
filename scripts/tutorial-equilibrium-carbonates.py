@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-# ---
-# -*- coding: utf-8 -*-
 # jupyter:
 #   jupytext:
 #     formats: py:light,../notebooks//ipynb
@@ -15,20 +13,23 @@
 #     name: python3
 # ---
 
-# ### Importing the reaktoro Python package
+# # Performing a chemical equilibrium calculation of carbonate species
 #
-# Using **Reaktoro** in Python requires first an import of the python package `reaktoro`:
-
+# This tutorial demonstrates how to use Reaktoro to perform a chemical equilibrium calculation with carbon species.
+# We start by importing the `reaktoro` package:
+#
 
 from reaktoro import *
-
 
 # ### Chemical system definition
 #
 # The default thermodynamic databases embedded into Reaktoro is SUPCRT92, so you do not have to initialize the 
 # database `db = Database('supcrt98.xml')`, unless you use an alternative one.
 
-# Class `ChemicalEditor` provides convenient operations to initialize `ChemicalSystem` and `ReactionSystem` instances.
+# Class [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html)
+# provides convenient operations to initialize
+# [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html) and
+# []ReactionSystem](https://reaktoro.org/cpp/classReaktoro_1_1ReactionSystem.html) instances.
 
 editor = ChemicalEditor()
 
@@ -49,13 +50,14 @@ editor.addAqueousPhaseWithElements("H O C Ca Cl Mg")
 
 editor.addGaseousPhase(["H2O(g)", "CO2(g)", "H2(g)", "O2(g)", "CH4(g)"])
 
-# For the `MineralPhase` object, we add two pure mineral phases:
+# For the [MineralPhase](https://reaktoro.org/cpp/classReaktoro_1_1MineralPhase.html) object, we add two pure mineral
+# phases:
 
 editor.addMineralPhase("Calcite")
 editor.addMineralPhase("Dolomite")
 
-# To create an object of class `ChemicalSystem` using the chemical system definition details stored in the object 
-# editor, we use
+# To create an object of class [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html)
+# using the chemical system definition details stored in the object editor, we use
 
 system = ChemicalSystem(editor)
 
@@ -88,35 +90,31 @@ problem.add("CaCO3", 1, "mol")
 
 # ### Calculating the chemical equilibrium state
 #
-# In this step, we use the `equilibrate()` function to calculate the chemical equilibrium state of the system with the 
-# given equilibrium conditions stored in the object problem.
+# In this step, we use the `equilibrate()` function, which is a member of
+# [Gems](https://reaktoro.org/cpp/classReaktoro_1_1Gems.html#details) class, to calculate the chemical
+# equilibrium state of the system with the given equilibrium conditions stored in the object problem.
 
 state = equilibrate(problem)
 
 # Reaktoro uses an efficient **Gibbs energy minimization** computation to determine the species amounts that correspond
 # to a state of minimum Gibbs energy in the system, while satisfying the prescribed amount conditions for the
-# temperature, pressure, and element amounts. The result is stored in the object `state`, of class `ChemicalState`.
+# temperature, pressure, and element amounts. The result is stored in the object `state`, of class
+# [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html).
 
 # To output the result of equilibration to the console, we use
 
 print(state)
 
-
-
 # Alternatively, to save equilibrated state into a file, one can use method `output()`:
-
 
 state.output('result.txt')  # Output the equilibrium state into a file result.txt
 
-
 # To print the amounts of some specific aqueous species, one can use
-
 
 # Print the amounts of some aqueous species
 print('Amount of CO2(aq):', state.speciesAmount('CO2(aq)'))
 print('Amount of HCO3-:', state.speciesAmount('HCO3-'))
 print('Amount of CO3--:', state.speciesAmount('CO3--'))
-
 
 # Similarly, one can also print the amounts of certain element, say carbon, in both aqueous and gaseous phases
 
@@ -124,3 +122,8 @@ print('Amount of CO3--:', state.speciesAmount('CO3--'))
 print('Amount of C in aqueous phase:', state.elementAmountInPhase('C', 'Aqueous'))
 print('Amount of C in gaseous phase:', state.elementAmountInPhase('C', 'Gaseous'))
 print('Amount of C in calcite phase:', state.elementAmountInPhase('C', 'Calcite'))
+
+# [ChemicalEditor]: https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html
+# [ChemicalSystem]: https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html
+# [ReactionSystem]: https://reaktoro.org/cpp/classReaktoro_1_1ReactionSystem.html
+# [ChemicalState]: https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html
