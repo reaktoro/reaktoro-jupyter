@@ -14,10 +14,15 @@
 #     name: python3
 # ---
 
-# `ChemicalSystem` is a class that represents a chemical system and its attributes and properties. Below,
+# # Functionality of ChemicalSystem class
+#
+# In this tutorial, we provide explanation on functionality of class
+# [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html)
+# that represents a chemical system and its attributes and properties. Below,
 # we provide a tutorial of the methods that can be used to study the characteristics of considered chemical system.
 
-# Assume that we have defined `system`, an instance of `ChemicalSystem` object, by the code below:
+# Assume that we have defined `system`, an instance of
+# [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html) object, by the code below:
 
 # Import the reaktoro Python package
 from reaktoro import *
@@ -58,7 +63,8 @@ print("List of phases with number of elements in each phase:\n")
 for phase in system.phases():
     print("Phase %s contains %d species" %(phase.name(), phase.numSpecies()))
 
-# `ChemicalSystem` provides formula matrix (whose entry (j, i) is given by the number of atoms of its j-th element in
+# [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html)
+# provides formula matrix (whose entry (j, i) is given by the number of atoms of its j-th element in
 # its i-th species). To access it, one need to use
 
 matrix = system.formulaMatrix()
@@ -117,7 +123,8 @@ hydrogen_amount = system.elementAmount(2, n)
 print("Element amounts (in units of mol) provided 1 molal for all species : ", elements_amount)
 print("Hydrogen amounts (in units of mol) provided 1 molal for all species : ", hydrogen_amount)
 
-# To study the chemical system even further, one can access the class `ThermoProperties` by providing temperature and 
+# To study the chemical system even further, one can access the class
+# [ThermoProperties](https://reaktoro.org/cpp/classReaktoro_1_1ThermoProperties.html) by providing temperature and
 # pressure, i.e., 
 
 T = 60
@@ -144,8 +151,8 @@ print("\nList of standard partial molar enthalpies of the species: \n")
 for enthalpies, species in zip(thermo_properties.standardPartialMolarEnthalpies().val, system.species()):
     print("Delta H (%s) is %e" % (species.name(), enthalpies))
 
-# Alternatively, by providing the vector with molar amounts of the species (in units of mol) class `ChemicalProperties` 
-# can be accessed:
+# Alternatively, by providing the vector with molar amounts of the species (in units of mol) class
+# [ChemicalProperties](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalProperties.html) can be accessed:
 
 chemical_properties = system.properties(T, P, n)
 
@@ -166,3 +173,5 @@ for activity, species, index in \
             np.linspace(0, system.numSpecies())):
     print("ln (a_%d) (corresponding to species %s) is %f" % (index, species.name(), activity))
 
+# [ChemicalSystem]: https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html
+# [ChemicalProperties]: https://reaktoro.org/cpp/classReaktoro_1_1ChemicalProperties.html

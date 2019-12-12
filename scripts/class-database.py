@@ -14,6 +14,12 @@
 #     name: python3
 # ---
 
+# # Functionality of Database class
+#
+# In this tutorial, we provide explanation on functionality of class
+# [Database](https://reaktoro.org/cpp/classReaktoro_1_1Database.html)
+# that provides operations to retrieve physical and thermodynamic data of chemical species.
+
 # ### Importing the reaktoro Python package
 #
 # Using **Reaktoro** in Python requires first an import of the python package `reaktoro`:
@@ -35,8 +41,8 @@ from reaktoro import *
 # * PHREEQC; and
 # * GEMS.
 #
-# More information can be found on the web-page with __[Reaktoro's Documentation](https://reaktoro
-# .org/thermodynamic-databases.html)__.
+# More information can be found on the web-page with [Reaktoro's Documentation](https://reaktoro
+# .org/thermodynamic-databases.html).
 
 # ### Initializing a thermodynamic database
 
@@ -44,10 +50,12 @@ from reaktoro import *
 
 db = Database('supcrt98.xml')
 
-# Here, we use __[supcrt98.xml](https://github.com/reaktoro/reaktoro/blob/master/databases/supcrt/supcrt98.xml)__ 
-# database file generated from the original **SUPCRT92** database file slop98.dat. **Note!** If filename does not point
-# to a valid database file or the database file is not found, then a default built-in database with the same name will 
-# be tried. If no default built-in database exists with a given name, an exception will be thrown.
+# Here, we use [supcrt98.xml](https://github.com/reaktoro/reaktoro/blob/master/databases/supcrt/supcrt98.xml)
+# database file generated from the original **SUPCRT92** database file slop98.dat.
+#
+# > **Note:** If filename does not point
+# > to a valid database file or the database file is not found, then a default built-in database with the same name
+# > will be tried. If no default built-in database exists with a given name, an exception will be thrown.
 
 # ### Accessing the content of thermodynamic database
 #
@@ -88,9 +96,10 @@ for species in db.aqueousSpeciesWithElements(['H']):
 
 species = db.aqueousSpecies("CaCl2(aq)")
 
-# + [markdown] pycharm={"name": "#%% md\n"}
-# After obtaining a particular species, its properties can be obtained by calling corresponding function, e.g., we can 
+# After obtaining a particular species, its properties can be obtained by calling corresponding function, e.g., we can
 # output charge and dissociation of $\mathrm{CaCl_2}$:
-#
-# print("Charge of CaCl2(aq): ", species.charge())
-# print("Dissociation CaCl2(aq): ", species.dissociation())
+
+print("Charge of CaCl2(aq): ", species.charge())
+print("Dissociation CaCl2(aq): ", species.dissociation())
+
+# [Database]: https://reaktoro.org/cpp/classReaktoro_1_1Database.html
