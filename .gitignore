@@ -5,3 +5,6 @@ results/*
 
 # Visual Studio Code files
 .vscode
+
+# PyCharm files
+.idea
