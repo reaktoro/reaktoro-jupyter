@@ -23,7 +23,7 @@ from reaktoro import *
 
 # ### Chemical system definition
 #
-# The default thermodynamic databases embedded into Reaktoro is SUPCRT92, so you do not have to initialize the 
+# The default thermodynamic databases embedded into Reaktoro is SUPCRT92, so you do not have to initialize the
 # database `db = Database('supcrt98.xml')`, unless you use an alternative one.
 
 # Class [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html)
@@ -35,13 +35,13 @@ editor = ChemicalEditor()
 
 # Alternatively, the editor can initialize from the file:
 
-# Initialize a thermodynamic database with supcrt98.xml 
-db = Database('supcrt98.xml')
+# Initialize a thermodynamic database with supcrt98.xml
+db = Database("supcrt98.xml")
 #  Define the editor of the chemical system
 editor = ChemicalEditor(db)
 
-# To define a chemical system, aqueous, gaseous, and mineral phases must be added. For aqueous phase, it can be done 
-# from a list of chemical element names. The database will be searched for all species that could be formed out of those 
+# To define a chemical system, aqueous, gaseous, and mineral phases must be added. For aqueous phase, it can be done
+# from a list of chemical element names. The database will be searched for all species that could be formed out of those
 # elements.
 
 editor.addAqueousPhaseWithElements("H O C Ca Cl Mg")
@@ -61,7 +61,7 @@ editor.addMineralPhase("Dolomite")
 
 system = ChemicalSystem(editor)
 
-# To output the details of the chemical system to the console, i.e., the list of elements, species, and different 
+# To output the details of the chemical system to the console, i.e., the list of elements, species, and different
 # phases, we can execute
 
 print(system)
@@ -79,8 +79,8 @@ for species in system.species():
 # ### Defining the chemical equilibrium problem
 #
 # Next, we create an equilibrium problem with our prescribed equilibrium conditions for
-# amounts of elements that are consistent with our intention of calculating reaction of calcite with 
-# injected 0.002 molal $\mathrm{MaCl_2}$ brine. Both temperature and pressure are assumed to be default values, i.e., 
+# amounts of elements that are consistent with our intention of calculating reaction of calcite with
+# injected 0.002 molal $\mathrm{MaCl_2}$ brine. Both temperature and pressure are assumed to be default values, i.e.,
 # 25 $^\circ$C and 1 bar, respectively.
 
 problem = EquilibriumProblem(system)
@@ -90,8 +90,7 @@ problem.add("CaCO3", 1, "mol")
 
 # ### Calculating the chemical equilibrium state
 #
-# In this step, we use the `equilibrate()` function, which is a member of
-# [Gems](https://reaktoro.org/cpp/classReaktoro_1_1Gems.html#details) class, to calculate the chemical
+# In this step, we use the `equilibrate()` function to calculate the chemical
 # equilibrium state of the system with the given equilibrium conditions stored in the object problem.
 
 state = equilibrate(problem)
@@ -107,21 +106,21 @@ print(state)
 
 # Alternatively, to save equilibrated state into a file, one can use method `output()`:
 
-state.output('result.txt')  # Output the equilibrium state into a file result.txt
+state.output("result.txt")  # Output the equilibrium state into a file result.txt
 
 # To print the amounts of some specific aqueous species, one can use
 
 # Print the amounts of some aqueous species
-print('Amount of CO2(aq):', state.speciesAmount('CO2(aq)'))
-print('Amount of HCO3-:', state.speciesAmount('HCO3-'))
-print('Amount of CO3--:', state.speciesAmount('CO3--'))
+print("Amount of CO2(aq):", state.speciesAmount("CO2(aq)"))
+print("Amount of HCO3-:", state.speciesAmount("HCO3-"))
+print("Amount of CO3--:", state.speciesAmount("CO3--"))
 
 # Similarly, one can also print the amounts of certain element, say carbon, in both aqueous and gaseous phases
 
 # Print the amounts of element C in both aqueous and gaseous phases
-print('Amount of C in aqueous phase:', state.elementAmountInPhase('C', 'Aqueous'))
-print('Amount of C in gaseous phase:', state.elementAmountInPhase('C', 'Gaseous'))
-print('Amount of C in calcite phase:', state.elementAmountInPhase('C', 'Calcite'))
+print("Amount of C in aqueous phase:", state.elementAmountInPhase("C", "Aqueous"))
+print("Amount of C in gaseous phase:", state.elementAmountInPhase("C", "Gaseous"))
+print("Amount of C in calcite phase:", state.elementAmountInPhase("C", "Calcite"))
 
 # [ChemicalEditor]: https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html
 # [ChemicalSystem]: https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html

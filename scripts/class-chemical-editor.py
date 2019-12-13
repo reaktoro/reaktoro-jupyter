@@ -26,7 +26,7 @@
 
 from reaktoro import *
 
-# The default thermodynamic databases embedded into Reaktoro is SUPCRT92, so you do not have to initialize the 
+# The default thermodynamic databases embedded into Reaktoro is SUPCRT92, so you do not have to initialize the
 # database `db = Database('supcrt98.xml')`, unless an alternative database must be used.
 
 # ### Initializing chemical editor
@@ -39,46 +39,39 @@ from reaktoro import *
 # Define the editor of the chemical system from the default database SUPCRT92
 editor = ChemicalEditor()
 
-# Alternatively, the editor can be initialized by the database instance: 
+# Alternatively, the editor can be initialized by the database instance:
 
-# Initialize a thermodynamic database with supcrt98.xml 
-db = Database('supcrt98.xml')
+# Initialize a thermodynamic database with supcrt98.xml
+db = Database("supcrt98.xml")
 # Define the editor of the chemical system
 editor = ChemicalEditor(db)
 
 # ### Preparation of chemical system definition
 #
-# Before definition of chemical system, aqueous, gaseous, and mineral phases must be added. It can be done in various 
+# Before definition of chemical system, aqueous, gaseous, and mineral phases must be added. It can be done in various
 # ways. Let us consider, first, definition of aqueous species:
 #
 # * With method `addAqueousPhase()`, the [AqueousPhase](https://reaktoro.org/cpp/classReaktoro_1_1AqueousPhase.html)
 # can be created by specifying the names of the species one by
-# one. These species names must conform to those used in the database that was specified during the initialization of 
+# one. These species names must conform to those used in the database that was specified during the initialization of
 # the [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html) object, otherwise, an exception
 # will be thrown.
 
-editor.addAqueousPhase([
-    'H2O(l)',
-    'H+',
-    'OH-',
-    'Na+',
-    'Cl-',
-    'HCO3-',
-    'CO3--',
-    'CO2(aq)'
-    ])
+editor.addAqueousPhase(
+    ["H2O(l)", "H+", "OH-", "Na+", "Cl-", "HCO3-", "CO3--", "CO2(aq)"]
+)
 
 # * Alternatively, instead of listing the names of the species one by one, which might require prior knowledge of the
 # species names in the database, we can use method `addAqueousPhaseWithElements()`. It permits the `AqueousPhase`
-# object to be constructed by using a list of chemical element names. The database will be searched for all 
-# species that could be formed out of those elements. These species will then be used to construct the `AqueousPhase` 
+# object to be constructed by using a list of chemical element names. The database will be searched for all
+# species that could be formed out of those elements. These species will then be used to construct the `AqueousPhase`
 # object.
 
 editor.addAqueousPhaseWithElements("H O C Ca Cl Mg")
 
 # * Finally, [AqueousPhase](https://reaktoro.org/cpp/classReaktoro_1_1AqueousPhase.html)
 # object can be also constructed by using a list of compound or substance names that might not
-# necessarily represent names of species in the database. The list of compounds will be broken into a list of element 
+# necessarily represent names of species in the database. The list of compounds will be broken into a list of element
 # names, and the database will be similarly searched for all species that could be formed out of those elements.
 
 editor.addAqueousPhaseWithElementsOf("H2O NaCl CO2")
@@ -94,7 +87,7 @@ editor.addGaseousPhase(["H2O(g)", "CO2(g)", "H2(g)", "O2(g)", "CH4(g)"])
 editor.addGaseousPhaseWithElements(["H", "O", "C"])
 editor.addGaseousPhaseWithElementsOf(["H2O", "CO2"])
 
-# The `MineralPhase` object is created by specifying the names of the species one by one. These species names must 
+# The `MineralPhase` object is created by specifying the names of the species one by one. These species names must
 # conform to those used in the database that was specified during the initialization of the
 # [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html) object,
 # otherwise, an exception will be thrown. The example below describes the usage of this method for the creation of two
@@ -109,11 +102,11 @@ editor.addMineralPhase(["Dolomite", "Calcite"])
 editor.addMineralPhaseWithElements(["Ca", "C", "O"])
 editor.addMineralPhaseWithElementsOf(["CaCO3", "MgCO3"])
 
-# Besides phases, one could also set temperatures and pressures of considered chemical system for constructing 
-# interpolation tables of thermodynamic properties., e.g., 
+# Besides phases, one could also set temperatures and pressures of considered chemical system for constructing
+# interpolation tables of thermodynamic properties., e.g.,
 
-editor.setTemperatures([60, 80, 100, 120, 140, 160], 'celsius')
-editor.setPressures([1, 10, 100], 'bar')
+editor.setTemperatures([60, 80, 100, 120, 140, 160], "celsius")
+editor.setPressures([1, 10, 100], "bar")
 
 # ### Chemical system definition
 #
