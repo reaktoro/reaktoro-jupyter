@@ -121,8 +121,3 @@ print("Amount of CO3--:", state.speciesAmount("CO3--"))
 print("Amount of C in aqueous phase:", state.elementAmountInPhase("C", "Aqueous"))
 print("Amount of C in gaseous phase:", state.elementAmountInPhase("C", "Gaseous"))
 print("Amount of C in calcite phase:", state.elementAmountInPhase("C", "Calcite"))
-
-# [ChemicalEditor]: https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html
-# [ChemicalSystem]: https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html
-# [ReactionSystem]: https://reaktoro.org/cpp/classReaktoro_1_1ReactionSystem.html
-# [ChemicalState]: https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html

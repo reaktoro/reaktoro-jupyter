@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # ---
 # jupyter:
 #   jupytext:
@@ -24,6 +25,36 @@ from reaktoro import *
 # species, we use `ChemicalEditor`. Here, the default database SUPCRT98 is used.
 
 editor = ChemicalEditor()
+
+# ## Specifying different phases and corresponding models
+#
+# Specifying the phases and their species is not enough to fully describe a chemical system in the *computational
+# sense*. Every phase in Reaktoro has two associated models: a *thermodynamic model* and a *chemical model*. These
+# denominations are not standard in the literature, but they are useful in the differentiation of two needed types
+# of models for a phase.
+
+# * A *thermodynamic model* is a model for the calculation of *standard thermodynamic properties* of the species.
+# Examples include standard Gibbs energies, or standard chemical potentials, standard molar volumes, standard heat
+# capacities, standard enthalpies, and so forth. These models are functions of *temperature* and *pressure* only.
+#
+# * A *chemical model* is a model that describes the *non-ideal behavior* of phases. These models not only depend on
+# temperature and pressure, like the thermodynamic models, but also on the amounts of the species in the phase. To be
+# more precise, on the concentrations of these species, which can be calculated from the amounts of the species.
+#
+# One can define a chemical system with many phases, each phase containing one or more species. This does not mean
+# that all phases and their species exist at positive amounts! To be precise, this means that the chemical
+# calculations, equilibrium or kinetics, are capable of deciding if a phase in the chemical system should exist at
+# positive amounts for some given conditions (e.g., temperature, pressure, overall composition).
+#
+# By selecting as many phases as possible, with the possibilities constrained by the *thermodynamic database* being
+# used, one can increase the confidence level of the estimated chemical states. Note, however, that accurate and
+# realistic estimates depend on many more factors than just the selection of potential phases, such as the *choice of
+# thermodynamic models for non-ideal phases*. Furthermore, note that adding too many phases and species to the
+# definition of the chemical system can result in *more computationally expensive* chemical calculations. In critical
+# performance applications, for instance, when combining chemical reactions and fluid flow and species transport
+# modeling, restricting the number of phases and species might be necessary for achieving feasible simulation times.
+# The modeler is responsible to decide to which extent the number of phases and species can be compromised for
+# efficiency reasons at the expense of chemical realism.
 
 # ### Specifying aqueous phase
 

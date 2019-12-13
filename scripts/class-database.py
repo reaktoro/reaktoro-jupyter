@@ -101,5 +101,3 @@ species = db.aqueousSpecies("CaCl2(aq)")
 
 print("Charge of CaCl2(aq): ", species.charge())
 print("Dissociation CaCl2(aq): ", species.dissociation())
-
-# [Database]: https://reaktoro.org/cpp/classReaktoro_1_1Database.html
