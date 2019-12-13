@@ -2,7 +2,7 @@
 # ---
 # jupyter:
 #   jupytext:
-#     formats: py:light,../notebooks//ipynb
+#     formats: ../notebooks//ipynb,py:light
 #     text_representation:
 #       extension: .py
 #       format_name: light
@@ -26,8 +26,8 @@
 
 from reaktoro import *
 
-# From this point on, we are able to use the library components of Reaktoro (classes, methods, constants), which are 
-# needed to define our chemical system and chemical reaction modeling problems. 
+# From this point on, we are able to use the library components of Reaktoro (classes, methods, constants), which are
+# needed to define our chemical system and chemical reaction modeling problems.
 #
 # > **Note:** To simplify the tutorials, we
 # > use `from reaktoro import *`, which imports all components of the `reaktoro` package into the default Python
@@ -46,9 +46,9 @@ from reaktoro import *
 
 # ### Initializing a thermodynamic database
 
-# To initialize a thermodynamic database, we must provide xml-file, i.e., 
+# To initialize a thermodynamic database, we must provide xml-file, i.e.,
 
-db = Database('supcrt98.xml')
+db = Database("supcrt98.xml")
 
 # Here, we use [supcrt98.xml](https://github.com/reaktoro/reaktoro/blob/master/databases/supcrt/supcrt98.xml)
 # database file generated from the original **SUPCRT92** database file slop98.dat.
@@ -59,14 +59,14 @@ db = Database('supcrt98.xml')
 
 # ### Accessing the content of thermodynamic database
 #
-# It is possible to print all the aqueous species contained in the database SUPCRT92, i.e., 
+# It is possible to print all the aqueous species contained in the database SUPCRT92, i.e.,
 
 print("List of all aqueous species in database SUPCRT92:\n")
 for aqueous_species in db.aqueousSpecies():
     print(aqueous_species.name())
 
 # Similar output can be written for the gaseous species (with exception of the function that return the list of such
-# species), i.e., 
+# species), i.e.,
 
 print("List of all gaseous species in database SUPCRT92:\n")
 for gaseous_species in db.gaseousSpecies():
@@ -75,7 +75,7 @@ for gaseous_species in db.gaseousSpecies():
 # All the minerals included in the database can be accessed as well:
 
 print("List of all minerals in database SUPCRT92:\n")
-[print(minerals.name()) for minerals in db.mineralSpecies()]    
+[print(minerals.name()) for minerals in db.mineralSpecies()]
 
 # To check if certain species is present in the database, one can use
 
@@ -87,12 +87,12 @@ print("Is Zn+ present in the database? ", db.containsAqueousSpecies("Zn+"))
 # Besides, we can output all, say, aqueous species containing a particular element (e.g., hydrogen):
 
 print("List of all aqueous species in database with hydrogen:\n")
-for species in db.aqueousSpeciesWithElements(['H']):
+for species in db.aqueousSpeciesWithElements(["H"]):
     print(species.name())
 
 # A thermodynamic database contains model parameters for the evaluation of standard thermodynamic properties of
-# species and/or reactions (e.g., standard Gibbs energies, equilibrium constants). These properties can be accessed by 
-# fetching a particular element from the database: 
+# species and/or reactions (e.g., standard Gibbs energies, equilibrium constants). These properties can be accessed by
+# fetching a particular element from the database:
 
 species = db.aqueousSpecies("CaCl2(aq)")
 
