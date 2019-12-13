@@ -21,6 +21,12 @@
 # that represents a chemical system and its attributes and properties. Below,
 # we provide a tutorial of the methods that can be used to study the characteristics of considered chemical system.
 
+# A chemical system is a description of the phases of interest in the modeling problem and the chemical species that
+# compose those phases. For example, when modeling the chemistry of an aqueous solution, only one phase should be
+# enough, an *aqueous phase*. If one is interested in modeling the solubility of gases in an aqueous solution,
+# then it makes sense to also define a *gaseous phase* with one or more gases. When modeling aqueous solutions and
+# minerals, under a variety of temperature, pressure, and chemical conditions, it might make sense to define the
+# chemical system with many *mineral phases*.
 # Assume that we have defined `system`, an instance of
 # [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html) object, by the code below:
 
@@ -192,15 +198,19 @@ for potential, species, index in zip(
     )
 
 print("\nLogarithms of activities of the species: \n")
-for activity, species, index in zip(
-    chemical_properties.lnActivities().val,
-    system.species(),
-    np.linspace(0, system.numSpecies()),
-):
-    print(
-        "ln (a_%d) (corresponding to species %s) is %f"
-        % (index, species.name(), activity)
-    )
+for activity, species, index in zip(chemical_properties.lnActivities().val,
+                                    system.species(),
+                                    np.linspace(0, system.numSpecies())):
+    print("ln (a_%d) (corresponding to species %s) is %f"
+        % (index, species.name(), activity))
 
-# [ChemicalSystem]: https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html
-# [ChemicalProperties]: https://reaktoro.org/cpp/classReaktoro_1_1ChemicalProperties.html
+
+# ### Definition of chemical system using GEMs
+#
+# Chemical systems can be initialize using alternative backends, such as GEMs and PHREEQC, using corresponding classes
+# [Gems](https://reaktoro.org/cpp/classReaktoro_1_1Gems.html) and
+# [Phreeqc](https://reaktoro.org/cpp/classReaktoro_1_1Phreeqc.html)
+# `gems = Gems("some-gems-project-file.lst")` or
+# 'phreeqc = Phreeqc("phreeqc.dat")',
+# which allows to define instance of [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html)
+# class by respective `system = ChemicalSystem(gems)` or `system = ChemicalSystem(phreeqc)`

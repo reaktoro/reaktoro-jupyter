@@ -114,7 +114,3 @@ editor.setPressures([1, 10, 100], "bar")
 
 # Construct the chemical system
 system = ChemicalSystem(editor)
-
-# [ChemicalEditor]: https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html
-# [ChemicalSystem]: https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html
-# [ReactionSystem]: https://reaktoro.org/cpp/classReaktoro_1_1ReactionSystem.html
