@@ -13,35 +13,125 @@
 #     name: python3
 # ---
 
-# # Performing a chemical equilibrium calculation with customized activity model
+# # Performing a chemical equilibrium calculation with customized activity models
 #
 # This tutorial demonstrates how to use Reaktoro to perform a chemical equilibrium calculation with customized activity
 # models. First, we import everything from the `reaktoro` package by
 
 from reaktoro import *
-import numpy as np
-import matplotlib.pyplot as plt
 
 # To indicate phases and corresponding to them species, as well as models used to evaluate activities of the aqueous
 # species, we use `ChemicalEditor`. Here, the default database SUPCRT98 is used.
 
 editor = ChemicalEditor()
 
+# ### Specifying aqueous phase
+
+# To initialize [AqueousPhase](https://reaktoro.org/cpp/classReaktoro_1_1AqueousPhase.html#details),
+# we add the list of exact names of aqueous species we wish to be simulated in computations.
+# The default model to calculate the activities of solvent water and ionic species is the HKF model.
+# Note that activity models are also needed for *neutral species* then an ideal model is used, in which their activity
+# coefficients are one. For some neutral aqueous species, such as $\mathrm{CO_2(aq)}$, we specify the Drummond model
+
 editor.addAqueousPhase(["H2O(l)", "H+", "OH-", "Na+", "Cl-", "HCO3-", "CO2(aq)", "CO3--"]) \
     .setActivityModelDrummondCO2()
+
+# Alternatively, one can select ideal activity model by `setActivityModelIdeal()` method for neutral aqueous species by
+# providing the corresponding name, e.g.,
+
+editor.addAqueousPhase(["H2O(l)", "H+", "OH-", "Na+", "Cl-", "HCO3-", "CO2(aq)", "CO3--"]) \
+    .setActivityModelIdeal("CO2(aq)")
+
+# Finally, we can set the activity model of neutral aqueous species to be the Setschenow one, where not only name of
+# the species but also the Setschenow constant must be provided in method `setActivityModelSetschenow()`.
+
+editor.addAqueousPhase(["H2O(l)", "H+", "OH-", "Na+", "Cl-", "HCO3-", "CO2(aq)", "CO3--", "NaCl(aq)"]) \
+    .setChemicalModelDebyeHuckel() \
+    .setActivityModelSetschenow("NaCl(aq)", 0.1)
+
+# To choose, for instance, the Pitzer equation of state for aqueous species, we can use
+
+editor.addAqueousPhase(["H2O(l)", "H+", "OH-", "Na+", "Cl-", "HCO3-", "CO2(aq)", "CO3--"]) \
+    .setChemicalModelPitzerHMW() \
+    .setActivityModelDrummondCO2()
+
+# The instance of the [AqueousPhase](https://reaktoro.org/cpp/classReaktoro_1_1AqueousPhase.html#details) class can
+# also be constructed explicitly and have its default *chemical model* changed to the Debye-Huckel model, for example:
+
+aqueous_phase = editor.addAqueousPhaseWithElementsOf("H2O NaCl CO2")
+aqueous_phase.setChemicalModelDebyeHuckel()
+
+# Method `addAqueousPhaseWithElementsOf()` used above is practical in those occasions, where it would be preferable to
+# just specify a few compound or substance names, *not necessarily named as in the database*, and then let
+# [ChemicalEditor](https://reaktoro.org/cpp/classReaktorobl_1_1ChemicalEditor.html) to automatically select all chemical
+# species that could be formed out of the combination of those compounds.
+
+# ### Specifying gaseous phase
+
+# Similarly, [GaseousPhase](https://reaktoro.org/cpp/classReaktoro_1_1GaseousPhase.html) can be defined either from
+# list of provided elements or from substance names that are parsed by the
+# [ChemicalEditor](https://reaktoro.org/cpp/classReaktorobl_1_1ChemicalEditor.html) to generate all possible
+# species that can be combined from elements used in those lists. However, for this particular example,
+# the water vapor, $\mathrm{H_2O(g)}$, and gaseous/supercritical carbon dioxide, $\mathrm{CO_2(g)}$, suffices to
+# represent the gaseous phase:
+
 editor.addGaseousPhase(["H2O(g)", "CO2(g)"]) \
     .setChemicalModelSpycherPruessEnnis()
+
+# Here, method `setChemicalModelSpycherPruessEnnis()` sets Spycher et al. (2003) equation of state. This model only
+# supports the gaseous species $\mathrm{H_2O(g)}$ and $\mathrm{CO_2(g)}$. Any other species will result in a runtime
+# error. Alternately, the Spycher and Reed (1988) equation of state can be set (only for $\mathrm{H_2O(g)}$,
+# $\mathrm{CO_2(g)}$, and $\mathrm{CH_4(g)}$).
+# If no model is explicitly specified, the Peng-Robinson equation of state is chosen by default to calculate the
+# thermodynamic and chemical properties of this GaseousPhase object.
+
+# ### Specifying mineral phase
+#
+# In most geochemical modeling applications, one or more mineral phases are needed. In most cases, these mineral
+# phases are *pure mineral phases*, i.e., they contain only one mineral species. If more than one minerals are
+# present, they are often called *solid solutions*. Defining a pure mineral phase or a solid solution phase is
+# similar to defining any other phase type. The code below demonstrates addition of pure mineral phases halite
+# $\mathrm{NaCl}$:
+
 editor.addMineralPhase("Halite")
+
+# Definition of solid solution can performed as follows:
+
+editor.addMineralPhase(["Calcite", "Magnesite"])
+
+# ### Creating chemical system
+#
+# Next, we create chemical system using the class [ChemicalSystem](
+# https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html), which helps to specify system's attributes and
+# properties:
 
 system = ChemicalSystem(editor)
 
+# Once system is set, the equilibrium problem using [EquilibriumProblem](
+# https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumProblem.html#details) class must be initialized:
+
 problem = EquilibriumProblem(system)
+
+# For the equilibrium calculation, we have set temperature and pressure with optional units.
+#
+# > **Note**: The default values are 25 $^\circ$C for the temperature and 1 bar for pressure.
+
 problem.setTemperature(60, "celsius")
 problem.setPressure(300, "bar")
+
+# Additionally, we have to add amount of the solutions used in the equilibrium calculations. For $\mathrm{
+# NaCl}$-brine, we mix 1 kg of water with 1 mol of salt. Plus, we take 100 g of $\mathrm{CO_2}$:
+
 problem.add("H2O", 1, "kg")
-problem.add("CO2", 100, "g")
 problem.add("NaCl", 1, "mol")
+problem.add("CO2", 100, "g")
+
+# To provide computational representation of the state of a multiphase chemical system resulting from  equilibration
+# process, class [ChemicalState]() must be used. Function `equilibrate()` equilibrates a chemical state instance with
+# an equilibrium problem.
 
 state = equilibrate(problem)
+
+# The chemical state can be printed to console as follows:
 
 print(state)
