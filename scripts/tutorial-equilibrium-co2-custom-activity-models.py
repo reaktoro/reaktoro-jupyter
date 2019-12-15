@@ -17,7 +17,9 @@
 # # Performing a chemical equilibrium calculation with customized activity models
 #
 # This tutorial demonstrates how to use Reaktoro to perform a chemical equilibrium calculation with customized activity
-# models. First, we import everything from the `reaktoro` package by
+# models. We use an example of equilibration of  $\mathrm{H_2O–NaCl–CO_2}$ system when 1 kg of $\mathrm{H_2O}$,
+# 100 g of $\mathrm{CO_2}$, and 1 mol of $\mathrm{NaCl}$ are mixed at temperature 60 $^\circ$C and pressure 300 bar.
+# First, we import everything from the `reaktoro` package by
 
 from reaktoro import *
 
@@ -143,6 +145,8 @@ system = ChemicalSystem(editor)
 
 problem = EquilibriumProblem(system)
 
+# We use class [EquilibriumProblem](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumProblem.html) to specify
+# the conditions at which our system should be in equilibrium.
 # For the equilibrium calculation, we have set temperature and pressure with optional units.
 #
 # > **Note**: The default values are 25 $^\circ$C for the temperature and 1 bar for pressure.
@@ -157,12 +161,37 @@ problem.add("H2O", 1, "kg")
 problem.add("NaCl", 1, "mol")
 problem.add("CO2", 100, "g")
 
+# The units above can be changed, or even suppressed. If not provided, default units are used, such as K for
+# temperatures, Pa for pressures, and mol for amounts. The `add` method in
+# [EquilibriumProblem](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumProblem.html) supports both amount and
+# mass units, such as `mmol`,  `umol`, `g`, `mg`, etc.
+
 # To provide computational representation of the state of a multiphase chemical system resulting from  equilibration
 # process, class [ChemicalState]() must be used. Function `equilibrate()` equilibrates a chemical state instance with
 # an equilibrium problem.
 
+# The code below uses the definition of the equilibrium problem stored in the object `problem` to perform the
+# equilibrium calculation with utility method `equilibrate()`. The result of the calculation is the object `state`,
+# an instance of [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html) class, which is used
+# to store the chemical state (i.e., the temperature, pressure, and molar amounts of all species) of the system at
+# prescribed equilibrium conditions. The [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html)
+# class also provides methods for querying thermodynamic properties of the system.
+
 state = equilibrate(problem)
 
-# The chemical state can be printed to console as follows:
+# **Note:** Method `equilibrate` is not the optimal method for performing a sequence of equilibrium calculations
+# (e.g., when coupling Reaktoro with other codes for simulating fluid flow, species transport, etc.). In situations,
+# where many equilibrium calculations need to be performed and sufficient initial guesses are available each time
+# (e.g., the equilibrium state at a previous time step serving as an initial guess for the new equilibrium
+# calculation), use class [EquilibriumSolver](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumSolver.html).
 
-print(state)
+# The chemical state can be printed to console by `print(state)` command or saved to a file as follows:
+
+state.output("state.txt")
+
+# The output information contains details about the equilibrium state of the defined chemical system for the
+# given equilibrium conditions, including, for example, the *amounts*, *masses*, *mole fractions*, *activities*,
+# *activity coefficients*, and *chemical potentials* of the chemical species in each phase. It will also list
+# properties of each phase, such as *density*, *molar volume*, *volume fraction*, as well specific properties of some
+# phases (e.g., *ionic strength*, *pH*, *pe* for the aqueous phase).
+
