@@ -1,18 +1,3 @@
-# -*- coding: utf-8 -*-
-# jupyter:
-#   jupytext:
-#     formats: py:light,../notebooks//ipynb
-#     text_representation:
-#       extension: .py
-#       format_name: light
-#       format_version: '1.5'
-#       jupytext_version: 1.3.0
-#   kernelspec:
-#     display_name: Python 3
-#     language: python
-#     name: python3
-# ---
-
 # # Performing a chemical equilibrium calculation of carbonate species
 #
 # This tutorial demonstrates how to use Reaktoro to perform a chemical equilibrium calculation with carbon species.
@@ -29,7 +14,7 @@ from reaktoro import *
 # Class [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html)
 # provides convenient operations to initialize
 # [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html) and
-# []ReactionSystem](https://reaktoro.org/cpp/classReaktoro_1_1ReactionSystem.html) instances.
+# [ReactionSystem](https://reaktoro.org/cpp/classReaktoro_1_1ReactionSystem.html) instances.
 
 editor = ChemicalEditor()
 
@@ -103,6 +88,10 @@ state = equilibrate(problem)
 # To output the result of equilibration to the console, we use
 
 print(state)
+
+# We will obtain table describing the chemical state of the system. For example, the molar amounts, molar fractions,
+# activities, activity coefficients, and chemical potentials of the species. The molar volumes of the phases,
+# the amounts of each element in the phases, and also the total phase molar amounts.
 
 # Alternatively, to save equilibrated state into a file, one can use method `output()`:
 

@@ -15,30 +15,17 @@
 #     name: python3
 # ---
 
-# jupyter:
-#   jupytext:
-#     formats: py:light,../notebooks//ipynb
-#     text_representation:
-#       extension: .py
-#       format_name: light
-#       format_version: '1.5'
-#       jupytext_version: 1.3.0
-#   kernelspec:
-#     display_name: Python 3
-#     language: python
-#     name: python3
-# ---
-
 # # Performing calculation of reaction path using Reaktoro
 #
 # In this tutorial, we demonstrate how to calculate a reaction path between two different chemical states in
-# equilibrium, which we refer as *initial state* and a *final state*.
+# equilibrium, which we refer as *initial state* and *final state*.
 # These states can have different temperatures, pressures, and/or molar amounts of elements. If we gradually adjust
 # temperature, pressure, and elemental amounts in the system to bring the initial state to the final state, slowly
 # enough so that **every intermediate state is in equilibrium**, the system would trace a co-called *reaction path*.
 #
-# Let the initial state have 1 g of calcite (CaCO3) mixed with 1 kg of water. We want to see how the addition of
-# hydrochloric acid (HCl), up to 1 mmol, contributes to the dissolution of calcite. Thus, our initial and final
+# Let the initial state have 1 g of calcite ($\mathrm{CaCO_3}$) mixed with 1 kg of water. We want to see how the 
+# addition of
+# hydrochloric acid ($\mathrm{HCl}$), up to 1 mmol, contributes to the dissolution of calcite. Thus, our initial and final
 # states for a reaction path calculation can be described as follows:
 #
 # | Initial state  | Final state    |
@@ -56,6 +43,7 @@ from reaktoro import *
 # [Database](https://reaktoro.org/cpp/classReaktoro_1_1Database.html) object. Instead, it is initialized using the
 # default built-in database file
 # [supcrt98.xml](https://github.com/reaktoro/reaktoro/blob/master/databases/supcrt/supcrt98.xml).
+
 editor = ChemicalEditor()
 
 # For the aqueous phases, we list the chemical elements composing the phase instead of exact names of species.
@@ -141,45 +129,61 @@ import numpy as np
 
 filearray = np.loadtxt("result.txt", skiprows=1)
 data = filearray.T
-[cl_indx, co2aq_indx, co3_indx, ca_indx, ph_indx, calcite_indx] = np.arange(6) # [0, 1, 2, 3, 4, 5]
+[cl_indx, co2aq_indx, co3_indx, ca_indx, ph_indx, calcite_indx] = np.arange(
+    6
+)  # [0, 1, 2, 3, 4, 5]
 
 # The first plot, depicts sets the amount of element $\mathrm{Cl}$ in units of mmol (on the *x*-axis) and the pH of
 # the aqueous phase (on the *y*-axis):
 
 plt.figure()
-plt.plot(data[ph_indx], data[cl_indx], label='Cl')
+plt.plot(data[ph_indx], data[cl_indx], label="Cl")
 plt.xlabel("pH")
 plt.ylabel("Amount of Cl [mmol]")
-plt.savefig('amount-hcl-vs-ph.png')
+plt.savefig("amount-hcl-vs-ph.png")
 
 # The second plot sets the *x*-axis to the amount of $\mathrm{Cl}$ from added $\mathrm{HCl}$ and
 # the *y*-axis to the molality of element $\mathrm{Ca}$, i.e., the molar amount of $\mathrm{Ca}$ **in the aqueous
 # phase**, divided by the mass of solvent water $\mathrm{H_2O(l)}$.
 
 plt.figure()
-plt.plot(data[cl_indx], data[ca_indx], label='Ca')
+plt.plot(data[cl_indx], data[ca_indx], label="Ca")
 plt.xlabel("Amount of Cl [mmol]")
 plt.ylabel("Concentration of Ca [mmolal]")
 plt.tight_layout()
-plt.savefig('concetration-ca-vs-amount-hcl.png')
+plt.savefig("concetration-ca-vs-amount-hcl.png")
 
 # The third plot the *x*-axis to pH, but the *y*-axis now contains two plotted quantities: the molality of species
 # $\mathrm{CO_2(aq)}$ and the molality of species $\mathrm{CO_3^{2-}}$, both in units of mmolal (i.e., mmol/kgH2O).
 
 plt.figure()
-plt.plot(data[ph_indx], data[co2aq_indx], label='CO2(aq)')
-plt.plot(data[ph_indx], data[co3_indx], label='CO3--')
+plt.plot(data[ph_indx], data[co2aq_indx], label="CO2(aq)")
+plt.plot(data[ph_indx], data[co3_indx], label="CO3--")
 plt.xlabel("pH")
 plt.ylabel("Concentration [mmolal]")
 plt.tight_layout()
-plt.savefig('concetration-co2-co3-vs-ph.png')
+plt.savefig("concetration-co2-co3-vs-ph.png")
 
 # The fourth and last figure finally plots how the mass of calcite (or calcium carbonate) changes with the addition of
 # $\mathrm{HCl}$ in the system:
 
 plt.figure()
-plt.plot(data[cl_indx], data[calcite_indx], label='Calcite')
+plt.plot(data[cl_indx], data[calcite_indx], label="Calcite")
 plt.xlabel("HCl [mmol]")
 plt.ylabel("Mass [g]")
 plt.tight_layout()
-plt.savefig('mass-calcite-vs-amount-hcl.png')
+plt.savefig("mass-calcite-vs-amount-hcl.png")
+
+plt.figure()
+plt.plot(data[cl_indx], data[calcite_indx], label="Calcite")
+plt.xlabel("HCl [mmol]")
+plt.ylabel("Mass [g]")
+plt.tight_layout()
+plt.savefig("mass-calcite-vs-amount-hcl.png")
+
+plt.figure()
+plt.plot(data[cl_indx], data[calcite_indx], label="Calcite")
+plt.xlabel("HCl [mmol]")
+plt.ylabel("Mass [g]")
+plt.tight_layout()
+plt.savefig("mass-calcite-vs-amount-hcl.png")
