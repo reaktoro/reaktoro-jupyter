@@ -129,9 +129,7 @@ import numpy as np
 
 filearray = np.loadtxt("result.txt", skiprows=1)
 data = filearray.T
-[cl_indx, co2aq_indx, co3_indx, ca_indx, ph_indx, calcite_indx] = np.arange(
-    6
-)  # [0, 1, 2, 3, 4, 5]
+[cl_indx, co2aq_indx, co3_indx, ca_indx, ph_indx, calcite_indx] = np.arange(6)
 
 # The first plot, depicts sets the amount of element $\mathrm{Cl}$ in units of mmol (on the *x*-axis) and the pH of
 # the aqueous phase (on the *y*-axis):
@@ -161,6 +159,7 @@ plt.plot(data[ph_indx], data[co2aq_indx], label="CO2(aq)")
 plt.plot(data[ph_indx], data[co3_indx], label="CO3--")
 plt.xlabel("pH")
 plt.ylabel("Concentration [mmolal]")
+plt.legend(loc='center right')
 plt.tight_layout()
 plt.savefig("concetration-co2-co3-vs-ph.png")
 
@@ -171,19 +170,6 @@ plt.figure()
 plt.plot(data[cl_indx], data[calcite_indx], label="Calcite")
 plt.xlabel("HCl [mmol]")
 plt.ylabel("Mass [g]")
+plt.legend(loc='center right')
 plt.tight_layout()
-plt.savefig("mass-calcite-vs-amount-hcl.png")
-
-plt.figure()
-plt.plot(data[cl_indx], data[calcite_indx], label="Calcite")
-plt.xlabel("HCl [mmol]")
-plt.ylabel("Mass [g]")
-plt.tight_layout()
-plt.savefig("mass-calcite-vs-amount-hcl.png")
-
-plt.figure()
-plt.plot(data[cl_indx], data[calcite_indx], label="Calcite")
-plt.xlabel("HCl [mmol]")
-plt.ylabel("Mass [g]")
-plt.tight_layout()
-plt.savefig("mass-calcite-vs-amount-hcl.png")
+plt.savefig("mass-calcite-vs-amount-hcl.png")ci -
