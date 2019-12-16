@@ -172,4 +172,4 @@ plt.xlabel("HCl [mmol]")
 plt.ylabel("Mass [g]")
 plt.legend(loc='center right')
 plt.tight_layout()
-plt.savefig("mass-calcite-vs-amount-hcl.png")ci -
+plt.savefig("mass-calcite-vs-amount-hcl.png")
