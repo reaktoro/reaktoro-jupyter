@@ -11,7 +11,7 @@
 #       jupytext_version: 1.3.0
 # ---
 
-# # Dissolution of calcite in an acidic HCl-solution
+# # Dissolution of calcite in an acidic $\mathrm{HCl}$-solution
 #
 # This tutorial demonstrates how Reaktoro can be used for modeling the dissolution of calcite in an acidic
 # $\mathrm{HCl}$-solution at temperature 30 $^\circ$C and pressure 1 bar using chemical kinetics. A partial equilibrium
@@ -78,7 +78,7 @@ reactions = ReactionSystem(editor)
 # need to specify which species are kinetic species, and all others will be equilibrium species by default.
 # We set species Calcite (the only species in the mineral phase also called Calcite!) to be the only kinetic species.
 # This will allow us to model the dissolution of calcite using chemical kinetics, while all other species (the
-# aqueous species) are modelled using chemical equilibrium (i.e., their amounts are updated over time using chemical
+# aqueous species) are modeled using chemical equilibrium (i.e., their amounts are updated over time using chemical
 # equilibrium calculations).
 
 partition = Partition(system)
@@ -98,7 +98,7 @@ problem.setPressure(1, "bar")
 problem.add("H2O", 1, "kg")
 problem.add("HCl", 1, "mmol")
 
-# We specify the equilibrium/kinetic partitioning of the chemical system using method
+# We specify the equilibrium/kinetic partitioning of the chemical system using the method
 # [setPartition](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumProblem.html#a53a9496c9d4ffc72a85903146b390e44)
 # of class [EquilibriumProblem](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumProblem.html). We then prescribe
 # what should be the initial state of the equilibrium species (the aqueous species in this case), before we start the
@@ -120,7 +120,7 @@ state0.output('demo-kineticpath-calcite-hcl-before-kinetics.txt')
 # For this calculation, Reaktoro uses an efficient Gibbs energy minimization algorithm to determine the amounts of
 # the equilibrium species that correspond to a state of minimum Gibbs energy in the equilibrium partition only,
 # at given conditions of temperature, pressure, and element amounts in the equilibrium partition. The result is
-# stored in the object state0 of class ChemicalState, a computational representation of the state of a multiphase
+# stored in the object state0 of class [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html), a computational representation of the state of a multiphase
 # chemical system defined by its temperature ($T$), pressure ($P$), and vector of species amounts ($n$).
 
 # To simulate the kinetic dissolution of calcite in the aqueous fluid we defined before, we need to specify its
@@ -130,7 +130,7 @@ state0.setSpeciesMass("Calcite", 100, "g")
 
 # ### Performing the kinetic path calculation
 #
-# To be able to run the simulation of the chemical kinetic path, we use class
+# To be able to simulate of the chemical kinetic path, we use class
 # [KineticPath](https://reaktoro.org/cpp/classReaktoro_1_1KineticPath.html). Note that here again, we need to
 # specify the partitioning of the chemical system into equilibrium, kinetic, and inert species.
 
@@ -139,6 +139,7 @@ path.setPartition(partition)
 
 # To analyse the result of kinetic simulations, we save the evolution of different properties of the chemical system
 # into file `result.txt`:
+
 output = path.output()
 output.filename("results.txt")
 output.add("time(units=minute)")
