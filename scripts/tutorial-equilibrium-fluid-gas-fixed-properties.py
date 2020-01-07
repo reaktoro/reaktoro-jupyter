@@ -18,7 +18,7 @@
 
 from reaktoro import *
 
-# ## Initializing chemical editor
+### Initializing chemical editor
 #
 # Class [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html)
 # provides convenient operations to initialize
@@ -37,7 +37,7 @@ editor.addGaseousPhaseWithElements("H O C")
 
 # ### Chemical system definition
 #
-# Construction of chemical system is done by calling
+# Construction of the chemical system is done by calling
 
 system = ChemicalSystem(editor)
 
@@ -49,7 +49,7 @@ system = ChemicalSystem(editor)
 # replaced by other equilibrium constraints such as fixed species amount or activity, or the volume or total amount
 # of a phase. Since the amounts of elements are not known a priori, an inverse equilibrium calculation tries to
 # determine amounts of titrants that can control the specified equilibrium constraints. The amount of the titrants
-# are unknown, and its addition or removal is done over the calculation so that the equilibrium state is driven
+# is unknown, and its addition or removal is done over the calculation so that the equilibrium state is driven
 # towards a state where all given equilibrium constraints are satisfied.
 
 # First problem, which we consider, is the problem, which we initialize with 1 kg of $\mathrm{H_2O}$, 0.1 mol of
@@ -82,7 +82,7 @@ state1.output('state1.txt')
 # the alkalinity is -0.0091649 $\mathrm{[eq/L]$.
 
 # The second equilibrium inverse problem has similar conditions to those used for the first problem. In particular,
-# fixed amount of water and chlorides. However, in this case we fix pH to be equal to 4.0, providing $\mathrm{CO_2}$ as
+# fixed amount of water and chlorides. However, in this case, we fix pH to be equal to 4.0, providing $\mathrm{CO_2}$ as
 # a titrant.
 
 problem2 = EquilibriumInverseProblem(system)
@@ -97,6 +97,6 @@ state2 = equilibrate(problem2)
 state2.output('state2.txt')
 
 # Analogously to the `state1`, in `state2` the pH is fixed to 4.0 in `state1.txt`.
-# The obtained ionic strength is slightly lower than in the previoud case, i.e., 0.116759 $\mathrm{[molal]}$,
-# the reduction  potential is also smaller, i.e., 13.6104. The final the alkalinity is -0.0078823  $\mathrm{[eq/L]$.
+# The obtained ionic strength is slightly lower than in the previous case, i.e., 0.116759 $\mathrm{[molal]}$,
+# the reduction potential is also smaller, i.e., 13.6104. The final the alkalinity is -0.0078823 $\mathrm{[eq/L]$.
 

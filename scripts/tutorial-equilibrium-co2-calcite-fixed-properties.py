@@ -35,9 +35,10 @@ editor.addMineralPhase("Calcite")
 # of compounds will be broken into a list of element names, and the database will be similarly searched for all species
 # that could be formed out of those elements.
 
-# Then, [GaseousPhase](https://reaktoro.org/cpp/classReaktoro_1_1GaseousPhase.html) is composed from the names of
-# the provided gaseous species. These names must conform to those used in the database that was specified  during the
-# initialization of the `ChemicalEditor` object, otherwise, an exception will be thrown.
+# Then, [GaseousPhase](https://reaktoro.org/cpp/classReaktoro_1_1GaseousPhase.html) is composed of the names of
+# the provided gaseous species. These names must conform to those used in the database that was specified during the
+# initialization of the [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html) object,
+# otherwise, an exception will be thrown.
 
 # The [MineralPhase](https://reaktoro.org/cpp/classReaktoro_1_1MineralPhase.html) object is created by specifying the
 # names of the mineral species one by one. Analogously to the gaseous species, provided names must
@@ -45,11 +46,11 @@ editor.addMineralPhase("Calcite")
 # [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html) object) ,
 # otherwise, an exception will be thrown. In this case, method
 # [addMineralPhase](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html#a05b263aa9d797a105feb9b83e05e1b86)
-# is used to create one pure mineral phases with calcite.
+# is used to create single pure mineral phases with calcite.
 
 # ### Chemical system definition
 #
-# Construction of chemical system is done by calling
+# Construction of the chemical system is done by calling
 
 system = ChemicalSystem(editor)
 
@@ -61,7 +62,7 @@ system = ChemicalSystem(editor)
 # replaced by other equilibrium constraints such as fixed species amount or activity, or the volume or total amount
 # of a phase. Since the amounts of elements are not known a priori, an inverse equilibrium calculation tries to
 # determine amounts of titrants that can control the specified equilibrium constraints. The amount of the titrants
-# are unknown, and its addition or removal is done over the calculation so that the equilibrium state is driven
+# is unknown, and its addition or removal is done over the calculation so that the equilibrium state is driven
 # towards a state where all given equilibrium constraints are satisfied.
 
 # First problem, which we consider, is the problem with fixed mass of mineral (in this case, calcite) and
@@ -91,10 +92,10 @@ state1.output('state1.txt')
 # in this case becomes equal to 0.0214083 $\mathrm{[eq/L]}$.
 
 # In the second equilibrium inverse problem, which we consider similar conditions used for the first problem. However,
-# in addition, we fix the total alkalinity of the aqueous solution by the method
+# we also fix the total alkalinity of the aqueous solution by the method
 # [alkalinity](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumInverseProblem.html#a870a693edb5134d8c8d7aff325e98cde),
 # where we provide the actual value of the total alkalinity of the aqueous solution,
-# the units of the total alkalinity (must be convertible to eq/L), and the name of titrant that control the solution
+# the units of the total alkalinity (must be convertible to eq/L), and the name of titrant that controls the solution
 # alkalinity. Again, the problem is equilibrated by the standard method `equilibrate` and the obtained chemical state
 # is then output for the comparison with the earlier obtained chemical state.
 
@@ -113,8 +114,8 @@ state2.output('state2.txt')
 # higher, i.e., pH = 6.12591. Moreover, unlike the earlier simulations, here we obtain negative reduction potential,
 # i. e., pE = -6.51608.
 
-# Third inverse problem is initialized analogously with 1 kg of $\mathrm{H_2O}$ and 0.1 mol of sodium-chloride
-# $\mathrm{NaCl}$. In the case, however, only the amount of calcite is fixed to 1 mol. In addition, we fix
+# Third inverse problem is initialized analogously with 1 kg of $\mathrm{H_2O}$ and 0.1 mol of sodium chloride
+# $\mathrm{NaCl}$. In the case, however, only the amount of calcite is fixed to 1 mol. Besides, we fix
 # pH of the aqueous solution with two given titrants $\mathrm{HCl}$ and $\mathrm{NaOH}$.
 
 problem3 = EquilibriumInverseProblem(system)
@@ -128,15 +129,15 @@ state3 = equilibrate(problem3)
 state3.output('state3.txt')
 
 # According to the above instructions, the pH is fixed to 8 in `state3.txt`.
-# The obtained ionic strength is less then in the previous case, i.e.,
+# The obtained ionic strength is less than in the previous case, i.e.,
 # 0.103845 $\mathrm{[molal]}$.
 
 # As it was mention in the introduction of the
 # [EquilibriumInverseProblem](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumInverseProblem.html) class,
 # it is also possible to fix the volume of a phase at equilibrium in the inverse equilibrium problem. This is done in
-# similar to earlier considered problem for all the phase valumes, i.e., gaseous, aqueous, and calcite, provided
+# similar to earlier considered problem for all the phase volumes, i.e., gaseous, aqueous, and calcite, provided
 # the name of titrans. For the gaseous phase, we use $\mathrm{CO_2}$ for titration, for the aqueous one, 1 kg of water
-# and 0.1 mol of sodium-chloride, and $\mathrm{CaCO_3}$ for the mineral.
+# and 0.1 mol of sodium chloride, and $\mathrm{CaCO_3}$ for the mineral.
 
 problem4 = EquilibriumInverseProblem(system)
 problem4.add("H2O", 1, "kg")
@@ -150,4 +151,5 @@ state4 = equilibrate(problem4)
 state4.output('state4.txt')
 
 # Again, in the column *Phases* the volumes of *Aqueous*, *Gaseous*, *Calcite* is fixed to 0.3, 0.2, and 0.5,
-# respectively. As the result, we obtain considerably big amount of an aqueous phase 300.764 kg and calcite 1354.94 kg.
+# respectively. As a result, we obtain a considerably big amount of an aqueous phase 300.764 kg and calcite 1354.94
+# kg.
