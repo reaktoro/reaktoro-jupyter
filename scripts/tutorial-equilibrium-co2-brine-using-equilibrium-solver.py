@@ -12,7 +12,7 @@
 
 # # Performing a chemical equilibrium calculation using EquilibriumSolver class
 #
-# This tutorial demonstrates how to use Reaktoro to perform a chemical equilibrium calculation with help of
+# This tutorial demonstrates how to use Reaktoro to perform a chemical equilibrium calculation with the help of
 # the [EquilibriumSolver](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumSolver.html) class. First, we import
 # everything from the `reaktoro` package by
 
@@ -41,7 +41,7 @@ editor.addMineralPhase("Halite")
 # of compounds into a list of element names, and the database will be similarly searched for all species that could
 # be formed out of those elements.
 
-# Then, [GaseousPhase](https://reaktoro.org/cpp/classReaktoro_1_1GaseousPhase.html) is composed from the names of
+# Then, [GaseousPhase](https://reaktoro.org/cpp/classReaktoro_1_1GaseousPhase.html) is composed of the names of
 # the provided gaseous species $\mathrm{H_2O(g)}$ and $\mathrm{CO_2(g)}$. These names must conform to those
 # used in the database that was specified  during the initialization of the
 # [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html) object, otherwise, an exception
@@ -53,7 +53,7 @@ editor.addMineralPhase("Halite")
 # [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html) object) ,
 # otherwise, an exception will be thrown. In this case, method
 # [addMineralPhase](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html#a05b263aa9d797a105feb9b83e05e1b86)
-# is used to create one pure mineral phases with halite.
+# is used to create single pure mineral phases with halite.
 
 # ### Chemical system definition
 
@@ -77,7 +77,7 @@ problem.add("CO2", 100, "g")
 problem.add("NaCl", 0.1, "mol")
 
 # In particular, we set temperature to 60 $^\circ$C and pressure to 300 bar. To equilibrate the chemical problem,
-# we also add 1kg of water, 100 g of carbon dioxide, and 0.1 mol of sodium-chloride.
+# we also add 1kg of water, 100 g of carbon dioxide, and 0.1 mol of sodium chloride.
 
 # ### Equilibrium solver definition
 
@@ -103,19 +103,25 @@ state = ChemicalState(system)
 
 solver.solve(state, T, P, b)
 
-# Here, object `state` serves as the initial guess and the final state of the equilibrium calculation. If known,
+# Here, the object `state` serves as the initial guess and the final state of the equilibrium calculation. If known,
 # the temperature must be provided in Kelvin, the pressure is expected in Pascal. Vector `b` provides the molar
-# amounts of the elements in the equilibrium partition. Alternatively, one can provide given equilibrium problem.
+# amounts of the elements in the equilibrium partition. Alternatively, one can provide a given equilibrium problem.
 
 # Save the calculated chemical equilibrium state into the text-file.
 
 state.output('state-T-60.txt')
 
+# In the saved file, one can note that the amount of halite is of the order $10^{-21}$, which indicates its
+# dissolution in sodium-chloride brine.
+
 # Calculate the new equilibrium state with increased by 10 $^\circ$C temperature. For that, we use the previous
-# equilibrium state as thea initial guess for improved performance.
+# equilibrium state as the initial guess for improved performance.
 
 solver.solve(state, T + 10.0, P, b)
 
-# Save newly calculated chemical equilibrium state with T = 70$^\circ$C into the text-file.
+# Save newly calculated chemical equilibrium state with T = 70 $^\circ$C into the text-file.
 
 state.output('state-T-70.txt')
+
+# In comparison to chemical speciation obtained for equilibrium calculation with 60 $^\circ$C,
+# the ionic strength, reduction potential, and alkalinity slightly decrease, whereas ph slightly increases.

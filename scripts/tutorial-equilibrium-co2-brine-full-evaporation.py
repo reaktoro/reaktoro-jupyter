@@ -35,7 +35,7 @@ editor.addMineralPhase("Halite")
 # object, otherwise, an exception will be thrown. In this case, the default database SUPCRT92 is used.
 
 # To initialize the chemical model of the [AqueousPhase](https://reaktoro.org/cpp/classReaktoro_1_1AqueousPhase.html)
-# with the Debye-Huckel equation of state, we use method [setChemicalModelDebyeHuckel](
+# with the Debye-Huckel equation of state, we use the method [setChemicalModelDebyeHuckel](
 # https://reaktoro.org/cpp/classReaktoro_1_1AqueousPhase.html#aa3f53d5cb5ae7adfb50e563c7a198ce6). However,
 # we specify that the Drummond (1981) activity model must be used to model $\mathrm{CO2(aq)} using
 # [setActivityModelDrummondCO2](https://reaktoro.org/cpp/classReaktoro_1_1AqueousPhase.html
@@ -75,7 +75,7 @@ reactions = ReactionSystem(editor)
 # ### Chemical problem definition
 #
 # We define an equilibrium problem providing amounts of compounds. In particular, we mix 1 kg of water with 1 mol of
-# sodium-chloride and 200 kg of carbon-dioxide. The amount of calcite in the system is set to 10 mol.
+# sodium-chloride and 200 kg of carbon dioxide. The amount of calcite in the system is set to 10 mol.
 
 problem = EquilibriumProblem(system)
 problem.add("H2O", 1, "kg")
@@ -93,7 +93,7 @@ options.optimum.output.active = True
 options.epsilon = 1e-20
 
 # Here, we set the field of [OutputterOptions](https://reaktoro.org/cpp/structReaktoro_1_1OutputterOptions.html)
-# class to be `True` in order to determine whether the intermediate values of equilibrium simulations must be output
+# class to be `True` to determine whether the intermediate values of equilibrium simulations must be output
 # to the console.
 # Then, we set the parameter $\varepsilon$ (used for the numerical representation of a zero molar amount) to be equal
 # 1e-50. The molar amount of the `i`-th species is considered zero if $n[i] < \varepsilon \cdot \min b$, where `b` is
@@ -108,7 +108,7 @@ state = equilibrate(problem, options)
 # [EquilibriumSolver](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumSolver.html).
 
 # Run of the `equilibrium` method generates the following error *Error: Could not calculate the equilibrium state of the system.*
-# The reason of this error follows after the the error:
+# The reason for this error follows after it:
 # *Reason: Convergence could not be established with given equilibrium conditions, initial guess, and(or) numerical
 # parameters*. If we review the amount of species, which were output to the console, we will see that `n[H2O(l)] =
-# 0`. This means that all the water used in the mixing got evaporated, therefore, equilibration cannot be proceeded.
+# 0`. This means that all the water used in the mixing got evaporated, therefore, equilibration cannot be proceed.
