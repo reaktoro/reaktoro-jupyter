@@ -111,8 +111,7 @@ state = equilibrate(problem, options)
 # is intended for convenience only. For performance critical applications, use class
 # [EquilibriumSolver](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumSolver.html).
 
-# In our case, run of the [equilibrate](
-# https://reaktoro.org/cpp/namespaceReaktoro.html#a908245bfa7d236d8c556241dc87f489e)
+# In our case, run of the [equilibrate](https://reaktoro.org/cpp/namespaceReaktoro.html#a908245bfa7d236d8c556241dc87f489e)
 # method generates the following error *Error: Could not calculate the equilibrium state of the system.*
 # The reason for this error follows after it:
 # *Reason: Convergence could not be established with given equilibrium conditions, initial guess, and(or) numerical
