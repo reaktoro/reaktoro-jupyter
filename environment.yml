@@ -9,6 +9,8 @@ dependencies:
   - numpy
   - jupyter
   - jupyterlab
+  - joblib
+  - matplotlib
   - pip
   - pip:
     - pandas
