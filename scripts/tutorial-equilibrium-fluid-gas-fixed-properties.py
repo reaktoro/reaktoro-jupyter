@@ -18,7 +18,7 @@
 
 from reaktoro import *
 
-### Initializing chemical editor
+# ## Initializing chemical editor
 #
 # Class [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html)
 # provides convenient operations to initialize
@@ -35,7 +35,14 @@ editor.addGaseousPhaseWithElements("H O C")
 # list of chemical element names. The database will be searched for all species that could be formed out of those
 # elements.
 
-# ### Chemical system definition
+# > **Note:** This automatic selection of chemical species for a phase can result in a large number of them. This
+# potentially increases the computing cost of the chemical reaction calculations. If you are using Reaktoro in
+# demanding applications, you might want to manually specify the chemical species of each phase in your chemical
+# system. This can be achieved by providing an explicit list of species names, e.g., `editor.addAqueousPhase("H2O(l)
+# H+ OH- CO2(aq)")`. Note, however, that care is required here to ensure relevant species are not missing. The just
+# given example is a bad one in fact, with important species such as `HCO3-` and `CO3--` missing in the list.
+
+# ## Chemical system definition
 #
 # Construction of the chemical system is done by calling
 
@@ -52,10 +59,12 @@ system = ChemicalSystem(editor)
 # is unknown, and its addition or removal is done over the calculation so that the equilibrium state is driven
 # towards a state where all given equilibrium constraints are satisfied.
 
+# ### Problem with fixed ph, species' amount and activity
+
 # First problem, which we consider, is the problem, which we initialize with 1 kg of $\mathrm{H_2O}$, 0.1 mol of
 # sodium-chloride $\mathrm{NaCl}$, 2 mmol of calcium-chloride $\mathrm{CaCl_2}$, and
 # 4 mmol of magnium-chloride $\mathrm{MgCl_2}$. From the properties of this inverse equilibrium problem, we fix
-# pH to 3.0, providing the titran $\mathrm{HCL}$. Besides, $\mathrm{CO_2(g)}$ species' amount is fixed to 1.0 mol, as
+# pH to 3.0, providing the titran $\mathrm{HCl}$. Besides, $\mathrm{CO_2(g)}$ species' amount is fixed to 1.0 mol, as
 # well as the species' activity of $\mathrm{O_2(g)}$ is prescribed to be 0.2.
 
 problem1 = EquilibriumInverseProblem(system)
@@ -67,23 +76,26 @@ problem1.pH(3.0, "HCl")
 problem1.fixSpeciesAmount("CO2(g)", 1.0, "mol")
 problem1.fixSpeciesActivity("O2(g)", 0.20)
 
-# Using function [equilibrate()](https://reaktoro.org/cpp/namespaceReaktoro.html#af2d3b39d3e0b8f9cb5a4d9bbb06b697e),
-# we calculate the chemical equilibrium state of the system with the given equilibrium conditions stored in the
+# Using function [equilibrate](https://reaktoro.org/cpp/namespaceReaktoro.html#a8feea895affd774daaba5fbca8c4eeb3),
+# we calculate the chemical equilibrium state of the system with given equilibrium conditions stored in the
 # object `problem1`.
 
 state1 = equilibrate(problem1)
+
+# To evaluate the results of performed calculations, we save the chemical state to the txt-file `state1.txt`.
 
 state1.output('state1.txt')
 
 # According to the above instructions, the pH is fixed to 3.0 in `state1.txt`. We can also make sure that activity of
 # $\mathrm{O_2(g)}$ (see sub-table with *Species*, column *Activity [-]*) is prescribed to 0.2, similarly to the
 # species amount of $\mathrm{CO_2(g)}$ in the same table.
-# The obtained ionic strength is 0.117995 $\mathrm{[molal]}$, the reduction potential is 17.6023, and
-# the alkalinity is -0.0091649 $\mathrm{[eq/L]$.
+# The obtained ionic strength is 0.117995 molal, pE is 17.6023, the reduction potential is 1.04134 V, and
+# the alkalinity is -0.0091649 eq/L.
 
-# The second equilibrium inverse problem has similar conditions to those used for the first problem. In particular,
-# fixed amount of water and chlorides. However, in this case, we fix pH to be equal to 4.0, providing $\mathrm{CO_2}$ as
-# a titrant.
+# ### Problem with fixed ph
+
+# The second equilibrium inverse problem has similar conditions to those used for the first problem. However,
+# in this case, we fix pH to be equal to 4.0, providing $\mathrm{CO_2}$ as a titrant.
 
 problem2 = EquilibriumInverseProblem(system)
 problem2.add("H2O", 1, "kg")
@@ -97,6 +109,6 @@ state2 = equilibrate(problem2)
 state2.output('state2.txt')
 
 # Analogously to the `state1`, in `state2` the pH is fixed to 4.0 in `state1.txt`.
-# The obtained ionic strength is slightly lower than in the previous case, i.e., 0.116759 $\mathrm{[molal]}$,
-# the reduction potential is also smaller, i.e., 13.6104. The final the alkalinity is -0.0078823 $\mathrm{[eq/L]$.
-
+# The obtained ionic strength is slightly lower than in the previous case, i.e., 0.116759 molal,
+# pE is also smaller, i.e., 13.6104, whereas the reduction potential is 0.805183 V.
+# The final the alkalinity is -0.0078823 eq/L.
