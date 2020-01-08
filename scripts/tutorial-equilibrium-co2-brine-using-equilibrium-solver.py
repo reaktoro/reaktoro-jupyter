@@ -130,5 +130,5 @@ solver.solve(state, T + 10.0, P, b)
 
 state.output('state-T-70.txt')
 
-# In comparison to chemical speciation obtained for equilibrium calculation at 60 &deg;C,
+# In comparison to chemical speciation obtained for equilibrium calculation at 60 &deg; C,
 # the ionic strength, reduction potential, and alkalinity slightly decrease, whereas ph slightly increases.
