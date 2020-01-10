@@ -27,7 +27,7 @@ import os
 # We import the **reaktoro** Python package so that we can use its classes and methods for performing chemical
 # reaction calculations, **numpy** for working with arrays, **matplotlib** for plotting capabilities, **joblib** for
 # simple parallel computing, **os**, to provide a portable way of using operating system dependent
-# functionality, and, finally, *ffmpeg*
+# functionality. Finally, *ffmpeg* must be installed for handling video, audio, and other multimedia files and streams.
 
 # > **Note**: To simplify the tutorials, we use `from reaktoro import *`, which imports all components of the
 # > **reaktoro** package into the default Python namespace. We note that this can potentially create name conflicts
