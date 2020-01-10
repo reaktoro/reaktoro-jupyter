@@ -27,8 +27,8 @@ import os
 
 # We import the **reaktoro** Python package so that we can use its classes and methods for performing chemical
 # reaction calculations, **numpy** for working with arrays, **matplotlib** for plotting capabilities, **joblib** for
-# simple parallel computing, **os**, to provide a portable way of using operating system dependent functionality,
-# and, finally, *ffmpeg* for handling video, audio, and other multimedia files and streams.
+# simple parallel computing, and **os**, to provide a portable way of using operating system dependent functionality.
+# Finally, *ffmpeg* must be installed for handling video, audio, and other multimedia files and streams.
 
 # ## Initializing auxiliary time-related constants
 # In this step, we initialize auxiliary time-related constants from seconds up to years used in the rest of the code.
@@ -201,7 +201,8 @@ def simulate():
 # phases that should be considered in the chemical system. For performance reasons, the aqueous phase is defined by
 # manually specifying the chemical species, instead of automatic collection of species from the database. There are
 # three pure mineral phase considered: quartz ($\mathrm{SiO_2}$), calcite ($\mathrm{CaCO_3}$), and dolomite
-# ($\mathrm{CaMg(CO_3)_2}$). Finally, using class [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html),
+# ($\mathrm{CaMg(CO_3)_2}$). Finally, using class
+# [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html),
 # we define the chemical system.
 
 def define_chemical_system():
