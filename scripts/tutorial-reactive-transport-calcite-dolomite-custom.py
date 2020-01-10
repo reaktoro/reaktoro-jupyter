@@ -27,8 +27,8 @@ import os
 
 # We import the **reaktoro** Python package so that we can use its classes and methods for performing chemical
 # reaction calculations, **numpy** for working with arrays, **matplotlib** for plotting capabilities, **joblib** for
-# simple parallel computing, **os**, to provide a portable way of using operating system dependent
-# functionality, and, finally, *ffmpeg*
+# simple parallel computing, **os**, to provide a portable way of using operating system dependent functionality,
+# and, finally, *ffmpeg* for handling video, audio, and other multimedia files and streams.
 
 # ## Initializing auxiliary time-related constants
 # In this step, we initialize auxiliary time-related constants from seconds up to years used in the rest of the code.
@@ -45,8 +45,8 @@ year = 365 * day
 # rock domain by setting coordinates of its left and right boundaries to 0.0 m and 100.0 m, respectively. The
 # discretization parameters, i.e., the number of cells and steps in time, are both set to 100. The reactive
 # transport modeling procedure assumes a constant fluid velocity of 1 m/day (1.16 · $10^{-5}$ m/s) and the same
-# diffusion coefficient of $10^{-9}$ m2/s for all fluid species (without dispersivity). The size of the time-step is
-# set to 10 minutes. Temperature and pressure are set to 60 &deg; C and 100 bar, respectively,
+# diffusion coefficient of $10^{-9}$ $\mathrm{m^2/s}$ for all fluid species (without dispersivity). The size of the
+# time-step is set to 30 minutes. Temperature and pressure are set to 60 &deg; C and 100 bar, respectively,
 # throughout the whole tutorial. 
 
 xl = 0.0               # x-coordinate of the left boundary
@@ -54,27 +54,26 @@ xr = 1.0               # x-coordinate of the right boundary
 ncells = 100           # number of cells in the discretization
 nsteps = 10            # number of steps in the reactive transport simulation
 D  = 1.0e-9            # diffusion coefficient (in units of m2/s)
-v  = 1.0/week           # fluid pore velocity (in units of m/s)
+v  = 1.0/day           # fluid pore velocity (in units of m/s)
 dx = (xr - xl)/ncells  # length of the mesh cells (in units of m)
-dt = 30*minute         # time step (30 minutes in in units of s)
+dt = 10*minute         # time step (30 minutes in in units of s)
 T = 60.0 + 273.15      # temperature (in units of K)
 P = 100 * 1e5          # pressure (in units of Pa)
 
-# Next, we generate the coordinates of the mesh nodes (array `x`) by equally
-# dividing the interval *[xr, xl]* into `ncells`. The length between each
-# consecutive mesh nodes is computed and stored in `dx` (the length of the mesh
-# cells).
+# Next, we generate the coordinates of the mesh nodes (array `x`) by equally dividing the interval *[xr, xl]* with
+# the number of cells `ncells`. The length between each consecutive mesh nodes is computed and stored in `dx` (the
+# length of the mesh cells).
 
 x = linspace(xl, xr, ncells + 1)    # interval [xl, xr] split into ncells
 
 # The boolean variable `dirichlet` is set to `True` or `False` depending on which boundary condition is considered in
-# the numerical calculation. Set to `False` for imposing the flux of the injected fluid, otherwise, set to
-# `True` for imposing the composition of the fluid on the left boundary.
+# the numerical calculation. Set to `False` for imposing the flux of the injected fluid, otherwise, set to `True` for
+# imposing the composition of the fluid on the left boundary.
 
 dirichlet = False      # parameter that determines whether Dirichlet BC must be used
 
 # Another auxiliary parameter is the number of digits in the number of steps (e.g., 100 has 3 digits). It is needed for
-# generation of the names of the files, where chemical states are saved, as well as the creating of the videos
+# generation of the names of the files, where chemical states are saved, as well as the creating of the videos.
 
 ndigits = len(str(nsteps))
 
@@ -109,7 +108,6 @@ output_quantities = """
 # * plotting of the obtained results (function `plotting()`).
 
 # ## Creating folders for the outputted results
-#
 # Using **os** package, we create required folders for outputting the obtained results and for the plot and video
 # files later.
 
@@ -121,13 +119,12 @@ def make_results_folders():
     os.system('mkdir -p videos')
 
 # ## Performing the reactive transport simulation
-#
-# The reactive transport simulation is performed in the function `simulate`, which consists from the several building
+# The reactive transport simulation is performed in the function `simulate`, which consists of several building
 # blocks (functions):
-# * initialization of the reactive transort problem and 
+# * initialization of the reactive transport problem and
 # * performing the reactive transport simulation along defined time interval.
 #
-# The preparitory initialization step consists of the following substeps:
+# The preparatory initialization step consists of the following sub-steps:
 # * definition of chemical system with its phases and species using `define_chemical_system()`,
 # * definition of the initial condition of the reactive transport problem in `define_initial_condition()`,
 # * definition of the boundary condition of the reactive transport problem in `define_initial_condition()`,
@@ -143,7 +140,7 @@ def make_results_folders():
 
 # Performing of the transport and reactive chemistry sequentially is possible due to the *operator splitting
 # procedure*, in which we first update the amounts of elements `b`. These updated amounts of
-# elements in the cell are used to evaluate its new chemical equilibrium state, thus producing new amounts of the
+# elements in each cell are used to evaluate its new chemical equilibrium state, thus producing new amounts of the
 # species in both the fluid and solid phases (available in the list `states` of
 # [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html) objects). This chemical reaction
 # equilibrium calculation step, at each mesh cell, permits, for example, aqueous species and minerals to react,
@@ -197,34 +194,36 @@ def simulate():
     print("Finished!")
 
 # Subsections below correspond to the methods responsible for each of the functional parts of `simulate()` method.
-
-# ### Construction of the chemical system with its phases and species
 #
+# ### Construction of the chemical system with its phases and species
 # Method `define_chemical_system()` begins by defining the chemical system using [ChemicalEditor](
 # https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html) class. In particular, we specify aqueous and mineral
 # phases that should be considered in the chemical system. For performance reasons, the aqueous phase is defined by
 # manually specifying the chemical species, instead of automatic collection of species from the database. There are
-# three pure mineral phase considered: quartz ($\mathrm{SiO_2}$), calcite ($\mathrm{CaCO3}$), and dolomite
+# three pure mineral phase considered: quartz ($\mathrm{SiO_2}$), calcite ($\mathrm{CaCO_3}$), and dolomite
 # ($\mathrm{CaMg(CO_3)_2}$). Finally, using class [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html),
 # we define the chemical system.
 
 def define_chemical_system():
-    # Step 7.1: Construct the chemical system with its phases and species
+
+    # Define thermodynamical database to be used for chemical simulations
     db = Database('supcrt98.xml')
 
+    # Define chemical editor to work with chemical system
     editor = ChemicalEditor(db)
 
+    # Define phases and corresponding to these phases species
     editor.addAqueousPhaseWithElements('H O Na Cl Ca Mg C Si Ca')
     editor.addMineralPhase('Quartz')
     editor.addMineralPhase('Calcite')
     editor.addMineralPhase('Dolomite')
 
+    # Create the chemical system using the configured editor
     system = ChemicalSystem(editor)
 
     return system
 
-# ### Initial condition (IC) of the reactive transport problem
-#
+# ### Initial condition of the reactive transport problem
 # After constructing the chemical system of interest, we can proceed to the definition of a chemical equilibrium
 # problem to set the *initial condition* for the fluid and rock composition that is consistent with our intention of
 # modeling reactive transport in a porous rock column composed of quartz and calcite, at 60 &deg;C and 100 bar,
@@ -261,20 +260,15 @@ def define_initial_condition(system):
 
     return state_ic
 
-# ### Boundary condition (BC) of the reactive transport problem
-#
+# ### Boundary condition of the reactive transport problem
 # For the boundary condition, we need to specify the composition of the fluid that is injected into the rock. This is
 # done below, by defining an equilibrium problem that will later be solved to produce an aqueous fluid with 0.9 molal
 # $\mathrm{NaCl}$, 0.05 molal $\mathrm{MgCl_2}$, 0.01 $\mathrm{CaCl_2}$, and 0.75 molal $\mathrm{CO_2}$, in a state
 # very close to $\mathrm{CO_2}$ saturation.
 #
-# The composition of the injected aqueous fluid results from the solution of the above equilibrium problem,
-# in which 1 kg of $\mathrm{HO_2}$ is mixed with 0.90 moles of $\mathrm{NaCl}$, 0.05 moles of $\mathrm{MgCl_2}$,
-# 0.01 moles of $\mathrm{CaCl_2}$, and 0.75 moles of $\mathrm{CO_2}$.
-#
 # After equilibration, the obtained chemical state representing the boundary condition for the injected fluid
 # composition, we scale its volume to 1 $\mathrm{m^3}$. This is done so that the amounts of the species in the fluid is
-# consistent with a mol/|m3| scale.
+# consistent with a $\mathrm{mol/m^3}$ scale.
 
 def define_boundary_condition(system):
 
@@ -296,7 +290,6 @@ def define_boundary_condition(system):
     return state_bc
 
 # ### Indices of partitioning fluid and solid species
-#
 # Only species in fluid phases are mobile and transported by advection and diffusion mechanisms. The solid phases are
 # immobile. The code below identifies the indices of the fluid and solid species. We use methods
 # [indicesFluidSpecies](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html#ac2a8b713f46f7a66b2731ba63faa95ad)
@@ -314,7 +307,6 @@ def partition_indices(system):
     return nelems, ifluid_species, isolid_species
 
 # ### Partitioning fluid and solid species
-#
 # In this function, we create arrays to keep track of the amounts of elements in the fluid and solid partition
 # (i.e., the amounts of elements among all fluid phases, here only an aqueous phase, and the amounts of elements among
 # all solid phases, here the mineral phases). For that, we define the arrays `b`, `bfluid`, `bsolid`, that
@@ -324,7 +316,7 @@ def partition_indices(system):
 # The array `b` is initialized with the concentrations of the elements at the initial chemical state, `state_ic`,
 # using method [elementAmounts](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html#a827457e68a90f89920c13f0cc06fda78)
 # of class [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html). The array `b_bc` stores
-# the concentrations of each element on the boundary in $\mathrm{[mol/m^3_{fluid}]}$.
+# the concentrations of each element on the boundary in $\mathrm{mol/m^3_{fluid}}$.
 
 def partition_elements_in_mesh_cell(ncells, nelems, state_ic, state_bc):
 
@@ -347,16 +339,15 @@ def partition_elements_in_mesh_cell(ncells, nelems, state_ic, state_bc):
 # ### Reactive transport cycle
 #
 # #### Transport
-#
 # This step updates in the fluid partition `bfluid` using the transport equations (without reactions).
 # The `transport_fullimplicit()` function below is responsible for solving an advection-diffusion equation, that is
-# later applied to transport the concentrations ($\mathrm{mol/m^3}$) of elements in the fluid partition (*a
+# later applied to transport the concentrations $\mathrm{[mol/m^3}]$ of elements in the fluid partition (*a
 # simplification that is possible because of common diffusion coefficients and velocities of the fluid species,
 # otherwise the transport of individual fluid species would be needed*).
 #
-# To match the units of concentrations of the elements in the fluid measure in $\mathrm{[mol/m^3_{bulk}]}$ and the
-# imposed concentration `b_bc[j]` $\mathrm{[mol/m^3_{fluid}]}$, e need to multiply it by the porosity `phi_bc` on the
-# boundary cell $\mathrm{[m^3_{fluid} / m^3_{bulk}]}$. We use function
+# To match the units of concentrations of the elements in the fluid measured in $\mathrm{[mol/m^3_{bulk}]}$ and the
+# imposed concentration `b_bc[j]` $\mathrm{[mol/m^3_{fluid}]}$, we need to multiply it by the porosity `phi_bc`
+# $\mathrm{[m^3_{fluid} / m^3_{bulk}]}$ on the boundary cell . We use function
 # [properties](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html#ad3fa8fd9e1b948da7a698eb020513f3d)
 # of the class [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html) to retrieve fluid volume
 # $\mathrm{[m^3_{fluid}]}$ and total volume $\mathrm{[m^3_{bulk}]}$ in the inflow boundary cell.
@@ -387,7 +378,6 @@ def transport(states, bfluid, bsolid, b, b_bc, nelems, ifluid_species, isolid_sp
     return bfluid, bsolid, b
 
 # ##### Transport calculation with finite-volume scheme
-
 # The function `transport()` expects a conservative property (argument `u`) (e.g., the concentration $\mathrm{[mol/m^3]}$
 # of *j*th element in the fluid given by `bfluid[j]`), the time step (`dt`), the mesh cell length (`dx`),
 # the fluid velocity (`v`), the diffusion coefficient (`D`), and the boundary condition of the conservative property
@@ -435,7 +425,6 @@ def transport_fullimplicit(u, dt, dx, v, D, ul):
     thomas(a, b, c, u)
 
 # ##### Solving the system of equations obtained from finite volume discretization
-
 # The tridiagonal matrix equation is solved using the Thomas algorithm (or the TriDiagonal Matrix Algorithm (TDMA)).
 # It is a simplified form of Gaussian elimination that can be used to solve tridiagonal systems of equations.
 
@@ -454,7 +443,6 @@ def thomas(a, b, c, d):
 
 
 # #### Reactive chemistry
-#
 # The chemical equilibrium calculations performed in each mesh cell, using *Gibbs energy minimisation* algorithm (
 # provided by the class [EquilibriumSolver](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumSolver.html)).
 
@@ -465,7 +453,6 @@ def reactive_chemistry(solver, states, b):
     return states
 
 # ### Results saving and analyzing
-
 # Function `outputstate` is the auxiliary function to create an output file each time step.
 
 def outputstate(step, system, states):
@@ -490,9 +477,9 @@ def outputstate(step, system, states):
     output.close()
 
 # ## Plotting of the obtained results
-#
 # The last block of the main routine is dedicated to plotting of the results and generating a video from the plots to
-# illustrate the time-dependent behavior of the chemical properties.
+# illustrate the time-dependent behavior of the chemical properties. It uses parallel pthread to run `plotfile`
+# function for each file from the list `files`.
 
 def plot():
     # Plot all result files
@@ -571,7 +558,9 @@ def plotfile(file):
 
     plt.close('all')
 
-# Step 5: Define the main function
+# ## Main function
+# Below, we present the actual definition of the main function.
+
 if __name__ == '__main__':
 
     # Create folders for the results
