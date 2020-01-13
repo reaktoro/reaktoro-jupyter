@@ -1,10 +1,22 @@
 # -*- coding: utf-8 -*-
+# ---
+# jupyter:
+#   jupytext:
+#     cell_metadata_filter: -all
+#     formats: ../notebooks//ipynb,py:light
+#     text_representation:
+#       extension: .py
+#       format_name: light
+#       format_version: '1.5'
+#       jupytext_version: 1.3.0
+# ---
+
 # # Coupling Reaktoro into other reactive transport codes
 
 # In this tutorial, we show how Reaktoro can be used in other codes for reactive transport modeling. Here,
 # you will find that we have split the mass transport and chemical reaction calculations so that you can see
 # how a dedicated and advanced transport solver could be combined with Reaktoro's solvers for chemical reaction
-# calculations. A basic transport solver is used here instead for the sake of software coupling demonstration.
+# calculations. A basic transport solver is used here instead for the sake of the software coupling demonstration.
 
 # The reactive transport problem we consider here is also relatively simple. We proceed with a step-by-step
 # explanation.
@@ -28,7 +40,7 @@ import os
 # We import the **reaktoro** Python package so that we can use its classes and methods for performing chemical
 # reaction calculations, **numpy** for working with arrays, **matplotlib** for plotting capabilities, **joblib** for
 # simple parallel computing, and **os**, to provide a portable way of using operating system dependent functionality.
-# Finally, *ffmpeg* must be installed for handling video, audio, and other multimedia files and streams.
+# Finally, **ffmpeg** must be installed for handling video, audio, and other multimedia files and streams.
 
 # ## Initializing auxiliary time-related constants
 # In this step, we initialize auxiliary time-related constants from seconds up to years used in the rest of the code.
@@ -61,7 +73,7 @@ T = 60.0 + 273.15      # temperature (in units of K)
 P = 100 * 1e5          # pressure (in units of Pa)
 
 # Next, we generate the coordinates of the mesh nodes (array `x`) by equally dividing the interval *[xr, xl]* with
-# the number of cells `ncells`. The length between each consecutive mesh nodes is computed and stored in `dx` (the
+# the number of cells `ncells`. The length between each consecutive mesh node is computed and stored in `dx` (the
 # length of the mesh cells).
 
 x = linspace(xl, xr, ncells + 1)    # interval [xl, xr] split into ncells
@@ -210,7 +222,7 @@ def define_chemical_system():
     # Define thermodynamical database to be used for chemical simulations
     db = Database('supcrt98.xml')
 
-    # Define chemical editor to work with chemical system
+    # Define chemical editor to work with the chemical system
     editor = ChemicalEditor(db)
 
     # Define phases and corresponding to these phases species
@@ -268,7 +280,7 @@ def define_initial_condition(system):
 # very close to $\mathrm{CO_2}$ saturation.
 #
 # After equilibration, the obtained chemical state representing the boundary condition for the injected fluid
-# composition, we scale its volume to 1 $\mathrm{m^3}$. This is done so that the amounts of the species in the fluid is
+# composition, we scale its volume to 1 $\mathrm{m^3}$. This is done so that the amounts of the species in the fluid are
 # consistent with a $\mathrm{mol/m^3}$ scale.
 
 def define_boundary_condition(system):
@@ -317,7 +329,7 @@ def partition_indices(system):
 # The array `b` is initialized with the concentrations of the elements at the initial chemical state, `state_ic`,
 # using method [elementAmounts](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html#a827457e68a90f89920c13f0cc06fda78)
 # of class [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html). The array `b_bc` stores
-# the concentrations of each element on the boundary in $\mathrm{mol/m^3_{fluid}}$.
+# the concentrations of each element on the boundary in $\mathrm{mol/m^3_{\rm fluid}}$.
 
 def partition_elements_in_mesh_cell(ncells, nelems, state_ic, state_bc):
 
@@ -367,7 +379,7 @@ def transport(states, bfluid, bsolid, b, b_bc, nelems, ifluid_species, isolid_sp
 
     # Get the porosity of the boundary cell
     bc_cell = 0
-    phi_bc = states[bc_cell].properties().fluidVolume().val / states[bc_cell].properties().volume().val;
+    phi_bc = states[bc_cell].properties().fluidVolume().val / states[bc_cell].properties().volume().val
 
     # Transport each element in the fluid phase
     for j in range(nelems):
@@ -478,8 +490,8 @@ def outputstate(step, system, states):
     output.close()
 
 # ## Plotting of the obtained results
-# The last block of the main routine is dedicated to plotting of the results and generating a video from the plots to
-# illustrate the time-dependent behavior of the chemical properties. It uses parallel pthread to run `plotfile`
+# The last block of the main routine is dedicated to the plotting of the results and generating a video from the
+# plots to illustrate the time-dependent behavior of the chemical properties. It uses parallel pthread to run `plotfile`
 # function for each file from the list `files`.
 
 def plot():

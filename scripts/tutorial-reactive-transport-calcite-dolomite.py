@@ -1,5 +1,17 @@
 # -*- coding: utf-8 -*-
-# # Reactive transport modelling along a rock core after injection of the fluid-rock composition
+# ---
+# jupyter:
+#   jupytext:
+#     cell_metadata_filter: -all
+#     formats: ../notebooks//ipynb,py:light
+#     text_representation:
+#       extension: .py
+#       format_name: light
+#       format_version: '1.5'
+#       jupytext_version: 1.3.0
+# ---
+
+# # Reactive transport modeling along a rock core after injection of the fluid-rock composition
 
 # In this tutorial, we show how Reaktoro can be used for sequential calculations of the reactive transport along a
 # rock column after injecting the fluid and rock composition at temperature 60 &deg; C and pressure 100 bar.
@@ -27,12 +39,13 @@ import os
 # We import the **reaktoro** Python package so that we can use its classes and methods for performing chemical
 # reaction calculations, **numpy** for working with arrays, **matplotlib** for plotting capabilities, **joblib** for
 # simple parallel computing, **os**, to provide a portable way of using operating system dependent
-# functionality. Finally, *ffmpeg* must be installed for handling video, audio, and other multimedia files and streams.
+# functionality. Finally, **ffmpeg** must be installed for handling video, audio, and other multimedia files and
+# streams.
 
 # > **Note**: To simplify the tutorials, we use `from reaktoro import *`, which imports all components of the
 # > **reaktoro** package into the default Python namespace. We note that this can potentially create name conflicts
 # > when used in bigger projects. For your applications, consider using `import reaktoro as rkt` instead,
-# > and call classes and methods as `rkt.Database`, `rkt.ChemicalSystem`, `rkt.equilibrate`, and etc.
+# > and call classes and methods as `rkt.Database`, `rkt.ChemicalSystem`, `rkt.equilibrate`, etc.
 
 # ## Initializing auxiliary time-related constants
 # In this step, we initialize auxiliary time-related constants from seconds up to years used in the rest of the code.
@@ -49,9 +62,9 @@ year = 365 * day
 # rock domain by setting coordinates of its left and right boundaries to 0.0 m and 100.0 m, respectively. The
 # discretization parameters, i.e., the number of cells and steps in time, are both set to 100. The reactive
 # transport modeling procedure assumes a constant fluid velocity of 1 m/week (1.65 · $10^{-6}$ m/s) and
-# the same diffusion coefficient of $10^{-9}$ m2/s for all fluid species (without dispersivity). The size of the
-# time-step is set to 30 minutes. Temperature and pressure are set to 60 &deg; C and 100 bar, respectively,
-# throughout the whole tutorial. 
+# the same diffusion coefficient of $10^{-9}$ $\mathrm{m^2/s}$ for all fluid species (without dispersivity).
+# The size of the time-step is set to 30 minutes. Temperature and pressure are set to 60 &deg; C and 100 bar,
+# respectively, throughout the whole tutorial.
 
 xl = 0.0  # x-coordinate of the left boundary
 xr = 1.0  # x-coordinate of the right boundary
@@ -129,10 +142,10 @@ def make_results_folders():
 #
 # The reactive transport simulation is performed in the function `simulate`, which consists from the several building
 # blocks (functions):
-# * initialization of the reactive transort problem and 
+# * initialization of the reactive transport problem and
 # * performing the reactive transport simulation along defined time interval.
 #
-# The preparitory initialization step consists of the following substeps:
+# The preparatory initialization step consists of the following sub-steps:
 # * definition of chemical system with its phases and species using `define_chemical_system()`,
 # * definition of the initial condition of the reactive transport problem in `define_initial_condition()`,
 # * definition of the boundary condition of the reactive transport problem in `define_initial_condition()`,
@@ -237,16 +250,16 @@ def simulate():
 # > [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html) is almost always needed for their
 # > initialization.
 #
-# > **Note**: The *activity coefficients* of the aqueous species are calculated using the *HKF extended Debye-Hückel
-# > model* for solvent water and ionic species, except for the aqueous species $\mathrm{CO_2(aq)}$, for which the
-# >  *Drummond model* is used.
-# > The *standard chemical potentials* of the species are calculated using the equations of state of Helgeson and
-# > Kirkham (1974), Helgeson et al. (1974), Tanger and Helgeson (1988), Shock and Helgeson (1988), and Shock et al. (
-# > 1992). The database file [slop98.dat](https://github.com/reaktoro/reaktoro/blob/master/databases/supcrt/slop98.dat)
-# > from the software SUPCRT92 is used to obtain the parameters for the equations of state.
-# > The equation of state of Wagner and Pruss (2002) is used to calculate the *density of water* and its temperature and
-# > pressure derivatives. Kinetics of *dissolution* and *precipitation* of both calcite and dolomite is neglected, i.e.,
-# > the local equilibrium assumption is employed.
+# The *activity coefficients* of the aqueous species in this tutorial are calculated using the
+# *Pitzer model* (unlike the default *HKF extended  Debye-Hückel model*) for solvent water and ionic species,
+# except for the aqueous species $\mathrm{CO_2(aq)}$, for which the *Drummond model* is used.
+# The *standard chemical potentials* of the species are calculated using the equations of state of Helgeson and
+# Kirkham (1974), Helgeson et al. (1974), Tanger and Helgeson (1988), Shock and Helgeson (1988), and Shock et al. (
+# 1992). The database file [slop98.dat](https://github.com/reaktoro/reaktoro/blob/master/databases/supcrt/slop98.dat)
+# from the software SUPCRT92 is used to obtain the parameters for the equations of state.
+# The equation of state of Wagner and Pruss (2002) is used to calculate the *density of water* and its temperature and
+# pressure derivatives. Kinetics of *dissolution* and *precipitation* of both calcite and dolomite is neglected, i.e.,
+# the local equilibrium assumption is employed.
 
 def define_chemical_system():
     # Step 7.1: Construct the chemical system with its phases and species
@@ -254,7 +267,9 @@ def define_chemical_system():
 
     editor = ChemicalEditor(db)
 
-    editor.addAqueousPhaseWithElements('H O Na Cl Ca Mg C Si Ca')
+    editor.addAqueousPhaseWithElements('H O Na Cl Ca Mg C Si Ca') \
+        .setChemicalModelPitzerHMW() \
+        .setActivityModelDrummondCO2()
     editor.addMineralPhase('Quartz')
     editor.addMineralPhase('Calcite')
     editor.addMineralPhase('Dolomite')
@@ -269,7 +284,7 @@ def define_chemical_system():
 # We have now defined and constructed our chemical system of interest, enabling us to move on to the next step in
 # Reaktoro's modeling workflow: *defining our chemical reaction problems*. Below we define its **initial condition**
 # with already prescribed equilibrium conditions for *temperature*, *pressure*, and *amounts of elements* that are
-# consistent with an intention to model reactive transport of injected $\mathrm{NaCl-MgCl_2-CaCl_2}$ brine into the
+# consistent to model reactive transport of injected $\mathrm{NaCl-MgCl_2-CaCl_2}$ brine into the
 # rock-fluid composition of quartz and calcite at 60 &deg;C and 100 bar. In particular, we consider resident fluid is a
 # 0.7 molal $\mathrm{NaCl}$ brine in equilibrium with the rock minerals with a calculated pH of 10.0.
 #
@@ -435,7 +450,7 @@ def transport(states, bfluid, bsolid, b, b_bc, nelems, ifluid_species, isolid_sp
 
     # Get the porosity of the boundary cell
     bc_cell = 0
-    phi_bc = states[bc_cell].properties().fluidVolume().val / states[bc_cell].properties().volume().val;
+    phi_bc = states[bc_cell].properties().fluidVolume().val / states[bc_cell].properties().volume().val
 
     # Transport each element in the fluid phase
     for j in range(nelems):
@@ -554,8 +569,8 @@ def outputstate(step, system, states):
 
 # ## Plotting of the obtained results
 #
-# The last block of the main routine is dedicated to plotting of the results and generating a video from the plots to
-# illustrate the time-dependent behavior of chemical properties.
+# The last block of the main routine is dedicated to the plotting of the results and generating a video from the
+# plots that illustrates the time-dependent behavior of chemical properties.
 
 def plot():
     # Plot all result files

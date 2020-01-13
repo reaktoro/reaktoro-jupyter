@@ -1,4 +1,17 @@
-# # Reactive transport of |CO2|-saturated brine along a porous rock column
+# -*- coding: utf-8 -*-
+# ---
+# jupyter:
+#   jupytext:
+#     cell_metadata_filter: -all
+#     formats: ../notebooks//ipynb,py:light
+#     text_representation:
+#       extension: .py
+#       format_name: light
+#       format_version: '1.5'
+#       jupytext_version: 1.3.0
+# ---
+
+# # Reactive transport of $\mathrm{CO_2}$-saturated brine along a porous rock column
 #
 # In this tutorial, we show how Reaktoro can be used for one-dimensional reactive transport calculations for modeling
 # the geochemical reactions that occur along a porous rock column as an aqueous fluid is continuously injected on its
@@ -6,9 +19,8 @@
 #
 # The injected fluid is a brine with 0.9 molal NaCl, 0.05 molal $\mathrm{MgCl_2}$, 0.01 molal $\mathrm{CaCl_2}$
 # and almost $\mathrm{CO_2}$-saturated, with 0.75 molal of $\mathrm{CO_2}$ dissolved.
-#
 # The porous rock is initially composed of minerals quartz $\mathrm{SiO_2}$ and calcite $\mathrm{CaCO_3}$. The
-# initial porosity is 10 %, and the initial volume percentages of the minerals are 98 $\%_{\rm vol}$ of quartz,
+# initial porosity is 10 %, and the initial volume percentages of the minerals are 98 $\%_{\rm vol}$ of quartz and
 # 2 $\%_{\rm vol}$ calcite. The initial conditions for the fluid in the rock is a 0.7 molal NaCl brine in
 # equilibrium with the existing rock minerals calcite and quartz. These initial fluid and rock composition conditions
 # are uniform throughout the rock core. We assume a rock column length of 100 m at temperature 60 &deg;C and 100 bar
@@ -33,11 +45,11 @@ import matplotlib.pyplot as plt
 # We import the **reaktoro** Python package so that we can use its classes and methods for performing chemical
 # reaction calculations, **numpy** for working with arrays, **matplotlib** for plotting capabilities, **joblib** for
 # simple parallel computing, and **os**, to provide a portable way of using operating system dependent functionality.
-# Finally, *ffmpeg* must be installed for handling video, audio, and other multimedia files and streams.
+# Finally, **ffmpeg** must be installed for handling video, audio, and other multimedia files and streams.
 
 # ## Defining auxiliary time-related constants
 # In this step, we initialize auxiliary time-related constants from seconds to years. This is only done for
-# convenience, so that we can specify later, for example, fluid velocity as 1 m/day.
+# convenience, so that we can specify later, for example, fluid velocity as 1 m/week.
 
 second = 1
 minute = 60
@@ -83,27 +95,10 @@ print(f"Make sure that CFL = {v*dt/dx} is less that 1.0")
 
 ndigits = len(str(nsteps))
 
-
-# ## Specifying the quantities and properties to be outputted
-# Before running the reactive transport simulations, we specify the list of parameters we are interested in
-# outputting. In this case, it is pH, molality of `H+`, `Ca++`, `Mg++`, `HCO3-`, `CO2(aq)`, as well as a phase volume
-# of calcite and dolomite.
-
-output_quantities = """
-    pH
-    speciesMolality(H+)
-    speciesMolality(Ca++)
-    speciesMolality(Mg++)
-    speciesMolality(HCO3-)
-    speciesMolality(CO2(aq))
-    phaseVolume(Calcite)
-    phaseVolume(Dolomite)
-""".split()
-
 # ## Auxiliary functions
 
 # Below, we list auxiliary function used in the python tutorial. Function `titlestr` returns a string for the title of
-# a figure in the format Time: #h##m.
+# a figure in the format `Time: _h__m`, e.g., `Time:1h35m`.
 
 def titlestr(t):
     t = t / minute   # Convert from seconds to minutes
@@ -121,8 +116,8 @@ def make_results_folders():
     os.system('mkdir -p figures/calcite-dolomite')
     os.system('mkdir -p videos')
 
-# `Plot()' routine is dedicated to plotting of the results and generating a video from the plots to illustrate the
-# time-dependent behavior of the chemical properties. It uses parallel pthread to run `plotfile` function for each
+# Routine `plot()` is dedicated to plotting of the results and generating a video from the plots to illustrate the
+# time-dependent behavior of the chemical properties. It uses parallel pthread to run `plotfile()` function for each
 # file from the list `files`.
 
 def plot():
@@ -130,7 +125,9 @@ def plot():
     files = sorted(os.listdir('results'))
     Parallel(n_jobs=16)(delayed(plotfile)(file) for file in files)
     # Create videos for the figures
-    ffmpegstr = 'ffmpeg -y -r 30 -i figures/{0}/%0' + str(ndigits) + 'd.png -codec:v mpeg4 -flags:v +qscale -global_quality:v 0 videos/{0}.mp4'
+    ffmpegstr = 'ffmpeg -y -r 30 -i figures/{0}/%0' \
+                + str(ndigits) \
+                + 'd.png -codec:v mpeg4 -flags:v +qscale -global_quality:v 0 videos/{0}.mp4'
     os.system(ffmpegstr.format('calcite-dolomite'))
     os.system(ffmpegstr.format('aqueous-species'))
     os.system(ffmpegstr.format('ph'))
@@ -191,12 +188,12 @@ def plotfile(file):
 
 # ### Defining the chemical system
 #
-# We need to define a chemical system that can represent both our fluid and rock. We use class [ChemicalEditor](
-# # https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html) below to define a system with an aqueous phase
-# and three mineral phases: quartz, calcite, and dolomite. Initially, our rock has no dolomite ($\mathrm{CaMg(
-# CO_3)_2}$), but since this is a mineral that could potentially precipitate given the fluid composition injected (
-# containing $\mathrm{CaCl_2}$ and $\mathrm{MgCl_2}$ dissolved), we add it here in the chemical system to ensure that
-# the calculations are able to model dolomite precipitation.
+# We need to define a chemical system that can represent both our fluid and rock. We use class
+# [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html) below to define a system with an
+# aqueous phase and three mineral phases: quartz, calcite, and dolomite. Initially, our rock has no dolomite
+# ($\mathrm{CaMg( CO_3)_2}$), but since this is a mineral that could potentially precipitate given the fluid
+# composition injected ( containing $\mathrm{CaCl_2}$ and $\mathrm{MgCl_2}$ dissolved), we add it here in the
+# chemical system to ensure that the calculations are able to model dolomite precipitation.
 
 db = Database('supcrt98.xml')
 editor = ChemicalEditor(db)
@@ -374,5 +371,10 @@ while step <= nsteps:  # step until the number of steps are achieved
     # Increment time step and number of time steps
     t += dt
     step += 1
+
+# ## Plotting of the obtained results
+# The last block of the main routine is dedicated to plotting of the results and generating a video from the plots to
+# illustrate the time-dependent behavior of the chemical properties. It uses parallel pthread to run `plotfile`
+# function for each file from the list `files`.
 
 plot()
