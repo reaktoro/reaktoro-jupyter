@@ -8,7 +8,7 @@
 
 all: tutorial notebooks
 
-tutorial: notebooks
+tutorial: clean notebooks
 	mkdir -p tutorial
 	for f in scripts/notebooks/*.ipynb ; do \
 		python utilities/unpair.py $$f --output tutorial/$${f##*/} ; \
@@ -22,4 +22,4 @@ sync:
 
 clean:
 	rm -rf scripts/notebooks
-	rm -rf tutorial
+	rm -rf tutorial/*ipynb
