@@ -16,6 +16,7 @@ tutorial: clean notebooks
 
 notebooks:
 	jupytext --set-formats notebooks//ipynb,py:light scripts/*.py
+	jupytext --set-formats notebooks//ipynb,md scripts/*.md
 
 sync:
 	jupytext --sync scripts/*.py

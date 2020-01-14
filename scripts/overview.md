@@ -1,7 +1,7 @@
 ---
 jupyter:
   jupytext:
-    formats: ipynb,md
+    formats: notebooks//ipynb,md
     text_representation:
       extension: .md
       format_name: markdown
@@ -18,7 +18,7 @@ jupyter:
 </div>
 
 
-    
+
 ## Tutorial Overview
 
 The tutorial is broken into several sections, which are each presented in their own notebook.
