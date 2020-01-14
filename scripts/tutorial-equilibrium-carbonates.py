@@ -1,3 +1,17 @@
+# ---
+# jupyter:
+#   jupytext:
+#     cell_metadata_filter: -all
+#     formats: notebooks//ipynb,py:light
+#     text_representation:
+#       extension: .py
+#       format_name: light
+#       format_version: '1.5'
+#       jupytext_version: 1.3.0
+# ---
+
+
+
 # # Performing a chemical equilibrium calculation of carbonate species
 #
 # This tutorial demonstrates how to use Reaktoro to perform a chemical equilibrium calculation with carbon species.
