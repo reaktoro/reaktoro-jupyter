@@ -179,3 +179,11 @@ print(f"The pH of the aqueous phase is {pH.val}.")
 print(f"Its sensitivity with respect to speciation, ∂(pH)/∂n, is:")
 for i, species in enumerate(system.species()):
     print(f"{species.name():>15} = {pH.ddn[i]}")
+
+
+# [ChemicalEditor]: https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html
+# [ChemicalProperties]: https://reaktoro.org/cpp/classReaktoro_1_1ChemicalProperties.html
+# [ChemicalState]: https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html
+# [ChemicalSystem]: https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html
+# [Database]: https://reaktoro.org/cpp/classReaktoro_1_1Database.html
+# [EquilibriumProblem]: https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumProblem.html
