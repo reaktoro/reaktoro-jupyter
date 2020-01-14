@@ -1,3 +1,6 @@
+# Build files
+scripts/notebooks
+
 # Temporary files
 results/*
 scripts/notebooks/
