@@ -18,7 +18,7 @@
 #
 # This tutorial demonstrates how to use Reaktoro to perform a chemical equilibrium calculation with customized activity
 # models. We use an example of equilibration of  $\mathrm{H_2O–NaCl–CO_2}$ system when 1 kg of $\mathrm{H_2O}$,
-# 100 g of $\mathrm{CO_2}$, and 1 mol of $\mathrm{NaCl}$ are mixed at temperature 60 $^\circ$C and pressure 300 bar.
+# 100 g of $\mathrm{CO_2}$, and 1 mol of $\mathrm{NaCl}$ are mixed at temperature 60 &deg;C and pressure 300 bar.
 # First, we import everything from the `reaktoro` package by
 
 from reaktoro import *
@@ -149,7 +149,7 @@ problem = EquilibriumProblem(system)
 # the conditions at which our system should be in equilibrium.
 # For the equilibrium calculation, we have set temperature and pressure with optional units.
 #
-# > **Note**: The default values are 25 $^\circ$C for the temperature and 1 bar for pressure.
+# > **Note**: The default values are 25 &deg;C for the temperature and 1 bar for pressure.
 
 problem.setTemperature(60, "celsius")
 problem.setPressure(300, "bar")

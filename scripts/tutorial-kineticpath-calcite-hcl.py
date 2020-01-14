@@ -14,7 +14,7 @@
 # # Dissolution of calcite in an acidic $\mathrm{HCl}$-solution
 #
 # This tutorial demonstrates how Reaktoro can be used for modeling the dissolution of calcite in an acidic
-# $\mathrm{HCl}$-solution at temperature 30 $^\circ$C and pressure 1 bar using chemical kinetics. A partial equilibrium
+# $\mathrm{HCl}$-solution at temperature 30 &deg;C and pressure 1 bar using chemical kinetics. A partial equilibrium
 # assumption is considered here so that aqueous species react using a chemical equilibrium model, while calcite
 # reacts with the aqueous solution using a chemical kinetics model.
 
@@ -104,7 +104,7 @@ problem.add("HCl", 1, "mmol")
 # what should be the initial state of the equilibrium species (the aqueous species in this case), before we start the
 # chemical kinetics calculation that will simulate the dissolution of calcite in this aqueous fluid.
 #
-# By mixing 1 kg of $\mathrm{H_2O}$ and 1 mmol of $\mathrm{HCl}$ at 30 $^\circ$C and 1 bar, we should produce a
+# By mixing 1 kg of $\mathrm{H_2O}$ and 1 mmol of $\mathrm{HCl}$ at 30 &deg;C and 1 bar, we should produce a
 # chemical equilibrium state that corresponds to an acidic aqueous fluid. The species in this fluid will be in
 # disequilibrium with Calcite (our single kinetic species in this setup) since only equilibrium species
 # (i.e., the aqueous species) are considered during the next chemical equilibrium calculation.
@@ -158,7 +158,7 @@ output.add("pH")
 # Finally, we solve the kinetic path problem.
 # This step executes the method solve of class
 # [KineticPath](https://reaktoro.org/cpp/classReaktoro_1_1KineticPath.html), which requires the initial state of the
-# system (100 g of calcite in disequilibrium with a 1 mmolal $\mathrm{HCl}$ aqueous solution at 30 $^\circ$C and 1 bar,
+# system (100 g of calcite in disequilibrium with a 1 mmolal HCl aqueous solution at 30 &deg;C and 1 bar,
 # represented with the object state0), the initial and final time of the kinetic path calculation (`t0` and `t1`,
 # respectively), and the time unit of the specified time parameters (e.g., s, minute, day, year, etc.).
 

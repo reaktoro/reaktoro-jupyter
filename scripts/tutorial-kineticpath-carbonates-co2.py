@@ -155,7 +155,7 @@ partition.setKineticSpecies(["Calcite", "Magnesite", "Dolomite"])
 # The equilibrium problem formulated below, using class
 # [EquilibriumProblem](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumProblem.html), is done so that the
 # initial condition for the amounts of each equilibrium species result from the solution of a chemical equilibrium
-# problem in which 1 kg of water is mixed with 1 mol of $\mathrm{NaCl}$ and 1 mol of $\mathrm{CO_2}$ at 60 $^\circ$C
+# problem in which 1 kg of water is mixed with 1 mol of $\mathrm{NaCl}$ and 1 mol of $\mathrm{CO_2}$ at 60 &deg;C
 # and 100 bar. This amount of $\mathrm{CO_2}$ is sufficient to saturate the brine solution. The excess will exist in
 # the $\mathrm{CO_2}$-rich gaseous phase.
 

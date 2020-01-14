@@ -80,7 +80,7 @@ for species in system.species():
 # Next, we create an equilibrium problem with our prescribed equilibrium conditions for
 # amounts of elements that are consistent with our intention of calculating reaction of calcite with
 # injected 0.002 molal $\mathrm{MaCl_2}$ brine. Both temperature and pressure are assumed to be default values, i.e.,
-# 25 $^\circ$C and 1 bar, respectively.
+# 25 &deg;C and 1 bar, respectively.
 
 problem = EquilibriumProblem(system)
 problem.add("H2O", 1, "kg")
