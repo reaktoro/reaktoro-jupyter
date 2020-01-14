@@ -11,17 +11,17 @@
 #       jupytext_version: 1.3.0
 # ---
 
-# # Reactive transport of $\mathrm{CO_2}$-saturated brine along a porous rock column
+# # Reactive transport of CO<sub>2</sub>-saturated brine along a porous rock column
 #
 # In this tutorial, we show how Reaktoro can be used for one-dimensional reactive transport calculations for modeling
 # the geochemical reactions that occur along a porous rock column as an aqueous fluid is continuously injected on its
 # left side.
 #
-# The injected fluid is a brine with 0.9 molal NaCl, 0.05 molal $\mathrm{MgCl_2}$, 0.01 molal $\mathrm{CaCl_2}$
-# and almost $\mathrm{CO_2}$-saturated, with 0.75 molal of $\mathrm{CO_2}$ dissolved.
-# The porous rock is initially composed of minerals quartz $\mathrm{SiO_2}$ and calcite $\mathrm{CaCO_3}$. The
-# initial porosity is 10 %, and the initial volume percentages of the minerals are 98 $\%_{\rm vol}$ of quartz and
-# 2 $\%_{\rm vol}$ calcite. The initial conditions for the fluid in the rock is a 0.7 molal NaCl brine in
+# The injected fluid is a brine with 0.9 molal NaCl, 0.05 molal MgCl<sub>2</sub>, 0.01 molal CaCl<sub>2</sub>
+# and almost CO<sub>2</sub>-saturated, with 0.75 molal of CO<sub>2</sub> dissolved.
+# The porous rock is initially composed of minerals quartz SiO<sub>2</sub> and calcite CaCO<sub>3</sub>. The
+# initial porosity is 10 %, and the initial volume percentages of the minerals are 98 %<sub>vol</sub> of quartz and
+# 2 %<sub>vol</sub> calcite. The initial conditions for the fluid in the rock is a 0.7 molal NaCl brine in
 # equilibrium with the existing rock minerals calcite and quartz. These initial fluid and rock composition conditions
 # are uniform throughout the rock core. We assume a rock column length of 100 m at temperature 60 &deg;C and 100 bar
 # throughout.
@@ -63,7 +63,7 @@ year = 365 * day
 # rock domain by setting coordinates of its left and right boundaries to 0.0 m and 100.0 m, respectively. The
 # discretization parameters, i.e., the number of cells and steps in time, are both set to 100. The reactive
 # transport modeling procedure assumes a constant fluid velocity of 1 m/week (1.16 · $10^{-5}$ m/s) and the same
-# diffusion coefficient of $10^{-9}$ $\mathrm{m^2/s}$ for all fluid species (without dispersivity). The size of the
+# diffusion coefficient of $10^{-9}$ m<sup>2</sup>/s for all fluid species (without dispersivity). The size of the
 # time-step is set to 30 minutes. Temperature and pressure are set to 60 &deg; C and 100 bar, respectively,
 # throughout the whole tutorial.
 
@@ -191,8 +191,8 @@ def plotfile(file):
 # We need to define a chemical system that can represent both our fluid and rock. We use class
 # [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html) below to define a system with an
 # aqueous phase and three mineral phases: quartz, calcite, and dolomite. Initially, our rock has no dolomite
-# ($\mathrm{CaMg( CO_3)_2}$), but since this is a mineral that could potentially precipitate given the fluid
-# composition injected ( containing $\mathrm{CaCl_2}$ and $\mathrm{MgCl_2}$ dissolved), we add it here in the
+# (CaMg(CO<sub>3</sub>)<sub>2</sub>), but since this is a mineral that could potentially precipitate given the fluid
+# composition injected ( containing CaCl<sub>2</sub> and MgCl<sub>2</sub> dissolved), we add it here in the
 # chemical system to ensure that the calculations are able to model dolomite precipitation.
 
 db = Database('supcrt98.xml')
@@ -232,10 +232,10 @@ problem_ic.add('SiO2', 10, 'mol')
 # ### Boundary condition for the fluid composition
 #
 # Next, we define the **boundary condition** for the fluid composition on the left side of the rock, which should be
-# the one that represents the fluid being continuously injected: 0.9 molal NaCl, 0.05 molal $\mathrm{MgCl_2}$,
-# 0.01 molal $\mathrm{CaCl_2}$ and almost $\mathrm{CO_2}$-saturated, with 0.75 molal of $\mathrm{CO_2}$ dissolved. To
-# provide that, we mix 1 kg of $\mathrm{HO_2}$ with 0.9 mol of NaCl, 0.05 mol of $\mathrm{MgCl_2}$, 0.01 mol
-# of $\mathrm{CaCl_2}$, and 0.75 mol of $\mathrm{CO_2}$.
+# the one that represents the fluid being continuously injected: 0.9 molal NaCl, 0.05 molal MgCl<sub>2</sub>,
+# 0.01 molal CaCl<sub>2</sub> and almost CO<sub>2</sub>-saturated, with 0.75 molal of CO<sub>2</sub> dissolved. To
+# provide that, we mix 1 kg of HO<sub>2</sub> with 0.9 mol of NaCl, 0.05 mol of MgCl<sub>2</sub>, 0.01 mol
+# of CaCl<sub>2</sub>, and 0.75 mol of CO<sub>2</sub>.
 
 problem_bc = EquilibriumProblem(system)
 problem_bc.setTemperature(T, 'celsius')
@@ -259,14 +259,14 @@ state_bc = equilibrate(problem_bc)
 # ### Scaling the phases in the initial condition
 #
 # The initial chemical state `state_ic` computed before has, at this point, phases with volumes that do not
-# correspond to our desired porosity of 10 % and rock mineral composition of 98 $\%_{\rm vol}$ of quartz and
-# 2 $\%_{\rm vol}$ of calcite.
+# correspond to our desired porosity of 10 % and rock mineral composition of 98 %<sub>vol</sub> of quartz and
+# 2 %<sub>vol</sub> of calcite.
 #
 # To obtain this, we scale the volumes of the aqueous and mineral phases as shown
 # below:
-# > **Note**: After this scaling step, the sum of the phase volumes in ``state_ic`` is 1 $\mathrm{m^3}$. This also
-# > ensures that the amounts of the species in the chemical system are normalized by $\mathrm{m^3}$, and thus they can
-# be regarded as concentrations in a unit of $\mathrm{mol/m^3}$ (*bulk volume, not fluid volume!*).
+# > **Note**: After this scaling step, the sum of the phase volumes in ``state_ic`` is 1 m<sup>3</sup>. This also
+# > ensures that the amounts of the species in the chemical system are normalized by m<sup>3</sup>, and thus they can
+# be regarded as concentrations in a unit of mol/m<sup>3</sup> (*bulk volume, not fluid volume!*).
 
 # Scale the volumes of the phases in the initial condition
 state_ic.scalePhaseVolume('Aqueous', 0.1, 'm3') # corresponds to the initial porosity of 10%.
@@ -275,8 +275,8 @@ state_ic.scalePhaseVolume('Calcite', 0.018, 'm3')
 
 # ### Scaling the boundary condition state
 #
-# Next, we scale the boundary condition state to 1 $\mathrm{m^3}$, so that we have the amounts of fluid species in
-# `state_bc` also normalized by $\mathrm{m^3}$.
+# Next, we scale the boundary condition state to 1 m<sup>3</sup>, so that we have the amounts of fluid species in
+# `state_bc` also normalized by m<sup>3</sup>.
 #
 # > **Note**: The chemical state represented by `state_bc` has no other stable phase than the aqueous phase (i.e.,
 # > all mineral phases have zero or negligible amounts such as $10^{-21}$ mol).

@@ -17,8 +17,8 @@
 # # Performing a chemical equilibrium calculation with customized activity models
 #
 # This tutorial demonstrates how to use Reaktoro to perform a chemical equilibrium calculation with customized activity
-# models. We use an example of equilibration of  $\mathrm{H_2O–NaCl–CO_2}$ system when 1 kg of $\mathrm{H_2O}$,
-# 100 g of $\mathrm{CO_2}$, and 1 mol of $\mathrm{NaCl}$ are mixed at temperature 60 &deg;C and pressure 300 bar.
+# models. We use an example of equilibration of  H<sub>2</sub>O-NaCl-CO<sub>2</sub> system when 1 kg of H<sub>2<\sub>O,
+# 100 g of CO<sub>2</sub>, and 1 mol of NaCl are mixed at temperature 60 &deg;C and pressure 300 bar.
 # First, we import everything from the `reaktoro` package by
 
 from reaktoro import *
@@ -64,7 +64,7 @@ editor = ChemicalEditor()
 # we add the list of exact names of aqueous species we wish to be simulated in computations.
 # The default model to calculate the activities of solvent water and ionic species is the HKF model.
 # Note that activity models are also needed for *neutral species* then an ideal model is used, in which their activity
-# coefficients are one. For some neutral aqueous species, such as $\mathrm{CO_2(aq)}$, we specify the Drummond model
+# coefficients are one. For some neutral aqueous species, such as CO<sub>2</sub>(aq), we specify the Drummond model
 
 editor.addAqueousPhase(["H2O(l)", "H+", "OH-", "Na+", "Cl-", "HCO3-", "CO2(aq)", "CO3--"]) \
     .setActivityModelDrummondCO2()
@@ -105,16 +105,16 @@ aqueous_phase.setChemicalModelDebyeHuckel()
 # list of provided elements or from substance names that are parsed by the
 # [ChemicalEditor](https://reaktoro.org/cpp/classReaktorobl_1_1ChemicalEditor.html) to generate all possible
 # species that can be combined from elements used in those lists. However, for this particular example,
-# the water vapor, $\mathrm{H_2O(g)}$, and gaseous/supercritical carbon dioxide, $\mathrm{CO_2(g)}$, suffices to
+# the water vapor, H<sub>2<\sub>O(g), and gaseous/supercritical carbon dioxide, CO<sub>2<\sub>(g), suffices to
 # represent the gaseous phase:
 
 editor.addGaseousPhase(["H2O(g)", "CO2(g)"]) \
     .setChemicalModelSpycherPruessEnnis()
 
 # Here, method `setChemicalModelSpycherPruessEnnis()` sets Spycher et al. (2003) equation of state. This model only
-# supports the gaseous species $\mathrm{H_2O(g)}$ and $\mathrm{CO_2(g)}$. Any other species will result in a runtime
-# error. Alternately, the Spycher and Reed (1988) equation of state can be set (only for $\mathrm{H_2O(g)}$,
-# $\mathrm{CO_2(g)}$, and $\mathrm{CH_4(g)}$).
+# supports the gaseous species H<sub>2<\sub>O(g) and CO<sub>2<\sub>(g). Any other species will result in a runtime
+# error. Alternately, the Spycher and Reed (1988) equation of state can be set (only for H<sub>2<\sub>O(g),
+# CO<sub>2<\sub>(g), and CH<sub>4</sub>(aq)).
 # If no model is explicitly specified, the Peng-Robinson equation of state is chosen by default to calculate the
 # thermodynamic and chemical properties of this GaseousPhase object.
 
@@ -124,7 +124,7 @@ editor.addGaseousPhase(["H2O(g)", "CO2(g)"]) \
 # phases are *pure mineral phases*, i.e., they contain only one mineral species. If more than one minerals are
 # present, they are often called *solid solutions*. Defining a pure mineral phase or a solid solution phase is
 # similar to defining any other phase type. The code below demonstrates addition of pure mineral phases halite
-# $\mathrm{NaCl}$:
+# NaCl:
 
 editor.addMineralPhase("Halite")
 
@@ -154,8 +154,8 @@ problem = EquilibriumProblem(system)
 problem.setTemperature(60, "celsius")
 problem.setPressure(300, "bar")
 
-# Additionally, we have to add amount of the solutions used in the equilibrium calculations. For $\mathrm{
-# NaCl}$-brine, we mix 1 kg of water with 1 mol of salt. Plus, we take 100 g of $\mathrm{CO_2}$:
+# Additionally, we have to add amount of the solutions used in the equilibrium calculations. For NaCl-brine,
+# we mix 1 kg of water with 1 mol of salt. Plus, we take 100 g of CO<sub>2</sub>:
 
 problem.add("H2O", 1, "kg")
 problem.add("NaCl", 1, "mol")

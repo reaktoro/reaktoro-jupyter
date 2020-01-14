@@ -8,6 +8,10 @@
 #       format_name: light
 #       format_version: '1.5'
 #       jupytext_version: 1.3.0
+#   kernelspec:
+#     display_name: Python 3
+#     language: python
+#     name: python3
 # ---
 
 # # Evaluating standard thermodynamic properties of substances and reactions
@@ -38,7 +42,7 @@ thermo = Thermo(db)
 
 # ## Calculating thermodynamic properties
 
-# Below, we show how the standard Gibbs energy of `Na+` is computed at 360 K and 10 bar:
+# Below, we show how the standard Gibbs energy of Na<sup>+</sup> is computed at 360 K and 10 bar:
 
 T = 360.0  # temperature in K
 P = 10.0e5  # pressure in Pa (equivalent to 10 bar)

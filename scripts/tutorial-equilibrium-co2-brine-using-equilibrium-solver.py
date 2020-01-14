@@ -34,7 +34,7 @@ editor.addGaseousPhase(["H2O(g)", "CO2(g)"])
 editor.addMineralPhase("Halite")
 
 # Here, [AqueousPhase](https://reaktoro.org/cpp/classReaktoro_1_1AqueousPhase.html) is created by specifying the
-# list of compound or substance names, i.e., $\mathrm{H_2O}$, $\mathrm{NaCl}$, and $\mathrm{CO_2}$, that might not
+# list of compound or substance names, i.e., H<sub>2<\sub>O, NaCl, and CO<sub>2</sub>, that might not
 # necessarily represent names of species in the database.
 # Function [addAqueousPhaseWithElementsOf](
 # https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html#a23e44f994b87c650a949226ddc195710) will brake the list
@@ -42,7 +42,7 @@ editor.addMineralPhase("Halite")
 # be formed out of those elements.
 
 # Then, [GaseousPhase](https://reaktoro.org/cpp/classReaktoro_1_1GaseousPhase.html) is composed of the names of
-# the provided gaseous species $\mathrm{H_2O(g)}$ and $\mathrm{CO_2(g)}$, using function
+# the provided gaseous species H<sub>2<\sub>O(g) and CO<sub>2<\sub>(g), using function
 # [addGaseousPhase](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html#a8ec1e3a057d794df0dd6988c84bb5d3d).
 # These names must conform to those used in the database that was specified  during the initialization of the
 # [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html) object, otherwise, an exception

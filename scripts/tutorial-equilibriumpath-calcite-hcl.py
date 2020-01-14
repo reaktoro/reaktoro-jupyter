@@ -23,9 +23,9 @@
 # temperature, pressure, and elemental amounts in the system to bring the initial state to the final state, slowly
 # enough so that **every intermediate state is in equilibrium**, the system would trace a co-called *reaction path*.
 #
-# Let the initial state have 1 g of calcite ($\mathrm{CaCO_3}$) mixed with 1 kg of water. We want to see how the 
+# Let the initial state have 1 g of calcite (CaCO<sub>3</sub>) mixed with 1 kg of water. We want to see how the
 # addition of
-# hydrochloric acid ($\mathrm{HCl}$), up to 1 mmol, contributes to the dissolution of calcite. Thus, our initial and final
+# hydrochloric acid (HCl), up to 1 mmol, contributes to the dissolution of calcite. Thus, our initial and final
 # states for a reaction path calculation can be described as follows:
 #
 # | Initial state  | Final state    |
@@ -140,7 +140,7 @@ plt.xlabel("pH")
 plt.ylabel("Amount of Cl [mmol]")
 plt.savefig("amount-hcl-vs-ph.png")
 
-# The second plot sets the *x*-axis to the amount of $\mathrm{Cl}$ from added $\mathrm{HCl}$ and
+# The second plot sets the *x*-axis to the amount of $\mathrm{Cl}$ from added HCl and
 # the *y*-axis to the molality of element $\mathrm{Ca}$, i.e., the molar amount of $\mathrm{Ca}$ **in the aqueous
 # phase**, divided by the mass of solvent water $\mathrm{H_2O(l)}$.
 
@@ -152,7 +152,7 @@ plt.tight_layout()
 plt.savefig("concetration-ca-vs-amount-hcl.png")
 
 # The third plot the *x*-axis to pH, but the *y*-axis now contains two plotted quantities: the molality of species
-# $\mathrm{CO_2(aq)}$ and the molality of species $\mathrm{CO_3^{2-}}$, both in units of mmolal (i.e., mmol/kgH2O).
+# CO<sub>2</sub>(aq) and the molality of species $\mathrm{CO_3^{2-}}$, both in units of mmolal (i.e., mmol/kgH2O).
 
 plt.figure()
 plt.plot(data[ph_indx], data[co2aq_indx], label="CO2(aq)")
@@ -164,7 +164,7 @@ plt.tight_layout()
 plt.savefig("concetration-co2-co3-vs-ph.png")
 
 # The fourth and last figure finally plots how the mass of calcite (or calcium carbonate) changes with the addition of
-# $\mathrm{HCl}$ in the system:
+# HCl in the system:
 
 plt.figure()
 plt.plot(data[cl_indx], data[calcite_indx], label="Calcite")

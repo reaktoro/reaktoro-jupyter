@@ -9,6 +9,10 @@
 #       format_name: light
 #       format_version: '1.5'
 #       jupytext_version: 1.3.0
+#   kernelspec:
+#     display_name: Python 3
+#     language: python
+#     name: python3
 # ---
 
 # # Reactive transport modeling along a rock core after injection of the fluid-rock composition
@@ -62,7 +66,7 @@ year = 365 * day
 # rock domain by setting coordinates of its left and right boundaries to 0.0 m and 100.0 m, respectively. The
 # discretization parameters, i.e., the number of cells and steps in time, are both set to 100. The reactive
 # transport modeling procedure assumes a constant fluid velocity of 1 m/week (1.65 · $10^{-6}$ m/s) and
-# the same diffusion coefficient of $10^{-9}$ $\mathrm{m^2/s}$ for all fluid species (without dispersivity).
+# the same diffusion coefficient of $10^{-9}$ m<sup>2</sup>/s for all fluid species (without dispersivity).
 # The size of the time-step is set to 30 minutes. Temperature and pressure are set to 60 &deg; C and 100 bar,
 # respectively, throughout the whole tutorial.
 
@@ -229,13 +233,13 @@ def simulate():
 # *mineral*, should be considered in the chemical system. The aqueous phase is defined by using a list of
 # compounds, which will be broken into a list of element names, and the database will then be searched for all
 # species that could be formed out of those elements. The mineral phase is defined as three mineral species:
-# quartz ($\mathrm{SiO_2}$), calcite ($\mathrm{CaCO3}$), and dolomite ($\mathrm{CaMg(CO_3)_2}$).
+# quartz (SiO<sub>2</sub>), calcite (CaCO<sub>3</sub>), and dolomite (CaMg(CO<sub>3</sub>)<sub>2</sub>).
 #
 # > **Note**: An automatic search for chemical species can result in a large number of species in the phase,
 # > potentially causing the chemical reaction calculations to be more computationally expensive. If you are using
 # > Reaktoro in demanding applications (e.g., as a chemical solver in a reactive transport simulator), you might want
 # > to manually specify the chemical species of each phase in your chemical system. This can be achieved by providing a
-# > list of species names as `editor.addAqueousPhaseWithElements([ 'H2O(l)', 'H+', 'OH-', 'Na+', 'Cl-', 'Ca++', 'Mg++',
+# > list of species names as `editor.addAqueousPhaseWithElements(['H2O(l)', 'H+', 'OH-', 'Na+', 'Cl-', 'Ca++', 'Mg++',
 # > 'HCO3-', 'CO2(aq)', 'CO3--' ]).
 
 # Finally, we create an object of class [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html)
@@ -251,8 +255,8 @@ def simulate():
 # > initialization.
 #
 # The *activity coefficients* of the aqueous species in this tutorial are calculated using the
-# *Pitzer model* (unlike the default *HKF extended  Debye-Hückel model*) for solvent water and ionic species,
-# except for the aqueous species $\mathrm{CO_2(aq)}$, for which the *Drummond model* is used.
+# *Pitzer model* (unlike the default *HKF extended  Debye-Huckel model*) for solvent water and ionic species,
+# except for the aqueous species CO<sub>2</sub>(aq), for which the *Drummond model* is used.
 # The *standard chemical potentials* of the species are calculated using the equations of state of Helgeson and
 # Kirkham (1974), Helgeson et al. (1974), Tanger and Helgeson (1988), Shock and Helgeson (1988), and Shock et al. (
 # 1992). The database file [slop98.dat](https://github.com/reaktoro/reaktoro/blob/master/databases/supcrt/slop98.dat)
@@ -262,7 +266,7 @@ def simulate():
 # the local equilibrium assumption is employed.
 
 def define_chemical_system():
-    # Step 7.1: Construct the chemical system with its phases and species
+    # Construct the chemical system with its phases and species
     db = Database('supcrt98.xml')
 
     editor = ChemicalEditor(db)
@@ -284,9 +288,9 @@ def define_chemical_system():
 # We have now defined and constructed our chemical system of interest, enabling us to move on to the next step in
 # Reaktoro's modeling workflow: *defining our chemical reaction problems*. Below we define its **initial condition**
 # with already prescribed equilibrium conditions for *temperature*, *pressure*, and *amounts of elements* that are
-# consistent to model reactive transport of injected $\mathrm{NaCl-MgCl_2-CaCl_2}$ brine into the
+# consistent to model reactive transport of injected NaCl-MgCl<sub>2</sub>-CaCl<sub>2</sub> brine into the
 # rock-fluid composition of quartz and calcite at 60 &deg;C and 100 bar. In particular, we consider resident fluid is a
-# 0.7 molal $\mathrm{NaCl}$ brine in equilibrium with the rock minerals with a calculated pH of 10.0.
+# 0.7 molal NaCl brine in equilibrium with the rock minerals with a calculated pH of 10.0.
 #
 
 def define_initial_condition(system):
@@ -308,11 +312,11 @@ def define_initial_condition(system):
 
     return state_ic
 
-# > **Note**: Our **0.7 molal NaCl brine** is here represented by the mixture of 1 kg of $\mathrm{H_20}$ and 0.7 mol of
-# > $\mathrm{NaCl}$.
+# > **Note**: Our **0.7 molal NaCl brine** is here represented by the mixture of 1 kg of H<sub>2</sub>O and 0.7 mol of
+# > NaCl.
 #
-# > **Note**: After providing the amounts of substances $\mathrm{H_20}$, $\mathrm{NaCl}$, quartz $\mathrm{SiO_2}$,
-# > and calcite $\mathrm{CaCO_3}$ in the above code, Reaktoro parses these chemical formulas and determines the
+# > **Note**: After providing the amounts of substances H<sub>2</sub>O, NaCl, quartz SiO<sub>2</sub>,
+# > and calcite CaCO<sub>3</sub> in the above code, Reaktoro parses these chemical formulas and determines the
 # > elements and their coefficients. Once this is done, the amount of each element stored inside the object
 # > `problem_ic` is incremented according to the given amount of substance and its coefficient in the formula. The
 # > amounts of elements you provide are then used as constraints for the Gibbs energy minimization calculation when
@@ -337,19 +341,19 @@ def define_initial_condition(system):
 # conditions for temperature, pressure, and element amounts.
 
 # The function ends with scaling the volumes of the aqueous and mineral phases so that they are consistent with a 10 %
-# porosity and the required volume percentages of the rock minerals (98 $\%_{\rm vol}$ of quartz and 2 $\%_{\rm vol}$
+# porosity and the required volume percentages of the rock minerals (98 %<sub>vol</sub> of quartz and 2 %<sub>vol</sub>
 # of calcite).
 
 # ### Boundary condition (BC) of the reactive transport problem
 #
 # Next, we define the **boundary condition** of the constructed chemical system with its *temperature*, *pressure*,
 # and *amounts of elements*. In particular, we prescribe the amount of injected aqueous fluid resulting from
-# the mixture of 1 kg of water with 0.90 moles of $\mathrm{NaCl}$, 0.05 molal $\mathrm{MgCl_2}$, 0.01 $\mathrm{
-# CaCl_2}$, and 0.75 molal $\mathrm{CO_2}$, in a state very close to $\mathrm{CO_2}$ saturation.
+# the mixture of 1 kg of water with 0.90 moles of NaCl, 0.05 molal MgCl<sub>2</sub>, 0.01 CaCl<sub>2</sub>,
+# and 0.75 molal CO<sub>2</sub>, in a state very close to CO<sub>2</sub> saturation.
 # The temperature and the pressure stays the same, i.e., 60 &deg; C and 100 bar, respectively.
 #
 # After equilibration, the obtained chemical state representing the boundary condition for the injected fluid
-# composition, we scale its volume to 1 $\mathrm{m^3}$. This is done so that the amounts of the species in the fluid are
+# composition, we scale its volume to 1 m<sup>3</sup>. This is done so that the amounts of the species in the fluid are
 # consistent with a \mathrm{mol/m^3} scale.
 
 def define_boundary_condition(system):
@@ -394,13 +398,13 @@ def partition_indices(system):
 # In this function, we create arrays to keep track of the amounts of elements in the fluid and solid partition
 # (i.e., the amounts of elements among all fluid phases, here only an aqueous phase, and the amounts of elements among
 # all solid phases, here the mineral phases). For that, we define the arrays `b`, `bfluid`, `bsolid`, that
-# will store, respectively, the concentrations ($\mathrm{mol/m^3}$) of each element in the system, in the fluid
+# will store, respectively, the concentrations (mol/m<sup>3</sup>) of each element in the system, in the fluid
 # partition, and in the solid partition at every time step.
 #
 # The array `b` is initialized with the concentrations of the elements at the initial chemical state, `state_ic`,
 # using method [elementAmounts](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html#a827457e68a90f89920c13f0cc06fda78)
 # of class [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html). The array `b_bc` stores
-# the concentrations of each element on the boundary in $\mathrm{[mol/m^3_{fluid}]}$.
+# the concentrations of each element on the boundary in mol/m<sup>3</sup><sub>fluid</sub>.
 
 def partition_elements_in_mesh_cell(ncells, nelems, state_ic, state_bc):
     # The concentrations of each element in each mesh cell (in the current time step)
@@ -426,16 +430,16 @@ def partition_elements_in_mesh_cell(ncells, nelems, state_ic, state_bc):
 #
 # This step updates in the fluid partition `bfluid` using the transport equations (without reactions).
 # The `transport_fullimplicit()` function below is responsible for solving an advection-diffusion equation, that is
-# later applied to transport the concentrations ($\mathrm{mol/m^3}$) of elements in the fluid partition (*a
+# later applied to transport the concentrations (mol/m<sup>3</sup>) of elements in the fluid partition (*a
 # simplification that is possible because of common diffusion coefficients and velocities of the fluid species,
 # otherwise the transport of individual fluid species would be needed*).
 #
-# To match the units of concentrations of the elements in the fluid measure in $\mathrm{[mol/m^3_{bulk}]}$ and the
-# imposed concentration `b_bc[j]` $\mathrm{[mol/m^3_{fluid}]}$, e need to multiply it by the porosity `phi_bc` on the
-# boundary cell $\mathrm{[m^3_{fluid} / m^3_{bulk}]}$. We use function
+# To match the units of concentrations of the elements in the fluid measure in mol/m<sup>3</sup><sub>bulk</sub> and the
+# imposed concentration `b_bc[j]` mol/m<sup>3</sup><sub>fluid</sub>, e need to multiply it by the porosity `phi_bc` on the
+# boundary cell m<sup>3</sup><sub>fluid</sub>/m<sup>3</sup><sub>bulk</sub>. We use function
 # [properties](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html#ad3fa8fd9e1b948da7a698eb020513f3d)
 # of the class [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html) to retrieve fluid volume
-# $\mathrm{[m^3_{fluid}]}$ and total volume $\mathrm{[m^3_{bulk}]}$ in the inflow boundary cell.
+# m<sup>3</sup><sub>fluid</sub> and total volume m<sup>3</sup><sub>bulk</sub> in the inflow boundary cell.
 #
 # The updated amounts of elements in the fluid partition are then summed with the amounts of elements in the solid partition
 # `bsolid`, which remained constant during the transport step), and thus updating the amounts of elements in the
@@ -464,7 +468,7 @@ def transport(states, bfluid, bsolid, b, b_bc, nelems, ifluid_species, isolid_sp
 
 # ##### Transport calculation with finite-volume scheme
 
-# The function `transport()` expects a conservative property (argument `u`) (e.g., the concentration $\mathrm{[mol/m^3]}$
+# The function `transport()` expects a conservative property (argument `u`) (e.g., the concentration mol/m<sup>3</sup>
 # of *j*th element in the fluid given by `bfluid[j]`), the time step (`dt`), the mesh cell length (`dx`),
 # the fluid velocity (`v`), the diffusion coefficient (`D`), and the boundary condition of the conservative property
 # (`g`) (e.g., the concentration of the *j*th element in the fluid on the left boundary).

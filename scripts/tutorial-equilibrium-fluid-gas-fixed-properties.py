@@ -61,11 +61,11 @@ system = ChemicalSystem(editor)
 
 # ### Problem with fixed ph, species' amount and activity
 
-# First problem, which we consider, is the problem, which we initialize with 1 kg of $\mathrm{H_2O}$, 0.1 mol of
-# sodium-chloride $\mathrm{NaCl}$, 2 mmol of calcium-chloride $\mathrm{CaCl_2}$, and
-# 4 mmol of magnium-chloride $\mathrm{MgCl_2}$. From the properties of this inverse equilibrium problem, we fix
-# pH to 3.0, providing the titran $\mathrm{HCl}$. Besides, $\mathrm{CO_2(g)}$ species' amount is fixed to 1.0 mol, as
-# well as the species' activity of $\mathrm{O_2(g)}$ is prescribed to be 0.2.
+# First problem, which we consider, is the problem, which we initialize with 1 kg of H<sub>2<\sub>O, 0.1 mol of
+# sodium-chloride NaCl, 2 mmol of calcium-chloride CaCl<sub>2</sub>, and
+# 4 mmol of magnium-chloride MgCl<sub>2</sub>. From the properties of this inverse equilibrium problem, we fix
+# pH to 3.0, providing the titran HCl. Besides, CO<sub>2<\sub>(g) species' amount is fixed to 1.0 mol, as
+# well as the species' activity of O<sub>2</sub>(g) is prescribed to be 0.2.
 
 problem1 = EquilibriumInverseProblem(system)
 problem1.add("H2O", 1, "kg")
@@ -87,15 +87,15 @@ state1 = equilibrate(problem1)
 state1.output('state1.txt')
 
 # According to the above instructions, the pH is fixed to 3.0 in `state1.txt`. We can also make sure that activity of
-# $\mathrm{O_2(g)}$ (see sub-table with *Species*, column *Activity [-]*) is prescribed to 0.2, similarly to the
-# species amount of $\mathrm{CO_2(g)}$ in the same table.
+# O<sub>2</sub>(g) (see sub-table with *Species*, column *Activity [-]*) is prescribed to 0.2, similarly to the
+# species amount of CO<sub>2<\sub>(g) in the same table.
 # The obtained ionic strength is 0.117995 molal, pE is 17.6023, the reduction potential is 1.04134 V, and
 # the alkalinity is -0.0091649 eq/L.
 
 # ### Problem with fixed ph
 
 # The second equilibrium inverse problem has similar conditions to those used for the first problem. However,
-# in this case, we fix pH to be equal to 4.0, providing $\mathrm{CO_2}$ as a titrant.
+# in this case, we fix pH to be equal to 4.0, providing CO<sub>2</sub> as a titrant.
 
 problem2 = EquilibriumInverseProblem(system)
 problem2.add("H2O", 1, "kg")

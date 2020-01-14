@@ -11,10 +11,10 @@
 #       jupytext_version: 1.3.0
 # ---
 
-# # Dissolution of calcite in an acidic $\mathrm{HCl}$-solution
+# # Dissolution of calcite in an acidic HCl-solution
 #
 # This tutorial demonstrates how Reaktoro can be used for modeling the dissolution of calcite in an acidic
-# $\mathrm{HCl}$-solution at temperature 30 &deg;C and pressure 1 bar using chemical kinetics. A partial equilibrium
+# HCl-solution at temperature 30 &deg;C and pressure 1 bar using chemical kinetics. A partial equilibrium
 # assumption is considered here so that aqueous species react using a chemical equilibrium model, while calcite
 # reacts with the aqueous solution using a chemical kinetics model.
 
@@ -49,8 +49,8 @@ editor.addMineralPhase("Calcite")
 # Finally, we provide the specific surface area of the mineral using method
 # [setSpecificSurfaceArea](https://reaktoro.org/cpp/classReaktoro_1_1MineralReaction.html#a9ea2feb68af0beddc856d6a60b863181)
 # of class [MineralReaction](https://reaktoro.org/cpp/classReaktoro_1_1MineralReaction.html), which can be specified
-# in units of $\mathrm{m^2/g}$ or $\mathrm{m^2/m^3}$. Compatible units are allowed, such as $\mathrm{cm^2/mg} or
-# $\mathrm{m^2/dm^3}$, and combinations.
+# in units of m<sup>2</sup>/g or m<sup>2</sup>/m<sup>3</sup>. Compatible units are allowed, such as cm<sup>2</sup>/mg or
+#m<sup>2</sup>/dm<sup>3</sup>, and combinations.
 
 editor.addMineralReaction("Calcite") \
     .setEquation("Calcite = Ca++ + CO3--") \
@@ -104,7 +104,7 @@ problem.add("HCl", 1, "mmol")
 # what should be the initial state of the equilibrium species (the aqueous species in this case), before we start the
 # chemical kinetics calculation that will simulate the dissolution of calcite in this aqueous fluid.
 #
-# By mixing 1 kg of $\mathrm{H_2O}$ and 1 mmol of $\mathrm{HCl}$ at 30 &deg;C and 1 bar, we should produce a
+# By mixing 1 kg of H<sub>2<\sub>O and 1 mmol of HCl at 30 &deg;C and 1 bar, we should produce a
 # chemical equilibrium state that corresponds to an acidic aqueous fluid. The species in this fluid will be in
 # disequilibrium with Calcite (our single kinetic species in this setup) since only equilibrium species
 # (i.e., the aqueous species) are considered during the next chemical equilibrium calculation.
@@ -121,7 +121,7 @@ state0.output('demo-kineticpath-calcite-hcl-before-kinetics.txt')
 # the equilibrium species that correspond to a state of minimum Gibbs energy in the equilibrium partition only,
 # at given conditions of temperature, pressure, and element amounts in the equilibrium partition. The result is
 # stored in the object state0 of class [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html), a computational representation of the state of a multiphase
-# chemical system defined by its temperature ($T$), pressure ($P$), and vector of species amounts ($n$).
+# chemical system defined by its temperature (*T*), pressure (*P*), and vector of species amounts (*n*).
 
 # To simulate the kinetic dissolution of calcite in the aqueous fluid we defined before, we need to specify its
 # initial amount. Below, we set the initial mass of species Calcite to 100 g.

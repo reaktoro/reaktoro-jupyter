@@ -68,8 +68,8 @@ system = ChemicalSystem(editor)
 # ### Problem with fixed mass of mineral and molar amount of species
 
 # First problem, which we consider, is the problem with fixed mass of mineral (in this case, calcite) and
-# molar amount of species $\mathrm{CO_2(g)}$ in equilibrium.
-# Besides, we initialized the amount of $\mathrm{H_2O}$ by 1 kg and sodium-chloride $\mathrm{NaCl}$
+# molar amount of species CO<sub>2<\sub>(g) in equilibrium.
+# Besides, we initialized the amount of H<sub>2<\sub>O by 1 kg and sodium-chloride NaCl
 # by 0.1 mol.
 
 problem1 = EquilibriumInverseProblem(system)
@@ -91,7 +91,7 @@ state1 = equilibrate(problem1)
 state1.output('state1.txt')
 
 # Indeed, in the file with the resulting information about `state1`, in the column *Species* we see 1 mol for the
-# amount of $\mathrm{CO_2(g)}$, whereas in the column *Phases* for calcite the mass is set to 0.1 kg. Alkalinity
+# amount of CO<sub>2<\sub>(g), whereas in the column *Phases* for calcite the mass is set to 0.1 kg. Alkalinity
 # in this case is equal to 0.0214083 eq/L.
 
 # ### Problem with fixed total alkalinity of aqueous solution
@@ -122,9 +122,9 @@ state2.output('state2.txt')
 
 # ### Problem with fixed pH of aqueous solution
 
-# Third inverse problem is initialized analogously with 1 kg of $\mathrm{H_2O}$ and 0.1 mol of sodium chloride
-# $\mathrm{NaCl}$. In the case, however, only the amount of calcite is fixed to 1 mol. Besides, we fix
-# pH of the aqueous solution with two given titrants $\mathrm{HCl}$ and $\mathrm{NaOH}$.
+# Third inverse problem is initialized analogously with 1 kg of H<sub>2<\sub>O and 0.1 mol of sodium chloride
+# NaCl. In the case, however, only the amount of calcite is fixed to 1 mol. Besides, we fix
+# pH of the aqueous solution with two given titrants HCl and NaOH.
 
 problem3 = EquilibriumInverseProblem(system)
 problem3.add("H2O", 1, "kg")
@@ -145,8 +145,8 @@ state3.output('state3.txt')
 # [EquilibriumInverseProblem](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumInverseProblem.html) class,
 # it is also possible to fix the volume of a phase at equilibrium in the inverse equilibrium problem. This is done in
 # similar to earlier considered problem for all the phase volumes, i.e., gaseous, aqueous, and calcite, provided
-# the name of titrans. For the gaseous phase, we use $\mathrm{CO_2}$ for titration, for the aqueous one, 1 kg of water
-# and 0.1 mol of sodium chloride, and $\mathrm{CaCO_3}$ for the mineral phase.
+# the name of titrans. For the gaseous phase, we use CO<sub>2</sub> for titration, for the aqueous one, 1 kg of water
+# and 0.1 mol of sodium chloride, and CaCO<sub>3</sub> for the mineral phase.
 
 problem4 = EquilibriumInverseProblem(system)
 problem4.add("H2O", 1, "kg")
