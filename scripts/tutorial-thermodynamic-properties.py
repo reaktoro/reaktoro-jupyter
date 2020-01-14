@@ -53,6 +53,3 @@ logK = thermo.logEquilibriumConstant(T, P, 'Ca++ + 2*Cl- = CaCl2(aq)')
 print(f'logK(Ca++ + 2*Cl- = CaCl2(aq)) = {logK.val}')
 
 # > **Note:** Use logK.ddT or logK.ddP to get temperature or pressure derivatives.
-
-# [Database]: https://reaktoro.org/cpp/classReaktoro_1_1Database.html
-# [Thermo]: https://reaktoro.org/cpp/classReaktoro_1_1Thermo.html
