@@ -39,16 +39,16 @@ editor.addMineralPhase("Halite")
 # To initialize the chemical model of the [AqueousPhase](https://reaktoro.org/cpp/classReaktoro_1_1AqueousPhase.html)
 # with the Debye-Huckel equation of state, we use the method [setChemicalModelDebyeHuckel](
 # https://reaktoro.org/cpp/classReaktoro_1_1AqueousPhase.html#aa3f53d5cb5ae7adfb50e563c7a198ce6). However,
-# we specify that the Drummond (1981) activity model must be used to model $\mathrm{CO2(aq)}$ using
+# we specify that the Drummond (1981) activity model must be used to model CO<sub>2<\sub>(aq) using
 # [setActivityModelDrummondCO2](https://reaktoro.org/cpp/classReaktoro_1_1AqueousPhase.html#a8d98d8294d81b26043e3a8d43e386c21).
 
 # Then, [GaseousPhase](https://reaktoro.org/cpp/classReaktoro_1_1GaseousPhase.html) is composed from the names of
-# the provided gaseous species $\mathrm{H_2O(g)}$ and $\mathrm{CO_2(g)}$. These names must conform to those
+# the provided gaseous species H<sub>2<\sub>O(g) and CO<sub>2<\sub>(g). These names must conform to those
 # used in the database that was specified  during the initialization of the
 # [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html) object, otherwise, an exception
 # will be thrown.
 # Here, method `setChemicalModelSpycherPruessEnnis()` sets Spycher et al. (2003) equation of state. This model only
-# supports the gaseous species $\mathrm{H_2O(g)}$ and $\mathrm{CO_2(g)}$.
+# supports the gaseous species H<sub>2<\sub>O(g) and CO<sub>2<\sub>(g).
 
 # The [MineralPhase](https://reaktoro.org/cpp/classReaktoro_1_1MineralPhase.html) object is created by specifying the
 # names of the mineral species one by one. Analogously to the gaseous species, provided names must

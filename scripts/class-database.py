@@ -97,7 +97,7 @@ for species in db.aqueousSpeciesWithElements(["H"]):
 species = db.aqueousSpecies("CaCl2(aq)")
 
 # After obtaining a particular species, its properties can be obtained by calling corresponding function, e.g., we can
-# output charge and dissociation of $\mathrm{CaCl_2}$:
+# output charge and dissociation of CaCl<sub>2</sub>:
 
 print("Charge of CaCl2(aq): ", species.charge())
 print("Dissociation CaCl2(aq): ", species.dissociation())

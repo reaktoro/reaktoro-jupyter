@@ -57,7 +57,7 @@ year = 365 * day
 # rock domain by setting coordinates of its left and right boundaries to 0.0 m and 100.0 m, respectively. The
 # discretization parameters, i.e., the number of cells and steps in time, are both set to 100. The reactive
 # transport modeling procedure assumes a constant fluid velocity of 1 m/day (1.16 · $10^{-5}$ m/s) and the same
-# diffusion coefficient of $10^{-9}$ $\mathrm{m^2/s}$ for all fluid species (without dispersivity). The size of the
+# diffusion coefficient of $10^{-9}$ m<sup>2</sup>/s for all fluid species (without dispersivity). The size of the
 # time-step is set to 30 minutes. Temperature and pressure are set to 60 &deg; C and 100 bar, respectively,
 # throughout the whole tutorial. 
 
@@ -212,8 +212,8 @@ def simulate():
 # https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html) class. In particular, we specify aqueous and mineral
 # phases that should be considered in the chemical system. For performance reasons, the aqueous phase is defined by
 # manually specifying the chemical species, instead of automatic collection of species from the database. There are
-# three pure mineral phase considered: quartz ($\mathrm{SiO_2}$), calcite ($\mathrm{CaCO_3}$), and dolomite
-# ($\mathrm{CaMg(CO_3)_2}$). Finally, using class
+# three pure mineral phase considered: quartz (SiO<sub>2</sub>), calcite (CaCO<sub>3</sub>), and dolomite
+# (CaMg(CO<sub>3</sub>)<sub>2</sub>). Finally, using class
 # [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html),
 # we define the chemical system.
 
@@ -250,7 +250,7 @@ def define_chemical_system():
 # pressure, and the amounts of every species in the system.
 #
 # The function ends with scaling the volumes of the aqueous and mineral phases so that they are consistent with a 10 %
-# porosity and the required volume percentages of the rock minerals (98 $\%_{\rm vol}$ of quartz and 2 $\%_{\rm vol}$
+# porosity and the required volume percentages of the rock minerals (98 %<sub>vol</sub> of quartz and 2 %<sub>vol</sub>
 # of calcite).
 
 def define_initial_condition(system):
@@ -276,12 +276,12 @@ def define_initial_condition(system):
 # ### Boundary condition of the reactive transport problem
 # For the boundary condition, we need to specify the composition of the fluid that is injected into the rock. This is
 # done below, by defining an equilibrium problem that will later be solved to produce an aqueous fluid with 0.9 molal
-# $\mathrm{NaCl}$, 0.05 molal $\mathrm{MgCl_2}$, 0.01 $\mathrm{CaCl_2}$, and 0.75 molal $\mathrm{CO_2}$, in a state
-# very close to $\mathrm{CO_2}$ saturation.
+# NaCl, 0.05 molal MgCl<sub>2</sub>, 0.01 CaCl<sub>2</sub>, and 0.75 molal CO<sub>2</sub>, in a state
+# very close to CO<sub>2</sub> saturation.
 #
 # After equilibration, the obtained chemical state representing the boundary condition for the injected fluid
-# composition, we scale its volume to 1 $\mathrm{m^3}$. This is done so that the amounts of the species in the fluid are
-# consistent with a $\mathrm{mol/m^3}$ scale.
+# composition, we scale its volume to 1 m<sup>3</sup>. This is done so that the amounts of the species in the fluid are
+# consistent with a mol/m<sup>3</sup> scale.
 
 def define_boundary_condition(system):
 
@@ -323,13 +323,13 @@ def partition_indices(system):
 # In this function, we create arrays to keep track of the amounts of elements in the fluid and solid partition
 # (i.e., the amounts of elements among all fluid phases, here only an aqueous phase, and the amounts of elements among
 # all solid phases, here the mineral phases). For that, we define the arrays `b`, `bfluid`, `bsolid`, that
-# will store, respectively, the concentrations ($\mathrm{mol/m^3}$) of each element in the system, in the fluid
+# will store, respectively, the concentrations (mol/m<sup>3</sup>) of each element in the system, in the fluid
 # partition, and in the solid partition at every time step.
 #
 # The array `b` is initialized with the concentrations of the elements at the initial chemical state, `state_ic`,
 # using method [elementAmounts](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html#a827457e68a90f89920c13f0cc06fda78)
 # of class [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html). The array `b_bc` stores
-# the concentrations of each element on the boundary in $\mathrm{mol/m^3_{\rm fluid}}$.
+# the concentrations of each element on the boundary in mol/m<sup>3</sup><sub>fluid</sub>.
 
 def partition_elements_in_mesh_cell(ncells, nelems, state_ic, state_bc):
 
@@ -354,16 +354,16 @@ def partition_elements_in_mesh_cell(ncells, nelems, state_ic, state_bc):
 # #### Transport
 # This step updates in the fluid partition `bfluid` using the transport equations (without reactions).
 # The `transport_fullimplicit()` function below is responsible for solving an advection-diffusion equation, that is
-# later applied to transport the concentrations $\mathrm{[mol/m^3}]$ of elements in the fluid partition (*a
+# later applied to transport the concentrations mol/m<sup>3</sup> of elements in the fluid partition (*a
 # simplification that is possible because of common diffusion coefficients and velocities of the fluid species,
 # otherwise the transport of individual fluid species would be needed*).
 #
-# To match the units of concentrations of the elements in the fluid measured in $\mathrm{[mol/m^3_{bulk}]}$ and the
-# imposed concentration `b_bc[j]` $\mathrm{[mol/m^3_{fluid}]}$, we need to multiply it by the porosity `phi_bc`
-# $\mathrm{[m^3_{fluid} / m^3_{bulk}]}$ on the boundary cell . We use function
+# To match the units of concentrations of the elements in the fluid measured in mol/m<sup>3</sup><sub>bulk</sub> and the
+# imposed concentration `b_bc[j]` mol/m<sup>3</sup><sub>fluid</sub>, we need to multiply it by the porosity `phi_bc`
+# m<sup>3</sup><sub>fluid</sub>/m<sup>3</sup><sub>bulk</sub> on the boundary cell . We use function
 # [properties](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html#ad3fa8fd9e1b948da7a698eb020513f3d)
 # of the class [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html) to retrieve fluid volume
-# $\mathrm{[m^3_{fluid}]}$ and total volume $\mathrm{[m^3_{bulk}]}$ in the inflow boundary cell.
+# m<sup>3</sup><sub>fluid</sub> and total volume m<sup>3</sup><sub>bulk</sub> in the inflow boundary cell.
 #
 # The updated amounts of elements in the fluid partition are then summed with the amounts of elements in the solid partition
 # `bsolid`, which remained constant during the transport step), and thus updating the amounts of elements in the
@@ -391,7 +391,7 @@ def transport(states, bfluid, bsolid, b, b_bc, nelems, ifluid_species, isolid_sp
     return bfluid, bsolid, b
 
 # ##### Transport calculation with finite-volume scheme
-# The function `transport()` expects a conservative property (argument `u`) (e.g., the concentration $\mathrm{[mol/m^3]}$
+# The function `transport()` expects a conservative property (argument `u`) (e.g., the concentration mol/m<sup>3</sup>
 # of *j*th element in the fluid given by `bfluid[j]`), the time step (`dt`), the mesh cell length (`dx`),
 # the fluid velocity (`v`), the diffusion coefficient (`D`), and the boundary condition of the conservative property
 # (`g`) (e.g., the concentration of the *j*th element in the fluid on the left boundary).

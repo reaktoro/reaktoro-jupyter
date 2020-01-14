@@ -10,10 +10,10 @@
 #       jupytext_version: 1.3.0
 # ---
 
-# # Dissolution of carbonate minerals in a $\mathrm{CO_2}$-saturated brine
+# # Dissolution of carbonate minerals in a CO<sub>2</sub>-saturated brine
 #
 # In this tutorial, we demonstrate how Reaktoro can be used to kinetically model the dissolution of carbonate
-# minerals (calcite, magnesite, and dolomite) in a $\mathrm{CO_2}$-saturated brine.
+# minerals (calcite, magnesite, and dolomite) in a CO<sub>2</sub>-saturated brine.
 
 # ### Importing the reaktoro Python package
 #
@@ -25,15 +25,15 @@ from reaktoro import *
 # ### Defining the chemical system
 
 # In this simulation, we consider an *aqueous phase* (to model the brine solution), a *gaseous phase* (to model the
-# $\mathrm{CO_2}$-rich phase with water vapor), and four pure *mineral phases*: halite, calcite, magnesite,
+# CO<sub>2</sub>-rich phase with water vapor), and four pure *mineral phases*: halite, calcite, magnesite,
 # and dolomite. These are the phases that will either exist initially during the simulation, or that could
 # potentially appear later as the calculations proceed.
 
 # All potential phases that could appear in a reactive process should ideally be considered when defining the
 # chemical system. If one or more of these phases are ignored, then the equilibrium and kinetics calculations cannot
 # identify if they should be present or not with positive amounts. Unrealistic results may occur, such as,
-# for example, an aqueous phase containing more $\mathrm{CO_2}$ dissolved than it could, because a gaseous phase,
-# which should contain the excess of $\mathrm{CO_2}$, was not considered in the chemical system.
+# for example, an aqueous phase containing more CO<sub>2</sub> dissolved than it could, because a gaseous phase,
+# which should contain the excess of CO<sub>2</sub>, was not considered in the chemical system.
 
 # The code below uses class [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html) to define
 # our chemical system with the phases of interest and their species:
@@ -47,10 +47,10 @@ editor.addMineralPhase("Dolomite")
 editor.addMineralPhase("Halite")
 
 # The aqueous phase is defined by considering all aqueous species in the database that could form once the substances
-# $\mathrm{H_2O}$, $\mathrm{NaCl}$, $\mathrm{CaCO_3}$, and $\mathrm{MgCO_3}$ are mixed. The gaseous phase is defined
-# so that only the gaseous species $\mathrm{H_2O(g)}$ and $\mathrm{CO2(g)}$ are considered. There are four pure
-# mineral phases: calcite ($\mathrm{CaCO_3}$), magnesite ($\mathrm{MgCO_3}$), dolomite ($\mathrm{CaMg(CO_3)_2}$),
-# and halite ($\mathrm{NaCl}$).
+# H<sub>2<\sub>O, NaCl, CaCO<sub>3</sub>, and MgCO<sub>3</sub> are mixed. The gaseous phase is defined
+# so that only the gaseous species H<sub>2<\sub>O(g) and CO<sub>2</sub>(g) are considered. There are four pure
+# mineral phases: calcite (CaCO<sub>3</sub>), magnesite (MgCO<sub>3</sub>), dolomite (CaMg(CO<sub>3</sub>)<sub>2</sub>),
+# and halite (NaCl).
 
 # ### Defining the kinetically-controlled reactions
 
@@ -155,9 +155,9 @@ partition.setKineticSpecies(["Calcite", "Magnesite", "Dolomite"])
 # The equilibrium problem formulated below, using class
 # [EquilibriumProblem](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumProblem.html), is done so that the
 # initial condition for the amounts of each equilibrium species result from the solution of a chemical equilibrium
-# problem in which 1 kg of water is mixed with 1 mol of $\mathrm{NaCl}$ and 1 mol of $\mathrm{CO_2}$ at 60 &deg;C
-# and 100 bar. This amount of $\mathrm{CO_2}$ is sufficient to saturate the brine solution. The excess will exist in
-# the $\mathrm{CO_2}$-rich gaseous phase.
+# problem in which 1 kg of water is mixed with 1 mol of NaCl and 1 mol of CO<sub>2</sub> at 60 &deg;C
+# and 100 bar. This amount of CO<sub>2</sub> is sufficient to saturate the brine solution. The excess will exist in
+# the CO<sub>2</sub>-rich gaseous phase.
 
 problem = EquilibriumProblem(system)
 problem.setPartition(partition)
