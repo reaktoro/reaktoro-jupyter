@@ -50,7 +50,7 @@ editor.addMineralPhase("Calcite")
 # [setSpecificSurfaceArea](https://reaktoro.org/cpp/classReaktoro_1_1MineralReaction.html#a9ea2feb68af0beddc856d6a60b863181)
 # of class [MineralReaction](https://reaktoro.org/cpp/classReaktoro_1_1MineralReaction.html), which can be specified
 # in units of m<sup>2</sup>/g or m<sup>2</sup>/m<sup>3</sup>. Compatible units are allowed, such as cm<sup>2</sup>/mg or
-#m<sup>2</sup>/dm<sup>3</sup>, and combinations.
+# m<sup>2</sup>/dm<sup>3</sup>, and combinations.
 
 editor.addMineralReaction("Calcite") \
     .setEquation("Calcite = Ca++ + CO3--") \
