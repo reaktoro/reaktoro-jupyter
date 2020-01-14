@@ -3,7 +3,7 @@
 # jupyter:
 #   jupytext:
 #     cell_metadata_filter: -all
-#     formats: py:light,../notebooks//ipynb
+#     formats: notebooks//ipynb,py:light
 #     text_representation:
 #       extension: .py
 #       format_name: light

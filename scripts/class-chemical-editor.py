@@ -1,20 +1,8 @@
-## -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 # ---
 # jupyter:
 #   jupytext:
-#     cell_metadata_filter: -all
-#     formats: py:light,../notebooks//ipynb
-#     text_representation:
-#       extension: .py
-#       format_name: light
-#       format_version: '1.5'
-#       jupytext_version: 1.3.0
-# ---
-
-# ---
-# jupyter:
-#   jupytext:
-#     formats: py:light,../notebooks//ipynb
+#     formats: notebooks//ipynb,py:light
 #     text_representation:
 #       extension: .py
 #       format_name: light
@@ -24,7 +12,7 @@
 #     display_name: Python 3
 #     language: python
 #     name: python3
-# --
+# ---
 
 # # Functionality of ChemicalEditor class
 #
