@@ -12,9 +12,12 @@ dependencies:
   - joblib
   - matplotlib
   - ffmpeg
+  - jupytext
   - pip
   - pip:
+    - bokeh
     - pandas
     - matplotlib
     - IPython
     - voila
+    - pytest
