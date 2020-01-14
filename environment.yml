@@ -9,7 +9,9 @@ dependencies:
   - numpy
   - jupyter
   - jupyterlab
+  - joblib
   - matplotlib
+  - ffmpeg
   - pip
   - pip:
     - pandas
