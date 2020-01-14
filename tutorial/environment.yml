@@ -1,0 +1,18 @@
+name: reaktoro-tutorial
+
+channels:
+  - conda-forge
+
+dependencies:
+  - reaktoro
+  - python
+  - numpy
+  - jupyter
+  - jupyterlab
+  - pip
+  - pip:
+    - bokeh
+    - pandas
+    - matplotlib
+    - IPython
+    - voila
