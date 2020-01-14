@@ -12,7 +12,6 @@ dependencies:
   - joblib
   - matplotlib
   - ffmpeg
-  - jupytext
   - pip
   - pip:
     - bokeh
@@ -20,4 +19,5 @@ dependencies:
     - matplotlib
     - IPython
     - voila
-    - pytest
+  - jupytext  # not required in tutorial
+  - pytest  # not required in tutorial
