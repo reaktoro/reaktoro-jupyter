@@ -1,5 +1,7 @@
 # Temporary files
 results/*
+scripts/notebooks/
+
 .ipynb_checkpoints
 *-checkpoint.ipynb
 
