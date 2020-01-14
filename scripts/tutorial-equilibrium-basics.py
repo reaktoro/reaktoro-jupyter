@@ -50,11 +50,21 @@ editor.addMineralPhase("Quartz")
 
 system = ChemicalSystem(editor)
 
-# We use class [EquilibriumProblem](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumProblem.html) to specify the conditions at which our system should be in equilibrium.
+# The [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html) class is one of the most
+# important classes in Reaktoro. It is the class used to computationally represent a chemical system, with all its
+# phases, species, and elements. It is also the class used for computation of thermodynamic properties of phases and
+# species, such as activities, chemical potentials, standard Gibbs energies, enthalpies, phase molar volumes, densities,
+# and many others. Many classes in Reaktoro require an instance of
+# [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html) for their initialization,
+# since any chemical calculation needs to know the definition of the chemical system and the thermodynamic models
+# describing the non-ideal behavior of the phases.
 
 problem = EquilibriumProblem(system)
 
-# In particular, we can specify temperature and pressure as well as the initial condition for substance amounts
+# Reaktoro provides the class [EquilibriumProblem](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumProblem.html)
+# for convenient description of equilibrium conditions. Using this class allows one to set the temperature and
+# pressure at equilibrium, and a recipe that describes a mixture of substances and their amounts, which can be seen
+# as initial conditions for the equilibrium calculation.
 
 problem.setTemperature(70, "celsius")
 problem.setPressure(100, "bar")
@@ -132,11 +142,3 @@ print(f"The pH of the aqueous phase is {pH.val}.")
 print(f"Its sensitivity with respect to speciation, ∂(pH)/∂n, is:")
 for i, species in enumerate(system.species()):
     print(f"{species.name():>15} = {pH.ddn[i]}")
-
-
-# [ChemicalEditor]: https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html
-# [ChemicalProperties]: https://reaktoro.org/cpp/classReaktoro_1_1ChemicalProperties.html
-# [ChemicalState]: https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html
-# [ChemicalSystem]: https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html
-# [Database]: https://reaktoro.org/cpp/classReaktoro_1_1Database.html
-# [EquilibriumProblem]: https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumProblem.html

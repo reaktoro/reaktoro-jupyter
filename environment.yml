@@ -9,6 +9,7 @@ dependencies:
   - numpy
   - jupyter
   - jupyterlab
+  - matplotlib
   - pip
   - pip:
     - pandas
