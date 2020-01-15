@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.3.2
+#       jupytext_version: 1.3.0
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -16,7 +16,7 @@
 
 # # Functionality of ChemicalEditor class
 #
-# In this tutorial, we provide clarification of the functionality of the class
+# In this tutorial, we provide clarification of functionality of class
 # [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html) that is used to
 # conveniently create chemical and reaction systems.
 #
@@ -28,15 +28,15 @@ from reaktoro import *
 
 # The default thermodynamic databases embedded into Reaktoro is SUPCRT92, so you do not have to initialize the
 # database `db = Database('supcrt98.xml')`, unless an alternative database must be used.
-#
+
 # ### Initializing chemical editor
 #
 # Class [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html)
 # provides convenient operations to initialize
 # [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html) and
 # [ReactionSystem](https://reaktoro.org/cpp/classReaktoro_1_1ReactionSystem.html) instances.
-# To define the editor of the chemical system from the default database SUPCRT92, we use:
 
+# Define the editor of the chemical system from the default database SUPCRT92
 editor = ChemicalEditor()
 
 # Alternatively, the editor can be initialized by the database instance:
@@ -48,12 +48,10 @@ editor = ChemicalEditor(db)
 
 # ### Preparation of chemical system definition
 #
-# Before the definition of chemical system, aqueous, gaseous, and mineral phases must be added. It can be done in
-# various ways. Let us consider, first, the definition of aqueous species:
+# Before definition of chemical system, aqueous, gaseous, and mineral phases must be added. It can be done in various
+# ways. Let us consider, first, definition of aqueous species:
 #
-# * With method [ChemicalEditor::addAqueousPhase](
-# https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html#a68cdc98877671b61490d0752b3060d91),
-# the [AqueousPhase](https://reaktoro.org/cpp/classReaktoro_1_1AqueousPhase.html)
+# * With method `addAqueousPhase()`, the [AqueousPhase](https://reaktoro.org/cpp/classReaktoro_1_1AqueousPhase.html)
 # can be created by specifying the names of the species one by
 # one. These species names must conform to those used in the database that was specified during the initialization of
 # the [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html) object, otherwise, an exception
@@ -64,27 +62,24 @@ editor.addAqueousPhase(
 )
 
 # * Alternatively, instead of listing the names of the species one by one, which might require prior knowledge of the
-# species names in the database, we can use method [ChemicalEditor::addAqueousPhaseWithElements](
-# https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html#a2c11397b4d486cf0fc18ae26eaf87980).
-# It permits the [AqueousPhase](https://reaktoro.org/cpp/classReaktoro_1_1AqueousPhase.html)
+# species names in the database, we can use method `addAqueousPhaseWithElements()`. It permits the `AqueousPhase`
 # object to be constructed by using a list of chemical element names. The database will be searched for all
-# species that could be formed out of those elements. These species will then be used to construct
-# [AqueousPhase](https://reaktoro.org/cpp/classReaktoro_1_1AqueousPhase.html) object.
+# species that could be formed out of those elements. These species will then be used to construct the `AqueousPhase`
+# object.
 
 editor.addAqueousPhaseWithElements("H O C Ca Cl Mg")
 
 # * Finally, [AqueousPhase](https://reaktoro.org/cpp/classReaktoro_1_1AqueousPhase.html)
-# object can be also constructed by using a list of compounds or substance names that might not
+# object can be also constructed by using a list of compound or substance names that might not
 # necessarily represent names of species in the database. The list of compounds will be broken into a list of element
 # names, and the database will be similarly searched for all species that could be formed out of those elements.
 
 editor.addAqueousPhaseWithElementsOf("H2O NaCl CO2")
 
-# > **Note:** The call of
-# [ChemicalEditor::addAqueousPhaseWithElements](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html#a2c11397b4d486cf0fc18ae26eaf87980) will result in larger chemical system than
-# > call of [ChemicalEditor::addAqueousPhase](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html#a68cdc98877671b61490d0752b3060d91), where the specific aqueous species are provided.  In more demanding
-# > applications (e.g., as a chemical solver in a reactive transport simulator), you might want to manually specify the
-# > chemical species of each phase in your chemical system.
+# > **Note:** The call of `addAqueousPhaseWithElements()` will result in larger chemical system than call of
+# > `addAqueousPhase()`, where the specific aqueous species are provided.  In more demanding applications (e.g., as a
+# > chemical solver in a reactive transport simulator), you might want to manually specify the chemical species of each
+# > phase in your chemical system.
 
 # To add gaseous phase, similar methods can be used:
 
@@ -92,8 +87,7 @@ editor.addGaseousPhase(["H2O(g)", "CO2(g)", "H2(g)", "O2(g)", "CH4(g)"])
 editor.addGaseousPhaseWithElements(["H", "O", "C"])
 editor.addGaseousPhaseWithElementsOf(["H2O", "CO2"])
 
-# The [MineralPhase](https://reaktoro.org/cpp/classReaktoro_1_1MineralPhase.html) object is created by specifying the
-# names of the species one by one. These species names must
+# The `MineralPhase` object is created by specifying the names of the species one by one. These species names must
 # conform to those used in the database that was specified during the initialization of the
 # [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html) object,
 # otherwise, an exception will be thrown. The example below describes the usage of this method for the creation of two
@@ -103,8 +97,7 @@ editor.addMineralPhase("Calcite")
 editor.addMineralPhase("Dolomite")
 editor.addMineralPhase(["Dolomite", "Calcite"])
 
-# There are two more alternatives to add [MinerialPhase](https://reaktoro.org/cpp/classReaktoro_1_1MineralPhase.html),
-# i.e.,
+# There two more alternatives to add [MinerialPhase](https://reaktoro.org/cpp/classReaktoro_1_1MineralPhase.html), i.e.,
 
 editor.addMineralPhaseWithElements(["Ca", "C", "O"])
 editor.addMineralPhaseWithElementsOf(["CaCO3", "MgCO3"])
@@ -115,6 +108,9 @@ editor.addMineralPhaseWithElementsOf(["CaCO3", "MgCO3"])
 editor.setTemperatures([60, 80, 100, 120, 140, 160], "celsius")
 editor.setPressures([1, 10, 100], "bar")
 
-# Finally, the definition of the chemical system is done by calling
+# ### Chemical system definition
+#
+# Finally, definition of chemical system is done by calling
 
+# Construct the chemical system
 system = ChemicalSystem(editor)

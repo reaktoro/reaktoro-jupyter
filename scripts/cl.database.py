@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.3.2
+#       jupytext_version: 1.3.0
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -16,10 +16,10 @@
 
 # # Functionality of Database class
 #
-# In this tutorial, we provide an explanation on the functionality of the class
+# In this tutorial, we provide explanation on functionality of class
 # [Database](https://reaktoro.org/cpp/classReaktoro_1_1Database.html)
 # that provides operations to retrieve physical and thermodynamic data of chemical species.
-#
+
 # ### Importing the reaktoro Python package
 #
 # Using **Reaktoro** in Python requires first an import of the python package `reaktoro`:
@@ -30,22 +30,22 @@ from reaktoro import *
 # needed to define our chemical system and chemical reaction modeling problems.
 #
 # > **Note:** To simplify the tutorials, we
-# use `from reaktoro import *`, which imports all components of the `reaktoro` package into the default Python
-# namespace. In a more complex project, this can potentially create name conflicts. Thus, for bigger applications,
-# consider using `import reaktoro as rkt`, and then refer to Reaktoro’s classes and methods as `rkt.Database`,
-# `rkt.ChemicalSystem`, `rkt.equilibrate`, etc.
-#
+# > use `from reaktoro import *`, which imports all components of the `reaktoro` package into the default Python
+# > namespace. In more complex project, this can potentially create name conflicts. Thus, for bigger applications, consider
+# > using `import reaktoro as rkt`, and then refer to Reaktoro’s classes and methods as `rkt.Database`,
+# > `rkt.ChemicalSystem`, `rkt.equilibrate`, etc.
+
 # Reaktoro currently supports the following thermodynamic databases:
 #
 # * SUPCRT92;
 # * PHREEQC; and
 # * GEMS.
 #
-# More information can be found on the web-page with the
-# [Reaktoro's Documentation](https://reaktoro.org/thermodynamic-databases.html).
-#
+# More information can be found on the web-page with [Reaktoro's Documentation](https://reaktoro
+# .org/thermodynamic-databases.html).
+
 # ### Initializing a thermodynamic database
-#
+
 # To initialize a thermodynamic database, we must provide xml-file, i.e.,
 
 db = Database("supcrt98.xml")
@@ -54,29 +54,28 @@ db = Database("supcrt98.xml")
 # database file generated from the original **SUPCRT92** database file slop98.dat.
 #
 # > **Note:** If filename does not point
-# to a valid database file or the database file is not found, then a default built-in database with the same name
-# will be tried. If no default built-in database exists with a given name, an exception will be thrown.
-#
+# > to a valid database file or the database file is not found, then a default built-in database with the same name
+# > will be tried. If no default built-in database exists with a given name, an exception will be thrown.
+
 # ### Accessing the content of thermodynamic database
 #
 # It is possible to print all the aqueous species contained in the database SUPCRT92, i.e.,
 
-print("List of all aqueous species in database SUPCRT92:")
+print("List of all aqueous species in database SUPCRT92:\n")
 for aqueous_species in db.aqueousSpecies():
     print(aqueous_species.name())
 
 # Similar output can be written for the gaseous species (with exception of the function that return the list of such
 # species), i.e.,
 
-print("List of all gaseous species in database SUPCRT92:")
+print("List of all gaseous species in database SUPCRT92:\n")
 for gaseous_species in db.gaseousSpecies():
     print(gaseous_species.name())
 
 # All the minerals included in the database can be accessed as well:
 
-print("List of all minerals in database SUPCRT92:")
-for minerals in db.mineralSpecies():
-    print(minerals.name())
+print("List of all minerals in database SUPCRT92:\n")
+[print(minerals.name()) for minerals in db.mineralSpecies()]
 
 # To check if certain species is present in the database, one can use
 
@@ -87,7 +86,7 @@ print("Is Zn+ present in the database? ", db.containsAqueousSpecies("Zn+"))
 
 # Besides, we can output all, say, aqueous species containing a particular element (e.g., hydrogen):
 
-print("List of all aqueous species in database with hydrogen:")
+print("List of all aqueous species in database with hydrogen:\n")
 for species in db.aqueousSpeciesWithElements(["H"]):
     print(species.name())
 
