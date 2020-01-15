@@ -1,7 +1,15 @@
+# Build files
+scripts/notebooks
+
 # Temporary files
 results/*
+scripts/notebooks/
+
 .ipynb_checkpoints
 *-checkpoint.ipynb
 
 # Visual Studio Code files
 .vscode
+
+# PyCharm files
+.idea

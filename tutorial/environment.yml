@@ -1,4 +1,4 @@
-name: reaktoro-jupyter
+name: reaktoro-tutorial
 
 channels:
   - conda-forge
@@ -9,9 +9,6 @@ dependencies:
   - numpy
   - jupyter
   - jupyterlab
-  - joblib
-  - matplotlib
-  - ffmpeg
   - pip
   - pip:
     - bokeh
@@ -19,5 +16,3 @@ dependencies:
     - matplotlib
     - IPython
     - voila
-  - jupytext  # not required in tutorial
-  - pytest  # not required in tutorial
