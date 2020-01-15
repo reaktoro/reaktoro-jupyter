@@ -17,7 +17,7 @@
 # # Performing a chemical equilibrium calculation with customized activity models
 #
 # This tutorial demonstrates how to use Reaktoro to perform a chemical equilibrium calculation with customized activity
-# models. We use an example of equilibration of  H<sub>2</sub>O-NaCl-CO<sub>2</sub> system when 1 kg of H<sub>2<\sub>O,
+# models. We use an example of equilibration of  H<sub>2</sub>O-NaCl-CO<sub>2</sub> system when 1 kg of H<sub>2</sub>O,
 # 100 g of CO<sub>2</sub>, and 1 mol of NaCl are mixed at temperature 60 &deg;C and pressure 300 bar.
 # First, we import everything from the `reaktoro` package by
 
@@ -105,16 +105,16 @@ aqueous_phase.setChemicalModelDebyeHuckel()
 # list of provided elements or from substance names that are parsed by the
 # [ChemicalEditor](https://reaktoro.org/cpp/classReaktorobl_1_1ChemicalEditor.html) to generate all possible
 # species that can be combined from elements used in those lists. However, for this particular example,
-# the water vapor, H<sub>2<\sub>O(g), and gaseous/supercritical carbon dioxide, CO<sub>2<\sub>(g), suffices to
+# the water vapor, H<sub>2</sub>O(g), and gaseous/supercritical carbon dioxide, CO<sub>2</sub>(g), suffices to
 # represent the gaseous phase:
 
 editor.addGaseousPhase(["H2O(g)", "CO2(g)"]) \
     .setChemicalModelSpycherPruessEnnis()
 
 # Here, method `setChemicalModelSpycherPruessEnnis()` sets Spycher et al. (2003) equation of state. This model only
-# supports the gaseous species H<sub>2<\sub>O(g) and CO<sub>2<\sub>(g). Any other species will result in a runtime
-# error. Alternately, the Spycher and Reed (1988) equation of state can be set (only for H<sub>2<\sub>O(g),
-# CO<sub>2<\sub>(g), and CH<sub>4</sub>(aq)).
+# supports the gaseous species H<sub>2</sub>O(g) and CO<sub>2</sub>(g). Any other species will result in a runtime
+# error. Alternately, the Spycher and Reed (1988) equation of state can be set (only for H<sub>2</sub>O(g),
+# CO<sub>2</sub>(g), and CH<sub>4</sub>(aq)).
 # If no model is explicitly specified, the Peng-Robinson equation of state is chosen by default to calculate the
 # thermodynamic and chemical properties of this GaseousPhase object.
 

@@ -31,7 +31,8 @@ from reaktoro import *
 # create instances of classes [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html) and
 # [ReactionSystem](https://reaktoro.org/cpp/classReaktoro_1_1ReactionSystem.html). In particular, we specify aqueous
 # and mineral phases that should be considered in the chemical system. The aqueous phase is defined by the mixing of
-# H2O, HCl, and CaCO3 (effectively, collecting all aqueous species in the database that contains elements H, O, C, Cl,
+# H2O, HCl, and CaCO<sub>3</sub> (effectively, collecting all aqueous species in the database that contains elements H,
+# O, C, Cl,
 # and Ca, which are the elements in this list of compounds). There is only one pure mineral phase: the calcite phase.
 
 editor = ChemicalEditor()
@@ -108,7 +109,7 @@ problem.add("HCl", 1, "mmol")
 # what should be the initial state of the equilibrium species (the aqueous species in this case), before we start the
 # chemical kinetics calculation that will simulate the dissolution of calcite in this aqueous fluid.
 #
-# By mixing 1 kg of H<sub>2<\sub>O and 1 mmol of HCl at 30 &deg;C and 1 bar, we should produce a
+# By mixing 1 kg of H<sub>2</sub>O and 1 mmol of HCl at 30 &deg;C and 1 bar, we should produce a
 # chemical equilibrium state that corresponds to an acidic aqueous fluid. The species in this fluid will be in
 # disequilibrium with Calcite (our single kinetic species in this setup) since only equilibrium species
 # (i.e., the aqueous species) are considered during the next chemical equilibrium calculation.
