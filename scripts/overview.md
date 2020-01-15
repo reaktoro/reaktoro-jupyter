@@ -30,7 +30,6 @@ chemical equilibrium, chemical kinetics, and reactive transport problems.
 
 * [Basics of equilibrium calculation](eq.equilibrium-basics.ipynb)
 * [Equilibrium calculation of carbonate species](eq.equilibrium-carbonates.ipynb)
-* [Equilibrium calculation till full evaporation of the water](eq.co2-brine-full-water-evaporation.ipynb)
 * [Equilibrium calculations using equilibrium solver](eq.co2-brine-using-equilibrium-solver.ipynb)
 * [Custom activity model for equilibrium calculations](eq.custom-activity-models.ipynb)
 * [Inverse chemical equilibrium calculation](eq.inverse-chemical-equilibrium-calculations.ipynb)
