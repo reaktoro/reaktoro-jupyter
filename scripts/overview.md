@@ -37,7 +37,7 @@ Tutorials on functionality related to modeling equilibrium problems:
 4.  [Equilibrium calculations using equilibrium solver](eq.4.co2-brine-using-equilibrium-solver.ipynb)
 5.  [Custom activity model for equilibrium calculations](eq.5.custom-activity-models.ipynb)
 6.  [Inverse chemical equilibrium calculation](eq.6.inverse-chemical-equilibrium-calculations.ipynb)
-7.  [Equilibrium path calculation](eq.8.equilibriumpath.ipynb)
+7.  [Equilibrium path calculation](eq.7.equilibriumpath.ipynb)
 
 Tutorials on modelling chemical paths of kinetically controlled reactions:
 
