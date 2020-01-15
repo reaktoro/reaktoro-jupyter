@@ -28,6 +28,10 @@ from reaktoro import *
 
 db = Database("supcrt98.xml")
 
+# > For more detailed overview on the functionality of the class
+# > [Database](https://reaktoro.org/cpp/classReaktoro_1_1Database.html),
+# > please check the tutorial [**Database**](cl.database.ipynb).
+
 # ## Initializing chemical system
 
 # To indicate the phases of interest (as well as their species) that may potentially exist at equilibrium,
@@ -60,9 +64,12 @@ editor.addMineralPhase("Magnesite")
 editor.addMineralPhase("Dolomite")
 editor.addMineralPhase("Quartz")
 
+# > See tutorial [**ChemicalEditor**](cl.chemical-editor.ipynb) for studying further capabilities of
+# > [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html) class.
+
 # ## Initializing chemical system
 
-# Next, follows an important step with creation of the chemical system with the information so far collected in the
+# Next, follows an important step with the creation of the chemical system with the information so far collected in the
 # [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html) object `editor`:
 
 system = ChemicalSystem(editor)
@@ -76,6 +83,9 @@ system = ChemicalSystem(editor)
 # since any chemical calculation needs to know the definition of the chemical system and the thermodynamic models
 # describing the non-ideal behavior of the phases.
 
+# > See [**ChemicalSystem**](cl.chemical-system.ipynb) for the explanation on functionality of class
+# > [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html).
+
 # ## Initializing equilibrium problem
 
 # We use class [EquilibriumProblem](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumProblem.html) to specify the
@@ -84,7 +94,7 @@ system = ChemicalSystem(editor)
 problem = EquilibriumProblem(system)
 
 # Reaktoro provides the class [EquilibriumProblem](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumProblem.html)
-# for convenient description of equilibrium conditions. Using this class allows one to set the temperature and
+# for the convenient description of equilibrium conditions. Using this class allows one to set the temperature and
 # pressure at equilibrium, and a recipe that describes a mixture of substances and their amounts, which can be seen
 # as initial conditions for the equilibrium calculation.
 
@@ -152,7 +162,13 @@ properties.update(T, P, n)
 
 properties = state.properties()
 
-# > **Note:** The call above creates a new object of [ChemicalProperties](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalProperties.html) each time. If you are using Reaktoro in a simulator that needs the chemical properties of the system at millions/billions of states each time step, prefer to the `update` method of an existing [ChemicalProperties](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalProperties.html) object.
+# > **Note:** The call above creates a new object of [
+# > ChemicalProperties](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalProperties.html) each time. If you are using
+# > Reaktoro in a simulator that needs the chemical properties of the system at millions/billions of states each time
+# > step, prefer to the
+# > [ChemicalProperties::update](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalProperties.html#af923d85484865039fa56889c1a2f36c9)
+# > method of an existing [ChemicalProperties](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalProperties.html)
+# > object.
 
 # Once we have computed the chemical properties, we can query for some of them. Below we get the natural log of
 # species activities:

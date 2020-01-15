@@ -48,8 +48,11 @@ editor.addMineralPhase("Calcite")
 system = ChemicalSystem(editor)
 # -
 
-# > *Check the previous tutorials to learn the steps above!*
-
+# > Check previous tutorials to learn the  steps above! For example,
+# > [Basics of equilibrium calculation](eq.equilibrium-basics.ipynb),
+# > [Equilibrium calculation of carbonate species](eq.equilibrium-carbonates.ipynb),
+# > [Equilibrium calculations using equilibrium solver](eq.co2-brine-using-equilibrium-solver.ipynb), or
+# > [Custom activity model for equilibrium calculations](eq.custom-activity-models.ipynb).
 
 # #### Equilibrium problem with fixed pH, species amount and species activity
 
@@ -80,11 +83,12 @@ state1.output("state1.txt")
 # -
 
 # > Check [EquilibriumInverseProblem](
-# https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumInverseProblem.html) to learn more about all possible equilibrium constraints currently supported. 
+# https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumInverseProblem.html) to learn more about all possible
+# equilibrium constraints currently supported.
 
 
 # > Check the output file `state1.txt` and check whether the constraints were
-# > successfully satisfied. We plan to output these files in HTML format, so that it can be more conveniently inspected.
+# > successfully satisfied. We plan to output these files in HTML format so that it can be more conveniently inspected.
 
 
 # #### Equilibrium problem with fixed pH controlled by CO<sub>2</sub>

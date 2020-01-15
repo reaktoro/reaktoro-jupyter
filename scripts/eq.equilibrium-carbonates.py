@@ -43,7 +43,7 @@ db = Database("supcrt98.xml")
 #  Define the editor of the chemical system
 editor = ChemicalEditor(db)
 
-# To define a chemical system, aqueous, gaseous, and mineral phases must be added. For aqueous phase, it can be done
+# To define a chemical system, aqueous, gaseous, and mineral phases must be added. For the aqueous phase, it can be done
 # from a list of chemical element names. The database will be searched for all species that could be formed out of those
 # elements.
 
@@ -79,6 +79,9 @@ print("List of species in chemical system: \n")
 for species in system.species():
     print(species.name())
 
+# > *See tutorials [**ChemicalEditor**](cl.chemical-editor.ipynb) and [**ChemicalSystem**](cl.chemical-system.ipynb)
+# > for more detailed explanation of capabilities of these classes*.
+
 # ### Defining the chemical equilibrium problem
 #
 # Next, we create an equilibrium problem with our prescribed equilibrium conditions for
@@ -93,13 +96,14 @@ problem.add("CaCO3", 1, "mol")
 
 # ### Calculating the chemical equilibrium state
 #
-# In this step, we use the `equilibrate()` function to calculate the chemical
-# equilibrium state of the system with the given equilibrium conditions stored in the object problem.
+# In this step, we use the [equilibrate](https://reaktoro.org/cpp/namespaceReaktoro.html#af2d3b39d3e0b8f9cb5a4d9bbb06b697e)
+# function to calculate the chemical equilibrium state of the system with the given equilibrium conditions stored in
+# the object problem.
 
 state = equilibrate(problem)
 
 # Reaktoro uses an efficient **Gibbs energy minimization** computation to determine the species amounts that correspond
-# to a state of minimum Gibbs energy in the system, while satisfying the prescribed amount conditions for the
+# to a state of minimum Gibbs energy in the system while satisfying the prescribed amount conditions for the
 # temperature, pressure, and element amounts. The result is stored in the object `state`, of class
 # [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html).
 
@@ -107,11 +111,12 @@ state = equilibrate(problem)
 
 print(state)
 
-# We will obtain table describing the chemical state of the system. For example, the molar amounts, molar fractions,
+# We will obtain the table describing the chemical state of the system. For example, the molar amounts, molar fractions,
 # activities, activity coefficients, and chemical potentials of the species. The molar volumes of the phases,
 # the amounts of each element in the phases, and also the total phase molar amounts.
 
-# Alternatively, to save equilibrated state into a file, one can use method `output()`:
+# Alternatively, to save equilibrated state into a file, one can use method
+# [ChemicalState::output](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html#ae5f2706f5be6e6856360a2f1073931e2):
 
 state.output("result.txt")  # Output the equilibrium state into a file result.txt
 
@@ -122,7 +127,7 @@ print("Amount of CO2(aq):", state.speciesAmount("CO2(aq)"))
 print("Amount of HCO3-:", state.speciesAmount("HCO3-"))
 print("Amount of CO3--:", state.speciesAmount("CO3--"))
 
-# Similarly, one can also print the amounts of certain element, say carbon, in both aqueous and gaseous phases
+# Similarly, one can also print the amounts of the certain element, say carbon, in both aqueous and gaseous phases
 
 # Print the amounts of element C in both aqueous and gaseous phases
 print("Amount of C in aqueous phase:", state.elementAmountInPhase("C", "Aqueous"))
