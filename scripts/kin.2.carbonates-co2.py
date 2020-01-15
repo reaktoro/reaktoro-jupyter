@@ -51,8 +51,8 @@ editor.addMineralPhase("Dolomite")
 editor.addMineralPhase("Halite")
 
 # The aqueous phase is defined by considering all aqueous species in the database that could form once the substances
-# H<sub>2<\sub>O, NaCl, CaCO<sub>3</sub>, and MgCO<sub>3</sub> are mixed. The gaseous phase is defined
-# so that only the gaseous species H<sub>2<\sub>O(g) and CO<sub>2</sub>(g) are considered. There are four pure
+# H<sub>2</sub>O, NaCl, CaCO<sub>3</sub>, and MgCO<sub>3</sub> are mixed. The gaseous phase is defined
+# so that only the gaseous species H<sub>2</sub>O(g) and CO<sub>2</sub>(g) are considered. There are four pure
 # mineral phases: calcite (CaCO<sub>3</sub>), magnesite (MgCO<sub>3</sub>), dolomite (CaMg(CO<sub>3</sub>)<sub>2</sub>),
 # and halite (NaCl).
 

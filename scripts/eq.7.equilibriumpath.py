@@ -32,7 +32,7 @@
 # |----------------|----------------|
 # | 1 kg of H2O    | 1 kg of H2O    |
 # | 1 g of CaCO3   | 1 g of CaCO3   |
-# | $$             | 1 mmol of HCl  |
+# | <p></p>        | 1 mmol of HCl  |
 
 # As usual, we start by importing the `reaktoro` package:
 
@@ -131,7 +131,7 @@ filearray = np.loadtxt("result.txt", skiprows=1)
 data = filearray.T
 [cl_indx, co2aq_indx, co3_indx, ca_indx, ph_indx, calcite_indx] = np.arange(6)
 
-# The first plot, depicts sets the amount of element $\mathrm{Cl}$ in units of mmol (on the *x*-axis) and the pH of
+# The first plot, depicts sets the amount of element Cl in units of mmol (on the *x*-axis) and the pH of
 # the aqueous phase (on the *y*-axis):
 
 plt.figure()
@@ -140,9 +140,9 @@ plt.xlabel("pH")
 plt.ylabel("Amount of Cl [mmol]")
 plt.savefig("amount-hcl-vs-ph.png")
 
-# The second plot sets the *x*-axis to the amount of $\mathrm{Cl}$ from added HCl and
-# the *y*-axis to the molality of element $\mathrm{Ca}$, i.e., the molar amount of $\mathrm{Ca}$ **in the aqueous
-# phase**, divided by the mass of solvent water $\mathrm{H_2O(l)}$.
+# The second plot sets the *x*-axis to the amount of Cl from added HCl and
+# the *y*-axis to the molality of element Ca, i.e., the molar amount of Ca **in the aqueous
+# phase**, divided by the mass of solvent water H<sub>2</sub>O(l).
 
 plt.figure()
 plt.plot(data[cl_indx], data[ca_indx], label="Ca")
@@ -152,7 +152,7 @@ plt.tight_layout()
 plt.savefig("concetration-ca-vs-amount-hcl.png")
 
 # The third plot the *x*-axis to pH, but the *y*-axis now contains two plotted quantities: the molality of species
-# CO<sub>2</sub>(aq) and the molality of species $\mathrm{CO_3^{2-}}$, both in units of mmolal (i.e., mmol/kgH2O).
+# CO<sub>2</sub>(aq) and the molality of species CO<sub>3</sub><sup>2-</sup>, both in units of mmolal (i.e., mmol/kg).
 
 plt.figure()
 plt.plot(data[ph_indx], data[co2aq_indx], label="CO2(aq)")
