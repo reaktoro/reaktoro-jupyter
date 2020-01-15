@@ -18,7 +18,7 @@
 # # Performing calculation of reaction path using Reaktoro
 #
 # In this tutorial, we demonstrate how to calculate a reaction path between two different chemical states in
-# equilibrium, which we refer as *initial state* and *final state*.
+# equilibrium, which we refer to as *initial state* and *final state*.
 # These states can have different temperatures, pressures, and/or molar amounts of elements. If we gradually adjust
 # temperature, pressure, and elemental amounts in the system to bring the initial state to the final state, slowly
 # enough so that **every intermediate state is in equilibrium**, the system would trace a co-called *reaction path*.
@@ -46,9 +46,9 @@ from reaktoro import *
 
 editor = ChemicalEditor()
 
-# For the aqueous phases, we list the chemical elements composing the phase instead of exact names of species.
+# For the aqueous phases, we list the chemical elements composing the phase instead of the exact names of species.
 # Class [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html) searches for all species in
-# the database that can be formed by those elements. Only species corresponding to the phase type are selected
+# the database that can be formed by those elements. Only species corresponding to the phase-type are selected
 # (e.g., only aqueous species are searched in the current case).
 
 editor.addAqueousPhaseWithElements("H O Ca C Cl")
@@ -56,7 +56,7 @@ editor.addMineralPhase("Calcite")
 
 system = ChemicalSystem(editor)
 
-# In the code below, two instances of class
+# In the code below, two instances of the class
 # [EquilibriumProblem](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumProblem.html) are created:
 # `initial_problem` describes the initial state, and `final_problem` corresponds to the final state.
 
@@ -73,8 +73,9 @@ final_problem.add("H2O", 1, "kg")
 final_problem.add("CaCO3", 1, "g")
 final_problem.add("HCl", 1, "mmol")
 
-# Two instances of class [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html) are created
-# to store the initial and final equilibrium states calculated by method `equilibrate`.
+# Two instances of the class [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html) are created
+# to store the initial and final equilibrium states calculated by the method
+# [equilibrate](https://reaktoro.org/cpp/namespaceReaktoro.html#af2d3b39d3e0b8f9cb5a4d9bbb06b697e).
 
 initial_state = equilibrate(initial_problem)
 final_state = equilibrate(final_problem)
@@ -109,7 +110,9 @@ output.add("speciesMass(Calcite units=g)")
 # results in a new column of data in the output file.
 
 # **Note**:
-# When two arguments are provided to method `add`, the first one is the name of the quantity to be output (e.g.,
+# When two arguments are provided to the method
+# [ChemicalOutput::add](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalOutput.html#a54b0e4fd28823c4d1d1884c32eed1cf3),
+# the first one is the name of the quantity to be output (e.g.,
 # `time`, `elementAmount(Cl)`, `ionicStrength`). The second one is a label used as the heading of the column of data
 # in the output file. When only one argument is provided, this single argument is both the label and the quantity name.
 

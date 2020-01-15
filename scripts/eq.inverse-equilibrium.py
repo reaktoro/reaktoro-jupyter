@@ -15,23 +15,23 @@
 # ---
 
 # # Inverse chemical equilibrium calculations
-#
+
 # This tutorial demonstrates how to use Reaktoro to perform *inverse chemical
 # equilibrium calculations*.
-#
+
 # In an inverse chemical equilibrium problem, not all elements have known
 # amounts. Instead of fully specifying their amounts, we impose one or more
 # equilibrium constraints such as fixed species amount, fixed species activity,
 # fixed volume of a phase, fixed pH of an aqueous solution; the possibilities
 # are many.
-#
+
 # Since the amounts of elements are not known a priori, an inverse equilibrium
 # calculation tries to determine amounts of titrants that can control the
 # specified equilibrium constraints. The amounts of the titrants are unknown,
 # and its addition or removal is done over the calculation so that the
 # equilibrium state is driven towards a state where all given equilibrium
 # constraints are satisfied.
-#
+
 # Below we create a chemical system containing an aqueous phase, a gaseous
 # phase, and a mineral phase.
 
@@ -54,8 +54,8 @@ system = ChemicalSystem(editor)
 # > [Equilibrium calculations using equilibrium solver](eq.co2-brine-using-equilibrium-solver.ipynb), or
 # > [Custom activity model for equilibrium calculations](eq.custom-activity-models.ipynb).
 
-# #### Equilibrium problem with fixed pH, species amount, and species activity
-#
+# #### Equilibrium problem with fixed pH, species amount and species activity
+
 # In this problem, we fix the pH of the aqueous solution to 3, and specify that
 # HCl is the titrant that should be added or removed so that this constraint is
 # satisfied. Therefore, the amounts of H and Cl are not known in advance.
@@ -85,19 +85,19 @@ state1.output("state1.txt")
 # > Check [EquilibriumInverseProblem](
 # https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumInverseProblem.html) to learn more about all possible
 # equilibrium constraints currently supported.
-#
+
+
 # > Check the output file `state1.txt` and check whether the constraints were
 # > successfully satisfied. We plan to output these files in HTML format so that it can be more conveniently inspected.
 
 
 # #### Equilibrium problem with fixed pH controlled by CO<sub>2</sub>
-#
+
 # The second equilibrium inverse problem has similar conditions to those used
 # for the first problem. However, in this case, we fix pH to be equal to 4.0,
 # with CO<sub>2</sub> being the titrant whose amount to be added into the system
 # is unknown in advance.
 
-# +
 problem2 = EquilibriumInverseProblem(system)
 problem2.add("H2O", 1, "kg")
 problem2.add("NaCl", 0.1, "mol")
@@ -108,18 +108,17 @@ problem2.pH(4.0, "CO2")
 state2 = equilibrate(problem2)
 
 state2.output("state2.txt")
-# -
 
-# > Check the output file `state2.txt` and make sure whether the constraints were successfully satisfied.
+# > Check the output file `state2.txt` and check whether the constraints were
+# > successfully satisfied.
 
 
 # #### Equilibrium problem with fixed pH controlled by either HCl or NaOH
-#
-# In this equilibrium problem, we also fix the pH of the aqueous solution, but we
+
+# in this equilibrium problem, we also fix pH of the aqueous solution, but we
 # specify that this constraint is to be satisfied by titrating either HCl or
 # NaOH (not both!).
 
-# +
 problem3 = EquilibriumInverseProblem(system)
 problem3.add("H2O", 1.0, "kg")
 problem3.add("NaCl", 0.1, "mol")
@@ -129,7 +128,6 @@ problem3.pH(8.0, "HCl", "NaOH")
 state3 = equilibrate(problem3)
 
 state3.output("state3.txt")
-# -
 
-# > Check the output file `state3.txt` and control whether the constraints were
+# > Check the output file `state3.txt` and check whether the constraints were
 # > successfully satisfied.

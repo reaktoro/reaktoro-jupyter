@@ -69,14 +69,16 @@ editor = ChemicalEditor()
 editor.addAqueousPhase(["H2O(l)", "H+", "OH-", "Na+", "Cl-", "HCO3-", "CO2(aq)", "CO3--"]) \
     .setActivityModelDrummondCO2()
 
-# Alternatively, one can select ideal activity model by `setActivityModelIdeal()` method for neutral aqueous species by
-# providing the corresponding name, e.g.,
+# Alternatively, one can select ideal activity model by
+# [AqueousPhase::setActivityModelIdeal](https://reaktoro.org/cpp/classReaktoro_1_1AqueousPhase.html#aef6fbb39539c771554b628de53edeab7)
+# method for neutral aqueous species by providing the corresponding name, e.g.,
 
 editor.addAqueousPhase(["H2O(l)", "H+", "OH-", "Na+", "Cl-", "HCO3-", "CO2(aq)", "CO3--"]) \
     .setActivityModelIdeal("CO2(aq)")
 
 # Finally, we can set the activity model of neutral aqueous species to be the Setschenow one, where not only name of
-# the species but also the Setschenow constant must be provided in method `setActivityModelSetschenow()`.
+# the species but also the Setschenow constant must be provided in method
+# [AqueousPhase::setActivityModelSetschenow](https://reaktoro.org/cpp/classReaktoro_1_1AqueousPhase.html#ab1d6cc44d10a01c7bc1380d6cedfff79).
 
 editor.addAqueousPhase(["H2O(l)", "H+", "OH-", "Na+", "Cl-", "HCO3-", "CO2(aq)", "CO3--", "NaCl(aq)"]) \
     .setChemicalModelDebyeHuckel() \
@@ -162,13 +164,15 @@ problem.add("NaCl", 1, "mol")
 problem.add("CO2", 100, "g")
 
 # The units above can be changed, or even suppressed. If not provided, default units are used, such as K for
-# temperatures, Pa for pressures, and mol for amounts. The `add` method in
+# temperatures, Pa for pressures, and mol for amounts. The
+# [EquilibriumProblem::add](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumProblem.html#a18d8ff0e8b8fc66f1eec0127057c7d54)
+# method in
 # [EquilibriumProblem](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumProblem.html) supports both amount and
 # mass units, such as `mmol`,  `umol`, `g`, `mg`, etc.
 
 # To provide computational representation of the state of a multiphase chemical system resulting from  equilibration
-# process, class [ChemicalState]() must be used. Function `equilibrate()` equilibrates a chemical state instance with
-# an equilibrium problem.
+# process, class [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html) must be used.
+# Function `equilibrate()` equilibrates a chemical state instance with an equilibrium problem.
 
 # The code below uses the definition of the equilibrium problem stored in the object `problem` to perform the
 # equilibrium calculation with utility method `equilibrate()`. The result of the calculation is the object `state`,
@@ -195,3 +199,26 @@ state.output("state.txt")
 # properties of each phase, such as *density*, *molar volume*, *volume fraction*, as well specific properties of some
 # phases (e.g., *ionic strength*, *pH*, *pe* for the aqueous phase).
 
+# ### Specifying optional for the equilibrium calculation
+
+# To customize options for the equilibrium calculations, class
+# [EquilibriumOptions](https://reaktoro.org/cpp/structReaktoro_1_1EquilibriumOptions.html) can be used.
+# For instance, in [NonlinearOptions](https://reaktoro.org/cpp/structReaktoro_1_1NonlinearOptions.html), it contains
+# information about the nonlinear solver used.
+
+options = EquilibriumOptions()
+options.optimum.output.active = True
+options.epsilon = 1e-50
+
+# Here, we set the field of [OutputterOptions](https://reaktoro.org/cpp/structReaktoro_1_1OutputterOptions.html)
+# class to be `True` to determine whether the intermediate values of equilibrium simulations must be output
+# to the console.
+# Then, we set the parameter $\varepsilon$ (used for the numerical representation of a zero molar amount) to be equal to
+# 1e-50. The molar amount of the *i*th species is considered zero if $n[i] < \varepsilon \cdot \min b$, where *b* is
+# the vector of element molar amounts.
+
+# To encounter provided above options, we use function [equilibrate](
+# https://reaktoro.org/cpp/namespaceReaktoro.html#a908245bfa7d236d8c556241dc87f489e)
+# that accepts not only the instance of equilibrium problem but also the specified `options`.
+
+state = equilibrate(problem, options)
