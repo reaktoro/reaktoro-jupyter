@@ -18,34 +18,40 @@ jupyter:
 </div>
 
 
-## Tutorial Overview
+# Tutorial
 
-The tutorial is broken into several sections, which are each presented in their own notebook.
-Tutorials, explaining the functionality of the most important classes in Reaktoro:
+Find below a list of tutorials explaining how to use Reaktoro for solving
+chemical equilibrium, chemical kinetics, and reactive transport problems.
 
-1.  [Database class](cl.database.ipynb)
-2.  [ChemicalEditor class](cl.chemical-editor.ipynb)
-3.  [ChemicalSystem class](cl.chemical-system.ipynb)
-4.  [EquilibriumSolver class](cl.equilibrium-solver.ipynb)
-5.  [Thermo class](cl.thermo.ipynb)
+> If you need assistance, please don't hesitate to chat with us on
+[Gitter](https://gitter.im/reaktoro/community)!
 
-Tutorials on functionality related to modeling equilibrium problems:
+### Tutorials on performing chemical equilibrium calculations:
 
-1.  [Basics of equilibrium calculation](eq.1.equilibrium-basics.ipynb)
-2.  [Equilibrium calculation of carbonate species](eq.2.equilibrium-carbonates.ipynb)
-3.  [Equilibrium calculation till full evaporation of the water](eq.3.co2-brine-full-water-evaporation.ipynb)
-4.  [Equilibrium calculations using equilibrium solver](eq.4.co2-brine-using-equilibrium-solver.ipynb)
-5.  [Custom activity model for equilibrium calculations](eq.5.custom-activity-models.ipynb)
-6.  [Inverse chemical equilibrium calculation](eq.6.inverse-chemical-equilibrium-calculations.ipynb)
-7.  [Equilibrium path calculation](eq.7.equilibriumpath.ipynb)
+* [Basics of equilibrium calculation](eq.1.equilibrium-basics.ipynb)
+* [Equilibrium calculation of carbonate species](eq.2.equilibrium-carbonates.ipynb)
+* [Equilibrium calculation till full evaporation of the water](eq.3.co2-brine-full-water-evaporation.ipynb)
+* [Equilibrium calculations using equilibrium solver](eq.4.co2-brine-using-equilibrium-solver.ipynb)
+* [Custom activity model for equilibrium calculations](eq.5.custom-activity-models.ipynb)
+* [Inverse chemical equilibrium calculation](eq.6.inverse-chemical-equilibrium-calculations.ipynb)
+* [Equilibrium path calculation](eq.7.equilibriumpath.ipynb)
 
-Tutorials on modelling chemical paths of kinetically controlled reactions:
+### Tutorials on performing chemical kinetics calculations:
 
-1.  [Dissolution of calcite in an acidic HCl-solution](kin.1.calcite-hcl.ipynb)
-2.  [Dissolution of carbonate minerals in a carbon dioxide saturated brine](kin.2.carbonates-co2.ipynb)
+* [Dissolution of calcite in an acidic HCl-solution](kin.1.calcite-hcl.ipynb)
+* [Dissolution of carbonate minerals in a carbon dioxide saturated brine](kin.2.carbonates-co2.ipynb)
 
-Finally, the last group is tutorials on using Reaktoro in reactive-transport simulations:
+### Tutorials on performing reactive transport calculations:
 
-1. [Reactive transport of CO<sub>2</sub>-saturated brine along a porous rock column](rt.1.calcite-brine.ipynb)
-2. [Reactive transport modeling along a rock core after injection of the fluid-rock composition](rt.2.calcite-dolomite.ipynb)
-3. [Coupling Reaktoro into other reactive transport codes](rt.3.coupling-reaktoro-to-transport.ipynb)
+
+* [Reactive transport of CO<sub>2</sub>-saturated brine along a porous rock column](rt.1.calcite-brine.ipynb)
+* [Reactive transport modeling along a rock core after injection of the fluid-rock composition](rt.2.calcite-dolomite.ipynb)
+* [Coupling Reaktoro into other reactive transport codes](rt.3.coupling-reaktoro-to-transport.ipynb)
+
+### Tutorials on explaining the most important classes in Reaktoro:
+
+* [**Database**](cl.database.ipynb)
+* [**ChemicalEditor**](cl.chemical-editor.ipynb)
+* [**ChemicalSystem**](cl.chemical-system.ipynb)
+* [**EquilibriumSolver**](cl.equilibrium-solver.ipynb)
+* [**Thermo**](cl.thermo.ipynb)
