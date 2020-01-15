@@ -23,7 +23,8 @@
 # For this, we model the dissolution of mineral calcite (CaCO<sub>3</sub>) in a
 # saline aqueous solution as we increase the amount of CO<sub>2</sub> into the system.
 
-# > **Note:** Prefer class `EquilibriumSolver` instead of method `equilibrate`
+# > **Note:** Prefer class [EquilibriumSolver](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumSolver.html)
+# instead of method [equilibrate](https://reaktoro.org/cpp/namespaceReaktoro.html#af2d3b39d3e0b8f9cb5a4d9bbb06b697e)
 # when many chemical equilibrium calculations are needed.
 
 # We follow the usual initialization steps, such as importing the `reaktoro`
