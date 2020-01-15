@@ -9,13 +9,12 @@
 all: tutorial notebooks
 
 tutorial: clean notebooks
-	mkdir -p tutorial
-	for f in scripts/notebooks/*.ipynb ; do \
-		python utilities/unpair.py $$f --output tutorial/$${f##*/} ; \
-	done
+	cp -r scripts/notebooks/*ipynb tutorial/
+	jupytext --update-metadata '{"jupytext": null}' tutorial/*.ipynb
 
 notebooks:
 	jupytext --set-formats notebooks//ipynb,py:light scripts/*.py
+	jupytext --set-formats notebooks//ipynb,md scripts/*.md
 
 sync:
 	jupytext --sync scripts/*.py
