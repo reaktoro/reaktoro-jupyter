@@ -207,12 +207,12 @@ state0.setSpeciesMass("Dolomite", 50, "g")
 path = KineticPath(reactions)
 path.setPartition(partition)
 
-# **Note**: For repeated chemical kinetics calculations (e.g., in a reactive transport simulation, where kinetics is
-# performed for each mesh cell/node), consider using the class
-# [KineticSolver](https://reaktoro.org/cpp/classReaktoro_1_1KineticSolver.html) instead for avoiding some overhead of
-# class [KineticPath](https://reaktoro.org/cpp/classReaktoro_1_1KineticPath.html). For equilibrium calculations,
-# consider also the class [EquilibriumSolver](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumSolver.html),
-# instead of method `equilibrate`, for similar reasons.
+# > **Note**: For repeated chemical kinetics calculations (e.g., in a reactive transport simulation, where kinetics is
+# > performed for each mesh cell/node), consider using the class
+# > [KineticSolver](https://reaktoro.org/cpp/classReaktoro_1_1KineticSolver.html) instead for avoiding some overhead of
+# > class [KineticPath](https://reaktoro.org/cpp/classReaktoro_1_1KineticPath.html). For equilibrium calculations,
+# > consider also the class [EquilibriumSolver](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumSolver.html),
+# > instead of method `equilibrate`, for similar reasons.
 
 # To analyse the result of kinetic simulations, we save the evolution of different properties of the chemical system
 # into file `result.txt`:
@@ -226,9 +226,9 @@ output.add("elementMolality(Mg units=mmolal)", "Mg [mmolal]")
 output.add("phaseMass(Calcite units=g)", "Calcite [units=g]")
 output.add("phaseMass(Dolomite units=g)", "Dolomite [units=g]")
 
-# **Note**: A list of all possible quantities that can be plotted is shown in the class
-# [ChemicalQuantity](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalQuantity.html), which provides an interface
-# for convenient ways of their retrieval.
+# > **Note**: A list of all possible quantities that can be plotted is shown in the class
+# > [ChemicalQuantity](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalQuantity.html), which provides an interface
+# > for convenient ways of their retrieval.
 
 # To perform the calculation of kinetic path, we need to provide time interval, on which this path must be recovered. In
 # this case, we choose 25 hours of simulations. Initial chemical state provided by the instance `state0`, as well as

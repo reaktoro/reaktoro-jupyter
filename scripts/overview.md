@@ -32,7 +32,7 @@ chemical equilibrium, chemical kinetics, and reactive transport problems.
 * [Equilibrium calculation of carbonate species](eq.equilibrium-carbonates.ipynb)
 * [Equilibrium calculations using equilibrium solver](eq.co2-brine-using-equilibrium-solver.ipynb)
 * [Custom activity model for equilibrium calculations](eq.custom-activity-models.ipynb)
-* [Inverse chemical equilibrium calculation](eq.inverse-chemical-equilibrium-calculations.ipynb)
+* [Inverse chemical equilibrium calculation](eq.inverse-equilibrium.ipynb)
 * [Equilibrium path calculation](eq.equilibriumpath.ipynb)
 
 ### Tutorials on performing chemical kinetics calculations:

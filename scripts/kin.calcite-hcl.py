@@ -125,7 +125,8 @@ state0.output('demo-kineticpath-calcite-hcl-before-kinetics.txt')
 # For this calculation, Reaktoro uses an efficient Gibbs energy minimization algorithm to determine the amounts of
 # the equilibrium species that correspond to a state of minimum Gibbs energy in the equilibrium partition only,
 # at given conditions of temperature, pressure, and element amounts in the equilibrium partition. The result is
-# stored in the object state0 of class [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html), a computational representation of the state of a multiphase
+# stored in the object state0 of class [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html),
+# a computational representation of the state of a multiphase
 # chemical system defined by its temperature (*T*), pressure (*P*), and vector of species amounts (*n*).
 
 # To simulate the kinetic dissolution of calcite in the aqueous fluid we defined before, we need to specify its
@@ -154,9 +155,9 @@ output.add("speciesMolality(Ca++ units=mmolal)", "Ca++ [mmol]")
 output.add("speciesMolality(HCO3- units=mmolal)", "HCO3- [mmol]")
 output.add("pH")
 
-# **Note**: A list of all possible quantities that can be plotted is shown in the class
-# [ChemicalQuantity](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalQuantity.html),
-# which provides an interface for convenient ways of their retrieval.
+# > **Note**: A list of all possible quantities that can be plotted is shown in the class
+# > [ChemicalQuantity](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalQuantity.html),
+# > which provides an interface for convenient ways of their retrieval.
 
 # ### Solving the chemical kinetics problem
 #

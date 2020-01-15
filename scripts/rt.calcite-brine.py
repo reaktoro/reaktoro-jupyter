@@ -68,7 +68,7 @@ year = 365 * day
 # discretization parameters, i.e., the number of cells and steps in time, are both set to 100. The reactive
 # transport modeling procedure assumes a constant fluid velocity of 1 m/week (1.16 · $10^{-5}$ m/s) and the same
 # diffusion coefficient of $10^{-9}$ m<sup>2</sup>/s for all fluid species (without dispersivity). The size of the
-# time-step is set to 30 minutes. Temperature and pressure are set to 60 &deg; C and 100 bar, respectively,
+# time-step is set to 30 minutes. Temperature and pressure are set to 60 &deg;C and 100 bar, respectively,
 # throughout the whole tutorial.
 
 xl = 0.0                # the x-coordinate of the left boundary
@@ -268,14 +268,15 @@ state_bc = equilibrate(problem_bc)
 #
 # To obtain this, we scale the volumes of the aqueous and mineral phases as shown
 # below:
-# > **Note**: After this scaling step, the sum of the phase volumes in ``state_ic`` is 1 m<sup>3</sup>. This also
-# > ensures that the amounts of the species in the chemical system are normalized by m<sup>3</sup>, and thus they can
-# be regarded as concentrations in a unit of mol/m<sup>3</sup> (*bulk volume, not fluid volume!*).
 
 # Scale the volumes of the phases in the initial condition
 state_ic.scalePhaseVolume('Aqueous', 0.1, 'm3') # corresponds to the initial porosity of 10%.
 state_ic.scalePhaseVolume('Quartz', 0.882, 'm3')
 state_ic.scalePhaseVolume('Calcite', 0.018, 'm3')
+
+# > **Note**: After this scaling step, the sum of the phase volumes in ``state_ic`` is 1 m<sup>3</sup>. This also
+# > ensures that the amounts of the species in the chemical system are normalized by m<sup>3</sup>, and thus they can
+# > be regarded as concentrations in a unit of mol/m<sup>3</sup> (*bulk volume, not fluid volume!*).
 
 # ### Scaling the boundary condition state
 #

@@ -18,7 +18,7 @@
 # # Reactive transport modeling along a rock core after injection of the fluid-rock composition
 
 # In this tutorial, we show how Reaktoro can be used for sequential calculations of the reactive transport along a
-# rock column after injecting the fluid and rock composition at temperature 60 &deg; C and pressure 100 bar.
+# rock column after injecting the fluid and rock composition at temperature 60 &deg;C and pressure 100 bar.
 
 # Using Reaktoro in Python requires first an import of the python package **reaktoro**. From this point on,
 # we can use the library components of Reaktoro (classes, methods, constants), which are needed to define our
@@ -67,7 +67,7 @@ year = 365 * day
 # discretization parameters, i.e., the number of cells and steps in time, are both set to 100. The reactive
 # transport modeling procedure assumes a constant fluid velocity of 1 m/week (1.65 · $10^{-6}$ m/s) and
 # the same diffusion coefficient of $10^{-9}$ m<sup>2</sup>/s for all fluid species (without dispersivity).
-# The size of the time-step is set to 30 minutes. Temperature and pressure are set to 60 &deg; C and 100 bar,
+# The size of the time-step is set to 30 minutes. Temperature and pressure are set to 60 &deg;C and 100 bar,
 # respectively, throughout the whole tutorial.
 
 xl = 0.0  # x-coordinate of the left boundary
@@ -325,11 +325,11 @@ def define_initial_condition(system):
 # > constraints*).
 #
 # > **Note**: Please note that we are not condemning the input form shown above in terms of element amounts,
-# but only telling you to be attentive with the values you input. If you are using Reaktoro as a chemical reaction
-# solver in a reactive transport simulator, for example, you'll most likely need to work directly with given amounts
-# of elements, which shows that this input form is required in certain cases. For such time-dependent modeling
-# problems, you often only need to ensure that the initial conditions for elements amounts result in feasible initial
-# species amounts.
+# > but only telling you to be attentive with the values you input. If you are using Reaktoro as a chemical reaction
+# > solver in a reactive transport simulator, for example, you'll most likely need to work directly with given amounts
+# > of elements, which shows that this input form is required in certain cases. For such time-dependent modeling
+# > problems, you often only need to ensure that the initial conditions for elements amounts result in feasible initial
+# > species amounts.
 #
 # Next, we use method [equilibrate](https://reaktoro.org/cpp/namespaceReaktoro.html#af2d3b39d3e0b8f9cb5a4d9bbb06b697e)
 # to calculate the chemical equilibrium state of the system with the given initial conditions stored in the objects
@@ -350,7 +350,7 @@ def define_initial_condition(system):
 # and *amounts of elements*. In particular, we prescribe the amount of injected aqueous fluid resulting from
 # the mixture of 1 kg of water with 0.90 moles of NaCl, 0.05 molal MgCl<sub>2</sub>, 0.01 CaCl<sub>2</sub>,
 # and 0.75 molal CO<sub>2</sub>, in a state very close to CO<sub>2</sub> saturation.
-# The temperature and the pressure stays the same, i.e., 60 &deg; C and 100 bar, respectively.
+# The temperature and the pressure stays the same, i.e., 60 &deg;C and 100 bar, respectively.
 #
 # After equilibration, the obtained chemical state representing the boundary condition for the injected fluid
 # composition, we scale its volume to 1 m<sup>3</sup>. This is done so that the amounts of the species in the fluid are
