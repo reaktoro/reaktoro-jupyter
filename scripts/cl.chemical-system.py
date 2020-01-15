@@ -30,6 +30,7 @@
 # Assume that we have defined `system`, an instance of
 # [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html) object, by the code below:
 
+# +
 # Import the reaktoro Python package
 from reaktoro import *
 
@@ -45,6 +46,13 @@ editor.addGaseousPhase(["CO2(g)"])  # add one gaseous species
 
 # Construct the chemical system
 system = ChemicalSystem(editor)
+#-
+
+# > Check previous tutorials to learn the  steps above! For example,
+# > [Basics of equilibrium calculation](eq.equilibrium-basics.ipynb),
+# > [Equilibrium calculation of carbonate species](eq.equilibrium-carbonates.ipynb),
+# > [Equilibrium calculations using equilibrium solver](eq.co2-brine-using-equilibrium-solver.ipynb), or
+# > [Custom activity model for equilibrium calculations](eq.custom-activity-models.ipynb).
 
 # The most general print-out of the chemical system can be done by
 
