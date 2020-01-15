@@ -9,7 +9,7 @@
 all: tutorial notebooks
 
 tutorial: clean notebooks
-	cp -r scripts/notebooks/*ipynb tutorial/
+	cp -r scripts/notebooks/*.ipynb tutorial/
 	jupytext --update-metadata '{"jupytext": null}' tutorial/*.ipynb
 
 notebooks:
@@ -21,4 +21,4 @@ sync:
 
 clean:
 	rm -rf scripts/notebooks
-	rm -rf tutorial/*ipynb
+	rm -rf tutorial/*.ipynb
