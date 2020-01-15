@@ -9,6 +9,10 @@
 #       format_name: light
 #       format_version: '1.5'
 #       jupytext_version: 1.3.0
+#   kernelspec:
+#     display_name: Python 3
+#     language: python
+#     name: python3
 # ---
 
 # # Dissolution of calcite in an acidic HCl-solution
