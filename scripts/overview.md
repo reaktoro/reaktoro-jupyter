@@ -48,8 +48,12 @@ chemical equilibrium, chemical kinetics, and reactive transport problems.
 
 ### Tutorials on explaining the most important classes in Reaktoro:
 
+For a comprehensive documentation of all Reaktoro’s classes and methods, please check [Reaktoro’s C++ API programming reference](https://reaktoro.org/cpp/index.html).
+Below you find a more interactive documentation of a few selected classes.
+
 * [**Database**](cl.database.ipynb)
 * [**ChemicalEditor**](cl.chemical-editor.ipynb)
 * [**ChemicalSystem**](cl.chemical-system.ipynb)
 * [**EquilibriumSolver**](cl.equilibrium-solver.ipynb)
 * [**Thermo**](cl.thermo.ipynb)
+
