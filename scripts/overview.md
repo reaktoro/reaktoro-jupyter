@@ -31,21 +31,21 @@ Tutorials, explaining the functionality of the most important classes in Reaktor
 
 Tutorials on functionality related to modeling equilibrium problems:
 
-1.  [Basics of equilibrium calculation](eq.1.equilibrium-basics.ipynb)
-2.  [Equilibrium calculation of carbonate species](eq.2.equilibrium-carbonates.ipynb)
-3.  [Equilibrium calculation till full evaporation of the water](eq.3.co2-brine-full-water-evaporation.ipynb)
-4.  [Equilibrium calculations using equilibrium solver](eq.4.co2-brine-using-equilibrium-solver.ipynb)
-5.  [Custom activity model for equilibrium calculations](eq.5.custom-activity-models.ipynb)
-6.  [Inverse chemical equilibrium calculation](eq.6.inverse-chemical-equilibrium-calculations.ipynb)
-7.  [Equilibrium path calculation](eq.7.equilibriumpath.ipynb)
+1.  [Basics of equilibrium calculation](eq.equilibrium-basics.ipynb)
+2.  [Equilibrium calculation of carbonate species](eq.equilibrium-carbonates.ipynb)
+3.  [Equilibrium calculation till full evaporation of the water](eq.co2-brine-full-water-evaporation.ipynb)
+4.  [Equilibrium calculations using equilibrium solver](eq.co2-brine-using-equilibrium-solver.ipynb)
+5.  [Custom activity model for equilibrium calculations](eq.custom-activity-models.ipynb)
+6.  [Inverse chemical equilibrium calculation](eq.inverse-chemical-equilibrium-calculations.ipynb)
+7.  [Equilibrium path calculation](eq.equilibriumpath.ipynb)
 
 Tutorials on modelling chemical paths of kinetically controlled reactions:
 
-1.  [Dissolution of calcite in an acidic HCl-solution](kin.1.calcite-hcl.ipynb)
-2.  [Dissolution of carbonate minerals in a carbon dioxide saturated brine](kin.2.carbonates-co2.ipynb)
+1.  [Dissolution of calcite in an acidic HCl-solution](kin.calcite-hcl.ipynb)
+2.  [Dissolution of carbonate minerals in a carbon dioxide saturated brine](kin.carbonates-co2.ipynb)
 
 Finally, the last group is tutorials on using Reaktoro in reactive-transport simulations:
 
 1. [Reactive transport of CO<sub>2</sub>-saturated brine along a porous rock column](rt.1.calcite-brine.ipynb)
 2. [Reactive transport modeling along a rock core after injection of the fluid-rock composition](rt.2.calcite-dolomite.ipynb)
-3. [Coupling Reaktoro into other reactive transport codes](rt.3.coupling-reaktoro-to-transport.ipynb)
+3. [Coupling Reaktoro into other reactive transport codes](rt.coupling-reaktoro-to-transport.ipynb)
