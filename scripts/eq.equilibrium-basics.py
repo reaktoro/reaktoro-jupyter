@@ -28,9 +28,8 @@ from reaktoro import *
 
 db = Database("supcrt98.xml")
 
-# > For more detailed overview on the functionality of the class
-# > [Database](https://reaktoro.org/cpp/classReaktoro_1_1Database.html),
-# > please check the tutorial [**Database**](cl.database.ipynb).
+# > For more detailed overview on the functionality of this class, please check the tutorial
+# [**Database**](cl.database.ipynb).
 
 # ## Initializing chemical system
 
@@ -47,8 +46,9 @@ editor.addAqueousPhaseWithElements("H O Na Cl C Ca Mg Si")
 # > **Note:** This automatic selection of chemical species for a phase can result in a large number of them. This
 # potentially increases the computing cost of the chemical reaction calculations. If you are using Reaktoro in
 # demanding applications, you might want to manually specify the chemical species of each phase in your chemical
-# system. This can be achieved by providing an explicit list of species names, e.g., `editor.addAqueousPhase("H2O(l)
-# H+ OH- CO2(aq)")`. Note, however, that care is required here to ensure relevant species are not missing. The just
+# system. This can be achieved by providing an explicit list of species names, e.g.,
+# `editor.addAqueousPhase("H2O(l) H+ OH- CO2(aq)")`. Note, however, that care is required here to ensure relevant
+# species are not missing. The just
 # given example is a bad one in fact, with important species such as `HCO3-` and `CO3--` missing in the list.
 
 # We are interested in a gaseous phase containing exactly the following gases (which may not exist in positive
@@ -64,8 +64,8 @@ editor.addMineralPhase("Magnesite")
 editor.addMineralPhase("Dolomite")
 editor.addMineralPhase("Quartz")
 
-# > See tutorial [**ChemicalEditor**](cl.chemical-editor.ipynb) for studying further capabilities of
-# > [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html) class.
+# > See the tutorial [**ChemicalEditor**](cl.chemical-editor.ipynb) for studying further capabilities of
+# [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html) class.
 
 # ## Initializing chemical system
 
@@ -83,8 +83,8 @@ system = ChemicalSystem(editor)
 # since any chemical calculation needs to know the definition of the chemical system and the thermodynamic models
 # describing the non-ideal behavior of the phases.
 
-# > See [**ChemicalSystem**](cl.chemical-system.ipynb) for the explanation on functionality of class
-# > [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html).
+# > See [**ChemicalSystem**](cl.chemical-system.ipynb) for the explanation on functionality of the class
+# [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html).
 
 # ## Initializing equilibrium problem
 
@@ -107,8 +107,8 @@ problem.add("CaCO3", 10.0, "g")
 problem.add("MgCO3", 5.0, "g")
 problem.add("Quartz", 1.0, "mol")
 
-# > **Note:** The substance names above can either be chemical formulas, such as CaCO3 and CaCl2, as well as names of
-# species that can be found in the database, such as Quartz. Reaktoro will break down the chemical formulas of the
+# > **Note:** The substance names above can either be chemical formulas, such as `CaCO3` and `CaCl2`, as well as names of
+# species that can be found in the database, such as `Quartz`. Reaktoro will break down the chemical formulas of the
 # substances and calculate the amount of each chemical element in the system. These element amounts are inputs to the
 # equilibrium calculation. In the future, we will only allow species names to be provided since this is a safer way
 # of preventing unfeasible elemental mass conditions to be imposed (e.g., there are *x* moles of C and *y* moles of
@@ -134,16 +134,17 @@ n = state.speciesAmounts()
 
 print(f"T = {T} K")
 print(f"P = {P} Pa")
-print(f"n = (in mol)\n{n}")
+print(f"n (in mol) = \n{n}")
 
 # To print the name of each species and its amount (in mol), we execute the following loop:
 
+print("Species names : n (in mol)")
 for species in system.species():
     name = species.name()
     amount = state.speciesAmount(name)
-    print(f"{name:>15} = {amount}")
+    print(f"{name:>13} = {amount}")
 
-# You can also output the chemical state to a file
+# To examine the complete information about the chemical state, you can also output it to a file
 
 state.output("state.txt")
 
@@ -158,17 +159,19 @@ properties = ChemicalProperties(system)
 
 properties.update(T, P, n)
 
-# Alternatively, we could also have done:
+# Alternatively, one can also do:
 
 properties = state.properties()
 
 # > **Note:** The call above creates a new object of [
 # > ChemicalProperties](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalProperties.html) each time. If you are using
 # > Reaktoro in a simulator that needs the chemical properties of the system at millions/billions of states each time
-# > step, prefer to the
+# > step, instead of populating many instances of ChemicalProperties, prefer to use
 # > [ChemicalProperties::update](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalProperties.html#af923d85484865039fa56889c1a2f36c9)
 # > method of an existing [ChemicalProperties](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalProperties.html)
 # > object.
+
+# ### Analyzing activities
 
 # Once we have computed the chemical properties, we can query for some of them. Below we get the natural log of
 # species activities:
@@ -181,17 +184,34 @@ lna = properties.lnActivities().val
 # To compute the actual activities (not their natural log), and print them one by one, we do
 
 a = numpy.exp(lna)
+print("Species names : activities")
 for i, species in enumerate(system.species()):
-    print(f"{species.name():>15} = {a[i]}")
+    print(f"{species.name():>13} : {a[i]}")
 
-# ## Calculating the pH of the aqueous solution
+# ### Analyzing chemical potentials
+
+# Similarly, we can inspect chemical potentials:
+
+mu = properties.chemicalPotentials().val
+print("Species names : potentials (in kJ/mol)")
+for i, species in enumerate(system.species()):
+    print(f"{species.name():>13} : {mu[i]}")
+
+# ### Calculating the pH of the aqueous solution
 
 # Let's create a pH function that computes the pH of the aqueous solution given the chemical properties of the system.
-# **Note:** this will be soon simplified!
 
 evaluate_pH = ChemicalProperty.pH(system)
 pH = evaluate_pH(properties)
+
+# > **Note:** This will be soon simplified!
+
+# Besides its value, which can be obtained by  `pH.val`, `ph` also contains derivatives with respect to the species
+# amounts. It can be accessed by `pH.ddn`:
+
 print(f"The pH of the aqueous phase is {pH.val}.")
-print(f"Its sensitivity with respect to speciation, ∂(pH)/∂n, is:")
+print(f"Its sensitivity with respect to speciation ∂(pH)/∂n, is:")
+print("Species names : ∂(pH)/∂n (in 1/mol)")
 for i, species in enumerate(system.species()):
-    print(f"{species.name():>15} = {pH.ddn[i]}")
+    print(f"{species.name():>13} : {pH.ddn[i]}")
+
