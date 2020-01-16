@@ -16,7 +16,7 @@
 
 # # Functionality of ChemicalEditor class
 #
-# In this tutorial, we provide clarification of functionality of class
+# In this tutorial, we provide clarification of functionality of the class
 # [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html) that is used to
 # conveniently create chemical and reaction systems.
 #
@@ -28,15 +28,15 @@ from reaktoro import *
 
 # The default thermodynamic databases embedded into Reaktoro is SUPCRT92, so you do not have to initialize the
 # database `db = Database('supcrt98.xml')`, unless an alternative database must be used.
-
+#
 # ### Initializing chemical editor
 #
 # Class [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html)
 # provides convenient operations to initialize
 # [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html) and
 # [ReactionSystem](https://reaktoro.org/cpp/classReaktoro_1_1ReactionSystem.html) instances.
+# To define the editor of the chemical system from the default database SUPCRT92, we use:
 
-# Define the editor of the chemical system from the default database SUPCRT92
 editor = ChemicalEditor()
 
 # Alternatively, the editor can be initialized by the database instance:
@@ -68,8 +68,8 @@ editor.addAqueousPhase(
 # https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html#a2c11397b4d486cf0fc18ae26eaf87980).
 # It permits the [AqueousPhase](https://reaktoro.org/cpp/classReaktoro_1_1AqueousPhase.html)
 # object to be constructed by using a list of chemical element names. The database will be searched for all
-# species that could be formed out of those elements. These species will then be used to construct the `AqueousPhase`
-# object.
+# species that could be formed out of those elements. These species will then be used to construct
+# [AqueousPhase](https://reaktoro.org/cpp/classReaktoro_1_1AqueousPhase.html) object.
 
 editor.addAqueousPhaseWithElements("H O C Ca Cl Mg")
 
@@ -103,7 +103,8 @@ editor.addMineralPhase("Calcite")
 editor.addMineralPhase("Dolomite")
 editor.addMineralPhase(["Dolomite", "Calcite"])
 
-# There two more alternatives to add [MinerialPhase](https://reaktoro.org/cpp/classReaktoro_1_1MineralPhase.html), i.e.,
+# There are two more alternatives to add [MinerialPhase](https://reaktoro.org/cpp/classReaktoro_1_1MineralPhase.html),
+# i.e.,
 
 editor.addMineralPhaseWithElements(["Ca", "C", "O"])
 editor.addMineralPhaseWithElementsOf(["CaCO3", "MgCO3"])
@@ -114,9 +115,6 @@ editor.addMineralPhaseWithElementsOf(["CaCO3", "MgCO3"])
 editor.setTemperatures([60, 80, 100, 120, 140, 160], "celsius")
 editor.setPressures([1, 10, 100], "bar")
 
-# ### Chemical system definition
-#
 # Finally, definition of chemical system is done by calling
 
-# Construct the chemical system
 system = ChemicalSystem(editor)
