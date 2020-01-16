@@ -33,7 +33,7 @@
 # | 1 kg of H2O    | 1 kg of H2O    |
 # | 1 g of CaCO3   | 1 g of CaCO3   |
 # | <p></p>        | 1 mmol of HCl  |
-
+#
 # As usual, we start by importing the `reaktoro` package:
 
 from reaktoro import *
@@ -51,15 +51,18 @@ editor = ChemicalEditor()
 # the database that can be formed by those elements. Only species corresponding to the phase-type are selected
 # (e.g., only aqueous species are searched in the current case).
 
+# +
 editor.addAqueousPhaseWithElements("H O Ca C Cl")
 editor.addMineralPhase("Calcite")
 
 system = ChemicalSystem(editor)
+# -
 
 # In the code below, two instances of the class
 # [EquilibriumProblem](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumProblem.html) are created:
 # `initial_problem` describes the initial state, and `final_problem` corresponds to the final state.
 
+# +
 initial_problem = EquilibriumProblem(system)
 initial_problem.setTemperature(30.0, "celsius")
 initial_problem.setPressure(1.0, "bar")
@@ -72,6 +75,7 @@ final_problem.setPressure(1.0, "bar")
 final_problem.add("H2O", 1, "kg")
 final_problem.add("CaCO3", 1, "g")
 final_problem.add("HCl", 1, "mmol")
+# -
 
 # Two instances of the class [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html) are created
 # to store the initial and final equilibrium states calculated by the method
@@ -108,14 +112,13 @@ output.add("speciesMass(Calcite units=g)")
 # the method [ChemicalOutput::filename](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalOutput.html#ac5cc9d0f90cfe5c6e0972a55b7f7bf5d).
 # Each call to [ChemicalOutput::add](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalOutput.html#af3b5a7d6b0fbbc870664d6ad100b10dd)
 # results in a new column of data in the output file.
-
-# **Note**:
-# When two arguments are provided to the method
+#
+# > **Note**: When two arguments are provided to the method
 # [ChemicalOutput::add](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalOutput.html#a54b0e4fd28823c4d1d1884c32eed1cf3),
 # the first one is the name of the quantity to be output (e.g.,
 # `time`, `elementAmount(Cl)`, `ionicStrength`). The second one is a label used as the heading of the column of data
 # in the output file. When only one argument is provided, this single argument is both the label and the quantity name.
-
+#
 # Finally, after output files have been configured, the equilibrium path can be calculated using:
 
 path = path.solve(initial_state, final_state)
@@ -141,7 +144,7 @@ plt.figure()
 plt.plot(data[ph_indx], data[cl_indx], label="Cl")
 plt.xlabel("pH")
 plt.ylabel("Amount of Cl [mmol]")
-plt.savefig("amount-hcl-vs-ph.png")
+plt.tight_layout()
 
 # The second plot sets the *x*-axis to the amount of Cl from added HCl and
 # the *y*-axis to the molality of element Ca, i.e., the molar amount of Ca **in the aqueous
@@ -152,7 +155,6 @@ plt.plot(data[cl_indx], data[ca_indx], label="Ca")
 plt.xlabel("Amount of Cl [mmol]")
 plt.ylabel("Concentration of Ca [mmolal]")
 plt.tight_layout()
-plt.savefig("concetration-ca-vs-amount-hcl.png")
 
 # The third plot the *x*-axis to pH, but the *y*-axis now contains two plotted quantities: the molality of species
 # CO<sub>2</sub>(aq) and the molality of species CO<sub>3</sub><sup>2-</sup>, both in units of mmolal (i.e., mmol/kg).
@@ -164,7 +166,6 @@ plt.xlabel("pH")
 plt.ylabel("Concentration [mmolal]")
 plt.legend(loc='center right')
 plt.tight_layout()
-plt.savefig("concetration-co2-co3-vs-ph.png")
 
 # The fourth and last figure finally plots how the mass of calcite (or calcium carbonate) changes with the addition of
 # HCl in the system:
@@ -175,4 +176,3 @@ plt.xlabel("HCl [mmol]")
 plt.ylabel("Mass [g]")
 plt.legend(loc='center right')
 plt.tight_layout()
-plt.savefig("mass-calcite-vs-amount-hcl.png")
