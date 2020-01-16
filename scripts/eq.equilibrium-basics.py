@@ -210,7 +210,7 @@ pH = evaluate_pH(properties)
 # amounts. It can be accessed by `pH.ddn`:
 
 print(f"The pH of the aqueous phase is {pH.val}.")
-print(f"Its sensitivity with respect to speciation ∂(pH)/∂n, is:")
+print(f"Its sensitivity with respect to speciation is:")
 print("Species names : ∂(pH)/∂n (in 1/mol)")
 for i, species in enumerate(system.species()):
     print(f"{species.name():>13} : {pH.ddn[i]}")
