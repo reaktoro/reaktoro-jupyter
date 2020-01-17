@@ -16,10 +16,10 @@
 
 # # Functionality of ChemicalSystem class
 #
-# In this tutorial, we provide explanation on functionality of class
+# In this tutorial, we provide an explanation on the functionality of the class
 # [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html)
 # that represents a chemical system and its attributes and properties. Below,
-# we provide a tutorial of the methods that can be used to study the characteristics of considered chemical system.
+# we provide a tutorial of the methods that can be used to study the characteristics of the considered chemical system.
 #
 # A chemical system is a description of the phases of interest in the modeling problem and the chemical species that
 # compose those phases. For example, when modeling the chemistry of an aqueous solution, only one phase should be
@@ -82,8 +82,8 @@ for phase in system.phases():
     print(f" * Phase {phase.name()} contains {phase.numSpecies()} species")
 
 # [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html)
-# provides formula matrix (whose entry (j, i) is given by the number of atoms of its j-th element in
-# its i-th species). To access it, one need to use
+# provides the formula matrix (whose entry *(j, i)* is given by the number of atoms of its *j*th element in
+# its *i*th species). To access it, one need to use
 
 matrix = system.formulaMatrix()
 print(f"Formula matrix of the size {matrix.shape[0]} x {matrix.shape[1]}:\n", matrix)
@@ -123,7 +123,7 @@ print("Index of the element H: ", system.indexElement("H"))
 print("Index of the phase Aqueous: ", system.indexPhase("Aqueous"))
 print("Index of the species Cl-: ", system.indexSpecies("Cl-"))
 
-# When working with a  set of species, one can request set of corresponding indices. Let us collect all the species
+# When working with a  set of species, one can request a set of corresponding indices. Let us collect all the species
 # with chlorine and retrieve indices of corresponding species:
 
 species = [
@@ -147,11 +147,11 @@ n = np.ones(system.numSpecies())
 elements_amount = system.elementAmounts(n)
 hydrogen_amount = system.elementAmount(2, n)
 print(
-    "Element amounts (in mol) provided 1 molal for all species : ",
+    "Element amounts (in mol) provided 1 molal for all species: ",
     elements_amount,
 )
 print(
-    "Hydrogen amounts (in mol) provided 1 molal for all species : ",
+    "Hydrogen amounts (in mol) provided 1 molal for all species: ",
     hydrogen_amount,
 )
 
@@ -194,7 +194,7 @@ for enthalpies, species in zip(
 
 chemical_properties = system.properties(T, P, n)
 
-# This object contains various chemical properties, such as mole fractions, logarithm of activities, chemical
+# This object contains various chemical properties, such as mole fractions, the logarithm of activities, chemical
 # potentials of the species, in addition to thermodynamic properties listed above:
 
 print("Chemical potentials of the species:")

@@ -16,7 +16,7 @@
 
 # # Functionality of ChemicalEditor class
 #
-# In this tutorial, we provide clarification of functionality of the class
+# In this tutorial, we provide clarification of the functionality of the class
 # [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html) that is used to
 # conveniently create chemical and reaction systems.
 #
@@ -48,8 +48,8 @@ editor = ChemicalEditor(db)
 
 # ### Preparation of chemical system definition
 #
-# Before definition of chemical system, aqueous, gaseous, and mineral phases must be added. It can be done in various
-# ways. Let us consider, first, definition of aqueous species:
+# Before the definition of chemical system, aqueous, gaseous, and mineral phases must be added. It can be done in
+# various ways. Let us consider, first, the definition of aqueous species:
 #
 # * With method [ChemicalEditor::addAqueousPhase](
 # https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html#a68cdc98877671b61490d0752b3060d91),
@@ -74,7 +74,7 @@ editor.addAqueousPhase(
 editor.addAqueousPhaseWithElements("H O C Ca Cl Mg")
 
 # * Finally, [AqueousPhase](https://reaktoro.org/cpp/classReaktoro_1_1AqueousPhase.html)
-# object can be also constructed by using a list of compound or substance names that might not
+# object can be also constructed by using a list of compounds or substance names that might not
 # necessarily represent names of species in the database. The list of compounds will be broken into a list of element
 # names, and the database will be similarly searched for all species that could be formed out of those elements.
 
@@ -115,6 +115,6 @@ editor.addMineralPhaseWithElementsOf(["CaCO3", "MgCO3"])
 editor.setTemperatures([60, 80, 100, 120, 140, 160], "celsius")
 editor.setPressures([1, 10, 100], "bar")
 
-# Finally, definition of chemical system is done by calling
+# Finally, the definition of the chemical system is done by calling
 
 system = ChemicalSystem(editor)
