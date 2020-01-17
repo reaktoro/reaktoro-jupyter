@@ -172,11 +172,6 @@ path.solve(state0, t0, t1, "minute")
 
 # ### Plotting the results of equilibrium path calculation
 #
-# The best way to visually analyze the obtained reaction path is with plots. For that, we export python plotting
-# package *matplotlib*, the fundamental package for scientific computing with Python.
-
-import matplotlib.pyplot as plt
-
 # To load results from the outputfile, we use [loadtxt](https://docs.scipy.org/doc/numpy/reference/generated/numpy.loadtxt.html)
 # function provided by the *numpy* package:
 
@@ -184,38 +179,47 @@ filearray = numpy.loadtxt("results.txt", skiprows=1) # load data from the file s
 data = filearray.T  # transpose the matrix with data
 [time_indx, ca_elem_indx, calcite_indx, ca_species_indx, hco3_indx, ph_indx] = numpy.arange(0, 6) # assign indices of the corresponding data
 
-# The plots below depict different chemical properties (x-axis) with respect to the time interval of
-# the kinetic simulation (y-axis):
+# To visually analyze the obtained reaction path is with plots. For that, we export
+# [bokeh](https://docs.bokeh.org/en/latest/docs/gallery.html#standalone-examples) python plotting package.
 
-# +
+from bokeh.plotting import figure, show
+from bokeh.io import output_notebook
+output_notebook()
+
+# Below, we define a custom function that would generate figure of certain size (in this case, 600 by 300) with label
+# `time` on the x-axis:
+
+def custom_figure(title, y_axis_label):
+    return figure(plot_width=600, plot_height=300,
+                  title=title,
+                  x_axis_label='time',
+                  y_axis_label=y_axis_label)
+
+# The plots below depict different chemical properties (x-axis) with respect to the time interval of the kinetic
+# simulation (y-axis). We start from the behavior of the amount of element Ca with respect to time:
+
 time = data[time_indx, :]  # fetch time from the data matrix
+fig1 = custom_figure(title="Amount of Ca w.r.t. time", y_axis_label='Amount of Ca [mmolal]')
+fig1.line(time, data[ca_elem_indx], line_width=4)
+show(fig1)
 
-plt.figure()
-plt.plot(time, data[ca_elem_indx], label="Ca")
-plt.xlabel("time")
-plt.ylabel("Amount of Ca [mmolal]")
-plt.legend(loc='center right')
-plt.tight_layout()
-# -
+# The increase of the amount of Ca element is happening along the dissolution of calcite on the
+# plot below:
 
-plt.figure()
-plt.plot(time, data[calcite_indx], label="Calcite")
-plt.xlabel("time")
-plt.ylabel("Mass of Calcite [g]")
-plt.legend(loc='center right')
-plt.tight_layout()
+fig2 = custom_figure(title="Mass of Calcite w.r.t. time", y_axis_label='Mass of Calcite [g]')
+fig2.line(time, data[calcite_indx], line_width=4)
+show(fig2)
 
-plt.figure()
-plt.plot(time, data[ph_indx], label="pH")
-plt.xlabel("time")
-plt.ylabel("ph")
-plt.legend(loc='center right')
-plt.tight_layout()
+# As calcite dissolves, the molallities of species Ca<sup>2+</sup> and HCO3<sup>-</sup> are growing too:
 
-plt.figure()
-plt.plot(time, data[ca_species_indx], label="Ca++")
-plt.plot(time, data[hco3_indx], label="HCO3-")
-plt.xlabel("time")
-plt.ylabel("Molality [mmolal]")
-plt.legend(loc='center right')
-plt.tight_layout()
+fig3 = custom_figure(title="Species molality w.r.t. time", y_axis_label='Molality [mmolal]')
+fig3.line(time, data[ca_species_indx], line_width=4, legend_label="Ca++", color="orange")
+fig3.line(time, data[hco3_indx], line_width=4, legend_label="HCO3-", color="green")
+show(fig3)
+
+# Finally, the pH of the overall chemical system is increasing as well:
+
+fig4 = custom_figure(title="pH w.r.t. time", y_axis_label='pH [-]')
+fig4.line(time, data[ph_indx], line_width=4)
+show(fig4)
+

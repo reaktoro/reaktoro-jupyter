@@ -112,14 +112,18 @@ from bokeh.plotting import figure, show
 from bokeh.io import output_notebook
 output_notebook()
 
-# Create a new plot with the given title and axis labels
+# Besides, we define a custom function that would generate figure of a size 600 x 300 with a label
+# `Amount of CO2 [mol]` on the x-axis:
 
-fig1 = figure(title="Calcite dissolution",
-    x_axis_label='Amount of CO2 [mol]',
-    y_axis_label='Amount of Calcite [mol]')
+def custom_figure(title, y_axis_label): return figure(plot_width=600, plot_height=300,
+                                                      title=title,
+                                                      x_axis_label='Amount of CO2 added [mol]',
+                                                      y_axis_label=y_axis_label)
 
-# Plot the amount of calcite in `calcite_amounts` versus the amount of CO<sub>2</sub> in `co2_amounts`:
+# Create a new plot with the given title and y-axis label, where the amount of calcite in `calcite_amounts` versus
+# the amount of CO<sub>2</sub> in `co2_amounts`:
 
+fig1 = custom_figure(title="Calcite dissolution", y_axis_label='Amount of Calcite [mol]')
 fig1.line(co2_amounts, calcite_amounts, line_width=4)
 show(fig1)
 
@@ -127,16 +131,8 @@ show(fig1)
 # about 0.76 mol of CO<sub>2</sub> is added into the system,
 # we plot the amount of gaseous species CO<sub>2</sub>(g):
 
-# +
 co2gas_amount = [state.speciesAmount("CO2(g)") for state in states]
-
-fig2 = figure(title="CO2(g)",
-    x_axis_label='Amount of CO2(g) [mol]',
-    y_axis_label='Amount of CO2 added [mol]')
-# -
-
-# Plot the amount of calcite in `co2gas_amount` versus the amount of CO<sub>2</sub> in `co2_amounts`:
-
+fig2 = custom_figure(title="CO2(g)", y_axis_label='Amount of CO2(g) [mol]')
 fig2.line(co2_amounts, co2gas_amount, line_width=4)
 show(fig2)
 
