@@ -20,7 +20,7 @@
 # [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html)
 # that represents a chemical system and its attributes and properties. Below,
 # we provide a tutorial of the methods that can be used to study the characteristics of considered chemical system.
-
+#
 # A chemical system is a description of the phases of interest in the modeling problem and the chemical species that
 # compose those phases. For example, when modeling the chemistry of an aqueous solution, only one phase should be
 # enough, an *aqueous phase*. If one is interested in modeling the solubility of gases in an aqueous solution,
@@ -46,14 +46,14 @@ editor.addGaseousPhase(["CO2(g)"])  # add one gaseous species
 
 # Construct the chemical system
 system = ChemicalSystem(editor)
-#-
+# -
 
 # > Check previous tutorials to learn the  steps above! For example,
 # > [Basics of equilibrium calculation](eq.equilibrium-basics.ipynb),
 # > [Equilibrium calculation of carbonate species](eq.equilibrium-carbonates.ipynb),
 # > [Equilibrium calculations using equilibrium solver](eq.co2-brine-using-equilibrium-solver.ipynb), or
 # > [Custom activity model for equilibrium calculations](eq.custom-activity-models.ipynb).
-
+#
 # The most general print-out of the chemical system can be done by
 
 print(system)
@@ -63,31 +63,32 @@ print(system)
 
 import numpy as np
 
-print("List of species of the size %d" % (system.numSpecies()))
+print(f"List with {system.numSpecies()} species:")
 for species in system.species():
     print(species.name())
 
-print("\nList of phases of the size %d" % (system.numPhases()))
-[print(phase.name()) for phase in system.phases()]
+print(f"List with {system.numPhases()} phases:")
+for phase in system.phases():
+    print(phase.name())
 
-print("\nList of elements of the size %d" % ((system.numElements())))
-[print(element.name()) for element in system.elements()]
+print(f"List with {(system.numElements())} elements:")
+for element in system.elements():
+    print(element.name())
 
 # To output additional information about phases, for instance, one can use
 
-print("List of phases with number of elements in each phase:\n")
+print("List of phases with number of species in each phase:")
 for phase in system.phases():
-    print("Phase %s contains %d species" % (phase.name(), phase.numSpecies()))
+    print(f" * Phase {phase.name()} contains {phase.numSpecies()} species")
 
 # [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html)
 # provides formula matrix (whose entry (j, i) is given by the number of atoms of its j-th element in
 # its i-th species). To access it, one need to use
 
 matrix = system.formulaMatrix()
-print("Formula matrix of the size %d by %d:\n" % (matrix.shape[0], matrix.shape[1]))
-print(matrix)
+print(f"Formula matrix of the size {matrix.shape[0]} x {matrix.shape[1]}:\n", matrix)
 
-# For instance, the matrix printed above is the matrix of the size 4 by 13, i.e.,
+# For instance, the matrix printed above is the matrix of the size *6 x 23*, i.e.,
 #
 # \begin{bmatrix}
 # 1 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 \\
@@ -99,21 +100,21 @@ print(matrix)
 # \end{bmatrix}.
 #
 # Assume the enumeration starts from 0 (which is the case in Python language). Here, the row with index 1 corresponds to
-# the element $\mathrm{Cl}$, which is only present in species
-# $\mathrm{Cl^{-}}$,
-# $\mathrm{ClO^{-}}$,
-# $\mathrm{ClO^{2-}}$,
-# $\mathrm{ClO^{3-}}$,
-# $\mathrm{ClO^{4-}}$
+# the element Cl, which is only present in species
+# Cl<sup>-</sup>,
+# ClO<sup>-</sup>,
+# ClO<sup>2-</sup>,
+# ClO<sup>3-</sup>,
+# ClO<sup>4-</sup>
 # (with indices 3, 4, 5, 6, and 7),
-# $\mathrm{HCl(aq)}$,
-# $\mathrm{HClO(aq)}$,
-# $\mathrm{HClO_2(aq)}$
+# HCl(aq),
+# HClO(aq),
+# HClO_2(aq)
 # (with indices 13, 14, and 15),
 # and
-# $\mathrm{NaCl(aq)}$ (with index 18).
-# Since only one atom of $\mathrm{Cl}$ contributes to each species, the second row contains only `1` in non-zero values.
-
+# NaCl(aq) (with index 18).
+# Since only one atom of Cl contributes to each species, the second row contains only 1 in non-zero values.
+#
 # To get the index of certain element, phase, or species, functions `index__()` or `index__WithError()` (the latter
 # results in system throwing an exception if the element does not exist), where instead of `__` one can used `Element`,
 # `Phase`, or `Spieces`:
@@ -138,8 +139,7 @@ species = [
 ]
 print("Indices of species with Cl: ", system.indicesSpecies(species))
 
-# They must correspond with positions of the non-zero elements in the row `1` of formula matrix discussed-above.
-
+# They must correspond with positions of the non-zero elements in the row 1 of formula matrix discussed-above.
 # Having the instance of chemical system, we can calculate the molar amounts of the elements (in units of mol), when the
 # molar amount of species is provided:
 
@@ -147,11 +147,11 @@ n = np.ones(system.numSpecies())
 elements_amount = system.elementAmounts(n)
 hydrogen_amount = system.elementAmount(2, n)
 print(
-    "Element amounts (in units of mol) provided 1 molal for all species : ",
+    "Element amounts (in mol) provided 1 molal for all species : ",
     elements_amount,
 )
 print(
-    "Hydrogen amounts (in units of mol) provided 1 molal for all species : ",
+    "Hydrogen amounts (in mol) provided 1 molal for all species : ",
     hydrogen_amount,
 )
 
@@ -175,17 +175,19 @@ thermo_properties = system.properties(T, P)
 #
 # For instance, partial molar Gibbs energies or enthalpies can be accessed as follows:
 
-print("List of standard partial molar Gibbs energies of the species: \n")
+print("List of standard partial molar Gibbs energies of the species:")
 for energies, species in zip(
-    thermo_properties.standardPartialMolarGibbsEnergies().val, system.species()
+    thermo_properties.standardPartialMolarGibbsEnergies().val,
+    system.species()
 ):
-    print("Delta G (%s) is %e" % (species.name(), energies))
+    print(f"\u03B4G ({species.name():>10}) = {energies}")
 
-print("\nList of standard partial molar enthalpies of the species: \n")
+print("List of standard partial molar enthalpies of the species:")
 for enthalpies, species in zip(
-    thermo_properties.standardPartialMolarEnthalpies().val, system.species()
+    thermo_properties.standardPartialMolarEnthalpies().val,
+    system.species()
 ):
-    print("Delta H (%s) is %e" % (species.name(), enthalpies))
+    print(f"\u03B4H ({species.name():>10}) = {enthalpies}")
 
 # Alternatively, by providing the vector with molar amounts of the species (in units of mol) class
 # [ChemicalProperties](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalProperties.html) can be accessed:
@@ -195,22 +197,21 @@ chemical_properties = system.properties(T, P, n)
 # This object contains various chemical properties, such as mole fractions, logarithm of activities, chemical
 # potentials of the species, in addition to thermodynamic properties listed above:
 
-print("\nChemical potentials of the species: \n")
+print("Chemical potentials of the species:")
 for potential, species, index in zip(
     chemical_properties.chemicalPotentials().val,
     system.species(),
-    np.linspace(0, system.numSpecies()),
+    list(range(1, system.numSpecies()+1))
 ):
-    print(
-        "mu_%d (corresponding to species %s) is %f" % (index, species.name(), potential)
-    )
+    print(f"\u03BC_{index} ({species.name():>10}) = {potential}")
 
-print("\nLogarithms of activities of the species: \n")
-for activity, species, index in zip(chemical_properties.lnActivities().val,
-                                    system.species(),
-                                    np.linspace(0, system.numSpecies())):
-    print("ln (a_%d) (corresponding to species %s) is %f"
-        % (index, species.name(), activity))
+print("Logarithms of activities of the species:")
+for activity, species, index in zip(
+    chemical_properties.lnActivities().val,
+    system.species(),
+    list(range(1, system.numSpecies()+1))
+):
+    print(f"ln (a_{index}) ({species.name():>10}) = {activity}")
 
 
 # ### Definition of chemical system using GEMs
@@ -218,7 +219,6 @@ for activity, species, index in zip(chemical_properties.lnActivities().val,
 # Chemical systems can be initialize using alternative backends, such as GEMs and PHREEQC, using corresponding classes
 # [Gems](https://reaktoro.org/cpp/classReaktoro_1_1Gems.html) and
 # [Phreeqc](https://reaktoro.org/cpp/classReaktoro_1_1Phreeqc.html)
-# `gems = Gems("some-gems-project-file.lst")` or
-# 'phreeqc = Phreeqc("phreeqc.dat")',
+# `gems = Gems("some-gems-project-file.lst")` or `phreeqc = Phreeqc("phreeqc.dat")`,
 # which allows to define instance of [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html)
-# class by respective `system = ChemicalSystem(gems)` or `system = ChemicalSystem(phreeqc)`
+# class by respective `system = ChemicalSystem(gems)` or `system = ChemicalSystem(phreeqc)`.
