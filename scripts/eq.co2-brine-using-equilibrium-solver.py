@@ -110,8 +110,7 @@ state = ChemicalState(system)
 
 # ### Equilibration at 60 &deg;C
 
-# Using method [EquilibriumSolver::solve](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumSolver.html
-# #ab01c678651bacb079f8f436c9a3a5148),
+# Using method [EquilibriumSolver::solve](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumSolver.html#ab01c678651bacb079f8f436c9a3a5148),
 # the equilibrium state with given *(T, P, b)* inputs is generated and stored in the object `state`.
 
 solver.solve(state, T, P, b)
@@ -122,8 +121,7 @@ solver.solve(state, T, P, b)
 # equilibrium problem.
 
 # To save the calculated chemical equilibrium state into the text-file, we use the method
-# [ChemicalState::output](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html
-# #ae5f2706f5be6e6856360a2f1073931e2).
+# [ChemicalState::output](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html#ae5f2706f5be6e6856360a2f1073931e2).
 
 state.output('state-T-60.txt')
 
