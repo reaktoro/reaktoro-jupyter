@@ -125,54 +125,54 @@ path = path.solve(initial_state, final_state)
 
 # ### Plotting the results of equilibrium path calculation
 #
-# The best way to visually analyze the obtained reaction path is with plots. For that, we export python plotting
-# package `matplotlib` and `numpy`, the fundamental package for scientific computing with Python.
+# We now use [bokeh](https://docs.bokeh.org/en/latest/docs/gallery.html#standalone-examples)
+# to do the plotting.
 
-import matplotlib.pyplot as plt
-import numpy as np
+from bokeh.plotting import figure, show
+from bokeh.io import output_notebook
+output_notebook()
+
+# Besides, we define a custom function that would generate figure of a size 600 x 300:
+
+def custom_figure(x_axis_label, y_axis_label):
+    return figure(plot_width=600, plot_height=300,
+                  x_axis_label=x_axis_label,
+                  y_axis_label=y_axis_label)
+
 
 # To load results from the outputfile, we use `loadtxt` function provided by the `numpy` package:
 
-filearray = np.loadtxt("result.txt", skiprows=1)
+filearray = numpy.loadtxt("result.txt", skiprows=1)
 data = filearray.T
-[cl_indx, co2aq_indx, co3_indx, ca_indx, ph_indx, calcite_indx] = np.arange(6)
+[cl_indx, co2aq_indx, co3_indx, ca_indx, ph_indx, calcite_indx] = numpy.arange(6)
 
-# The first plot, depicts sets the amount of element Cl in units of mmol (on the *x*-axis) and the pH of
-# the aqueous phase (on the *y*-axis):
+# The first plot depicts the amount of element Cl in units of mmol (on the *y*-axis) and the pH of
+# the aqueous phase (on the *x*-axis):
 
-plt.figure()
-plt.plot(data[ph_indx], data[cl_indx], label="Cl")
-plt.xlabel("pH")
-plt.ylabel("Amount of Cl [mmol]")
-plt.tight_layout()
+fig1 = custom_figure(x_axis_label="pH", y_axis_label="Amount of Cl [mmol]")
+fig1.line(data[ph_indx], data[cl_indx], line_width=4)
+show(fig1)
 
 # The second plot sets the *x*-axis to the amount of Cl from added HCl and
 # the *y*-axis to the molality of element Ca, i.e., the molar amount of Ca **in the aqueous
 # phase**, divided by the mass of solvent water H<sub>2</sub>O(l).
 
-plt.figure()
-plt.plot(data[cl_indx], data[ca_indx], label="Ca")
-plt.xlabel("Amount of Cl [mmol]")
-plt.ylabel("Concentration of Ca [mmolal]")
-plt.tight_layout()
+fig2 = custom_figure(x_axis_label="Amount of Cl [mmol]", y_axis_label="Concentration of Ca [mmolal]")
+fig2.line(data[cl_indx], data[ca_indx], line_width=4, color="coral")
+show(fig2)
 
-# The third plot the *x*-axis to pH, but the *y*-axis now contains two plotted quantities: the molality of species
+# The third plot sets the *x*-axis to pH, but the *y*-axis now contains two plotted quantities: the molality of species
 # CO<sub>2</sub>(aq) and the molality of species CO<sub>3</sub><sup>2-</sup>, both in units of mmolal (i.e., mmol/kg).
 
-plt.figure()
-plt.plot(data[ph_indx], data[co2aq_indx], label="CO2(aq)")
-plt.plot(data[ph_indx], data[co3_indx], label="CO3--")
-plt.xlabel("pH")
-plt.ylabel("Concentration [mmolal]")
-plt.legend(loc='center right')
-plt.tight_layout()
+fig3 = custom_figure(x_axis_label="pH", y_axis_label="Concentration [mmolal]")
+fig3.line(data[ph_indx], data[co2aq_indx], line_width=4, legend_label="CO2(aq)", color="green")
+fig3.line(data[ph_indx], data[co3_indx], line_width=4, legend_label="CO3--", color="orange")
+fig3.legend.location = "top_left"
+show(fig3)
 
-# The fourth and last figure finally plots how the mass of calcite (or calcium carbonate) changes with the addition of
-# HCl in the system:
+# The fourth and last figure plots how the mass of calcite (or calcium carbonate) changes with the addition of
+# HCl in the system. We see clear dissolution of the mineral:
 
-plt.figure()
-plt.plot(data[cl_indx], data[calcite_indx], label="Calcite")
-plt.xlabel("HCl [mmol]")
-plt.ylabel("Mass [g]")
-plt.legend(loc='center right')
-plt.tight_layout()
+fig4 = custom_figure(x_axis_label="HCl [mmol]", y_axis_label="Mass Calcite [g]")
+fig4.line(data[cl_indx], data[calcite_indx], line_width=4, color="darkviolet")
+show(fig4)

@@ -237,7 +237,7 @@ output.add("phaseMass(Dolomite units=g)", "Dolomite [units=g]")
 #
 # To perform the calculation of the kinetic path, we need to provide time interval, on which this path must be
 # recovered. In this case, we choose 25 hours of simulations. The initial chemical state provided by the instance
-# `state0`, as well as the time interval with units, in which time is measured, are given with a call of function
+# `state0`, as well as the time interval with units, in which time is measured, are given with a call of the function
 # `solve`.
 
 t0, t1 = 0.0, 25.0
@@ -245,11 +245,6 @@ path.solve(state0, t0, t1, "hours")
 
 # ### Plotting the results of equilibrium path calculation
 #
-# The best way to visually analyze the obtained reaction path is with plots. For that, we export python plotting
-# package *matplotlib*, the fundamental package for scientific computing with Python.
-
-import matplotlib.pyplot as plt
-
 # To load results from the outputfile, we use [loadtxt](https://docs.scipy.org/doc/numpy/reference/generated/numpy.loadtxt.html)
 # function provided by the *numpy* package:
 
@@ -258,38 +253,52 @@ data = filearray.T  # transpose the matrix with data
 [time_indx, ph_indx, ca_elem_indx, mg_elem_indx, calcite_indx, dolomite_indx] \
     = numpy.arange(0, 6) # assign indices of the corresponding data
 
+# To visually analyze the obtained reaction path is with plots. For that, we export
+# [bokeh](https://docs.bokeh.org/en/latest/docs/gallery.html#standalone-examples) python plotting package.
+
+from bokeh.plotting import figure, show
+from bokeh.io import output_notebook
+output_notebook()
+
+# We define a custom function that would generate figure of certain size (in this case, 600 by 300) with label `time`
+# on the x-axis:
+
+def custom_figure(title, y_axis_label):
+    return figure(plot_width=600, plot_height=300,
+                  title=title,
+                  x_axis_label='time',
+                  y_axis_label=y_axis_label)
+
+
 # The plots below depict different chemical properties (x-axis) with respect to the time interval of the kinetic
-# simulation (y-axis):
+# simulation (y-axis).
+# In the first plot, we see the growth in the molality of Ca element. At the same time, the molality of Mg is first
+# increasing and later decreasing. This coincides with the behavior of the mass of minerals on the plots below.
 
-# +
 time = data[time_indx, :]  # fetch time from the data matrix
+fig1 = custom_figure(title="Ca and Mg molality w.r.t. time", y_axis_label="Amount of CO2 added [mol]")
+fig1.line(time, data[ca_elem_indx], line_width=4, legend_label="Ca", color="orange")
+fig1.line(time, data[mg_elem_indx], line_width=4, legend_label="Mg", color="green")
+show(fig1)
 
-plt.figure()
-plt.plot(time, data[ph_indx], label="pH")
-plt.xlabel("time")
-plt.ylabel("pH")
-plt.legend(loc='center right')
-plt.tight_layout()
-# -
+# We see the dissolution of the calcite along the time, which is aligned with the earlier plot, where the amount of Ca
+# element monotonically grows (getting released).
 
-plt.figure()
-plt.plot(time, data[ca_elem_indx], label="Ca")
-plt.plot(time, data[mg_elem_indx], label="Mg")
-plt.xlabel("time")
-plt.ylabel("Molality [mmolal]")
-plt.legend(loc='center right')
-plt.tight_layout()
+fig2 = custom_figure(title="Calcite dissolution w.r.t. time", y_axis_label="Mass of Calcite [g]")
+fig2.line(time, data[calcite_indx], line_width=4, legend_label="Calcite")
+show(fig2)
 
-plt.figure()
-plt.plot(time, data[calcite_indx], label="Calcite")
-plt.xlabel("time")
-plt.ylabel("Mass of Calcite [g]")
-plt.legend(loc='center right')
-plt.tight_layout()
+# Similar correspondence can be seen from the dolomite plot with respect to time. We see below that amount of
+# dolomite first decreases and then grows due to the initial dissolution and later precipitation of it in the
+# chemical system.
 
-plt.figure()
-plt.plot(time, data[dolomite_indx], label="Dolomite")
-plt.xlabel("time")
-plt.ylabel("Mass of Dolomite [g]")
-plt.legend(loc='center right')
-plt.tight_layout()
+fig3 = custom_figure(title="Dolomite behaviour w.r.t. time", y_axis_label="Mass of Dolomite [g]")
+fig3.line(time, data[dolomite_indx], line_width=4, legend_label="Dolomite", color="coral")
+show(fig3)
+
+# As this happens, the chemical system becomes less acidic with pH growing with time:
+
+fig4 = custom_figure(title="pH behaviour w.r.t. time", y_axis_label="pH [-]")
+fig4.line(time, data[ph_indx], line_width=4, color="darkviolet")
+show(fig4)
+
