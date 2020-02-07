@@ -343,7 +343,7 @@ animation_starts_at_frame = 0      # the first frame index to be considered
 animation_ends_at_frame = 10 * 30  # the last frame index to be considered
 animation_num_frames_to_jump = 1     # the number of frames to jump between current and next
 # Check for the correct end frame number
-assert(animation_ends_at_frame > ncells, "WARNING: The number of the end frame must be smaller then number of steps! ")
+assert animation_ends_at_frame <= nsteps, "WARNING: The number of the end frame must be smaller then number of steps! " 
 # -
 
 # Provide the number of frames per second and the time (in milliseconds) to wait between each frame:
