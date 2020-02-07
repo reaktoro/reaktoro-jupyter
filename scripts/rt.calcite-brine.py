@@ -41,15 +41,14 @@
 # and methods for performing the chemical reaction calculations.
 
 from reaktoro import *
-from numpy import *
+import numpy as np
 import os
-from joblib import Parallel, delayed
 import matplotlib.pyplot as plt
+from natsort import natsorted
 
 # We import the **reaktoro** Python package so that we can use its classes and methods for performing chemical
-# reaction calculations, **numpy** for working with arrays, **matplotlib** for plotting capabilities, **joblib** for
-# simple parallel computing, and **os**, to provide a portable way of using operating system dependent functionality.
-# Finally, **ffmpeg** must be installed for handling video, audio, and other multimedia files and streams.
+# reaction calculations, **numpy** for working with arrays, **os** to provide a portable way of using operating system
+# dependent functionality, **matplotlib** for plotting capabilities, and *natsort* for sorting lists.
 
 # ## Defining auxiliary time-related constants
 # In this step, we initialize auxiliary time-related constants from seconds to years. This is only done for
@@ -70,23 +69,29 @@ year = 365 * day
 # diffusion coefficient of $10^{-9}$ m<sup>2</sup>/s for all fluid species (without dispersivity). The size of the
 # time-step is set to 30 minutes. Temperature and pressure are set to 60 &deg;C and 100 bar, respectively,
 # throughout the whole tutorial.
+#
+# Discretisation parameters
 
 xl = 0.0                # the x-coordinate of the left boundary
 xr = 1.0                # the x-coordinate of the right boundary
 ncells = 100            # the number of cells in the discretization
-nsteps = 10             # the number of steps in the reactive transport simulation
-D  = 1.0e-9             # the diffusion coefficient (in units of m2/s)
-v  = 1.0/week           # the fluid pore velocity (1 m/week in units of m/s)
+nsteps = 300             # the number of steps in the reactive transport simulation
 dt = 30*minute          # the time step (30 minutes in units of s)
 dx = (xr - xl)/ncells   # length of the mesh cells (in units of m)
+
+# Physical parameters
+
+D  = 1.0e-9             # the diffusion coefficient (in units of m2/s)
+v  = 1.0/week           # the fluid pore velocity (1 m/week in units of m/s)
 T = 60.0                # the temperature (in units of degC)
 P = 100                 # the pressure (in units of bar)
+phi = 0.1               # the porosity
 
 # Next, we generate the coordinates of the mesh nodes (array `x`) by equally dividing the interval *[xr, xl]* with
 # the number of cells `ncells`. The length between each consecutive mesh nodes is computed and stored in `dx` (the
 # length of the mesh cells).
 
-x = linspace(xl, xr, ncells)    # interval [xl, xr] split into ncells
+xcells = np.linspace(xl, xr, ncells)    # interval [xl, xr] split into ncells
 
 # To make sure that the applied finite-volume scheme is stable, we need to keep track of Courant–Friedrichs–Lewy (CFL)
 # number, which should be less than 1.0.
@@ -98,6 +103,11 @@ print(f"Make sure that CFL = {v*dt/dx} is less that 1.0")
 # generation of the names of the files, where chemical states are saved, as well as the creating of the videos.
 
 ndigits = len(str(nsteps))
+
+# Output folder name:
+
+folder_results = 'results'
+folder_videos  = 'videos'
 
 # ## Auxiliary functions
 
@@ -114,79 +124,8 @@ def titlestr(t):
 # files later.
 
 def make_results_folders():
-    os.system('mkdir -p results')
-    os.system('mkdir -p figures/ph')
-    os.system('mkdir -p figures/aqueous-species')
-    os.system('mkdir -p figures/calcite-dolomite')
-    os.system('mkdir -p videos')
-
-# Routine `plot()` is dedicated to plotting of the results and generating a video from the plots to illustrate the
-# time-dependent behavior of the chemical properties. It uses parallel pthread to run `plotfile()` function for each
-# file from the list `files`.
-
-def plot():
-    # Plot all result files
-    files = sorted(os.listdir('results'))
-    Parallel(n_jobs=16)(delayed(plotfile)(file) for file in files)
-    # Create videos for the figures
-    ffmpegstr = 'ffmpeg -y -r 30 -i figures/{0}/%0' \
-                + str(ndigits) \
-                + 'd.png -codec:v mpeg4 -flags:v +qscale -global_quality:v 0 videos/{0}.mp4'
-    os.system(ffmpegstr.format('calcite-dolomite'))
-    os.system(ffmpegstr.format('aqueous-species'))
-    os.system(ffmpegstr.format('ph'))
-
-# Auxiliary function for plotting properties of saved chemical state
-def plotfile(file):
-
-    step = int((file.split('.')[0]).split('-')[1])
-
-    print('Plotting figure', step, '...')
-
-    t = step * dt
-    filearray = loadtxt('results/' + file, skiprows=1)
-    data = filearray.T
-
-    plt.figure()
-    plt.xlim(left=-0.02, right=0.52)
-    plt.ylim(bottom=2.5, top=10.5)
-    plt.title(titlestr(t))
-    plt.xlabel('Distance [m]')
-    plt.ylabel('pH')
-    plt.plot(x, data[0])
-    plt.tight_layout()
-    plt.savefig('figures/ph/{}.png'.format(str(step).zfill(ndigits)))
-
-    plt.figure()
-    plt.xlim(left=-0.02, right=0.52)
-    plt.ylim(bottom=-0.1, top=2.1)
-    plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
-    plt.title(titlestr(t))
-    plt.xlabel('Distance [m]')
-    plt.ylabel('Mineral Volume [%$_{\mathsf{vol}}$]')
-    plt.plot(x, data[6] * 100, label='Calcite')
-    plt.plot(x, data[7] * 100, label='Dolomite')
-    plt.legend(loc='center right')
-    plt.tight_layout()
-    plt.savefig('figures/calcite-dolomite/{}.png'.format(str(step).zfill(ndigits)))
-
-    plt.figure()
-    plt.yscale('log')
-    plt.xlim(left=-0.02, right=0.52)
-    plt.ylim(bottom=0.5e-5, top=2)
-    plt.title(titlestr(t))
-    plt.xlabel('Distance [m]')
-    plt.ylabel('Concentration [molal]')
-    plt.plot(x, data[2], label='Ca++')
-    plt.plot(x, data[3], label='Mg++')
-    plt.plot(x, data[4], label='HCO3-')
-    plt.plot(x, data[5], label='CO2(aq)')
-    plt.plot(x, data[1], label='H+')
-    plt.legend(loc='lower right')
-    plt.tight_layout()
-    plt.savefig('figures/aqueous-species/{}.png'.format(str(step).zfill(ndigits)))
-
-    plt.close('all')
+    os.system('mkdir -p ' + folder_results)
+    os.system('mkdir -p ' + folder_videos)
 
 # ## Reactive transport simulations
 
@@ -344,7 +283,7 @@ output.add("speciesMolality(HCO3-)")
 output.add("speciesMolality(CO2(aq))")
 output.add("phaseVolume(Calcite)")
 output.add("phaseVolume(Dolomite)")
-output.filename('results/rtsolver.txt')  # Set the name of the output files
+output.filename(folder_results + '/state.txt')  # Set the name of the output files
 
 # Make auxiliary folders to save generated results, their plots, or videos
 make_results_folders()
@@ -355,31 +294,216 @@ make_results_folders()
 # chemical state of each mesh cell is updated. The iterations continue until the maximum number of steps is
 # achieved.
 #
-# At each time step, we print the progress of the simulation. We then use the method `step` of class
+# Using **tqdm** we track the progress of simulations using the progress bar. For that, we wrap the while-loop with
+# the function 'tqdm()'. We then use the method `step` of class
 # [ReactiveTransportSolver](https://reaktoro.org/cpp/classReaktoro_1_1ReactiveTransportSolver.html) to perform a
 # single  reactive transport time-stepping. This method also produces a new output file containing the requested
 # output properties for every mesh cell. In each such file, rows correspond to cells, whereas the columns correspond
 # to the requested output properties, i.e., pH, molality of `H+`, `Ca++`, `Mg++`, `HCO3-`, `CO2(aq)`, as
 # well as the phase volume of calcite and dolomite.
 
+# +
 # Step 15: Perform given number of reactive tranport steps
 t = 0.0  # current time variable
 step = 0  # current number of steps
 
-while step <= nsteps:  # step until the number of steps are achieved
-    # Print the progress of the simulation
-    print("Progress: {}/{} steps, {} min".format(step, nsteps, t/minute))
+from tqdm.notebook import tqdm
+with tqdm(total=nsteps, desc="Reactive transport simulations") as pbar:
+    while step <= nsteps:  # step until the number of steps are achieved
 
-    # Perform one reactive transport time step
-    rt.step(field)
+        # Perform one reactive transport time step
+        rt.step(field)
 
-    # Increment time step and number of time steps
-    t += dt
-    step += 1
+        # Increment time step and number of time steps
+        t += dt
+        step += 1
+
+        pbar.update(1)
+# -
 
 # ## Plotting of the obtained results
 # The last block of the main routine is dedicated to plotting of the results and generating a video from the plots to
 # illustrate the time-dependent behavior of the chemical properties. It uses parallel pthread to run `plotfile`
 # function for each file from the list `files`.
 
-plot()
+# First, we collect files with results using `listdir` function, which returns the list containing the names of
+# the entries in the directory given by path `folder_results`:
+
+files = [file for file in natsorted( os.listdir(folder_results) ) ]
+
+# To generate animations, we exploit **animation** module of the library **matplotlib**, which provides the framework
+# to build videos from the plots. **Note:**: **ffmpeg** must be installed for handling video, audio, and other
+# multimedia files and streams.
+
+# +
+from matplotlib import animation
+from IPython.display import Video
+
+animation_starts_at_frame = 0      # the first frame index to be considered
+animation_ends_at_frame = 10 * 30  # the last frame index to be considered
+animation_num_frames_to_jump = 1     # the number of frames to jump between current and next
+# Check for the correct end frame number
+assert(animation_ends_at_frame > ncells, "WARNING: The number of the end frame must be smaller then number of steps! ")
+# -
+
+# Provide the number of frames per second and the time (in milliseconds) to wait between each frame:
+
+animation_fps = 30 # the number of frames per second
+animation_interval_wait = 200    # the time (in milliseconds) to wait between each frame
+
+# Auxiliary animation options
+animation_frame_range = range(animation_starts_at_frame, animation_ends_at_frame, animation_num_frames_to_jump)
+
+# For plotting of the data saved under the `folder_results` folder, we provide the indices corresponding to the columns
+# written to the `state.txt` files.
+
+indx_ph        = 0
+indx_Hcation   = 1
+indx_Cacation  = 2
+indx_Mgcation  = 3
+indx_HCO3anion = 4
+indx_CO2aq     = 5
+indx_calcite   = 6
+indx_dolomite  = 7
+
+
+# Routines `plot_animation_ph()`, `plot_animation_calcite_dolomite()`, and 'plot_animation_aqueous_species()'
+# are dedicated to animating the time-dependent behavior of the chemical properties.
+
+# +
+def line(color):
+    return {'linestyle': '-', 'color': color, 'zorder': 1, 'linewidth': 2}
+
+def plot_animation_ph():
+
+    # Plot of mineral's volume the space coordinates
+    fig = plt.figure()
+    ax = plt.axes(xlim=(-0.01, 0.501), ylim=(2.5, 12.0))
+    ax.set_xlabel('Distance [m]')
+    ax.set_ylabel('pH')
+    ax.set_title(titlestr(0.0))
+    objects = [
+        ax.plot([], [], label='pH', **line('teal'))[0],
+    ]
+    ax.legend(loc='lower right')
+
+    def init():
+        return tuple(objects)
+
+    def animate(i):
+        t = i * dt
+        filearray = np.loadtxt(folder_results + '/' + files[i], skiprows=1)
+        data = filearray.T
+        data_ph = data[indx_ph]
+        objects[0].set_data(xcells, data_ph)
+        ax.set_title(titlestr(t))
+        return tuple(objects)
+
+    print("Generating the animation of pH behaviour ...")
+    anim = animation.FuncAnimation(fig, animate, init_func=init, frames=animation_frame_range, interval=animation_interval_wait, blit=True)
+    anim.save(folder_videos + '/pH.mp4', fps=animation_fps, extra_args=['-vcodec', 'libx264'])
+    print("Finished!")
+
+def plot_animation_calcite_dolomite():
+
+    # Plot of mineral's volume the space coordinates
+    fig = plt.figure()
+    ax = plt.axes(xlim=(-0.01, 0.501), ylim=(-0.1, 2.1))
+    ax.set_xlabel('Distance [m]')
+    ax.set_ylabel('Mineral Volume [%$_{\mathsf{vol}}$]')
+    ax.set_title(titlestr(0.0))
+    objects = [
+        ax.plot([], [], label='Calcite', **line('C0'))[0],
+        ax.plot([], [], label='Dolomite', **line('C1'))[0],
+    ]
+    ax.legend(loc='center right')
+
+
+    def init():
+        return tuple(objects)
+
+
+    def animate(i):
+        t = i * dt
+        filearray = np.loadtxt(folder_results + '/' + files[i], skiprows=1)
+        data = filearray.T
+        data_calcite, data_dolomite = data[indx_calcite], data[indx_dolomite]
+        objects[0].set_data(xcells, data_calcite * 100/(1 - phi))
+        objects[1].set_data(xcells, data_dolomite * 100/(1 - phi))
+        ax.set_title(titlestr(t))
+        return tuple(objects)
+
+    print("Generating the animation of calcite-dolomite behaviour ...")
+    anim = animation.FuncAnimation(fig, animate, init_func=init, frames=animation_frame_range, interval=animation_interval_wait, blit=True)
+    anim.save(folder_videos + '/calcite-dolomite.mp4', fps=animation_fps, extra_args=['-vcodec', 'libx264'])
+    print("Finished!")
+
+def plot_animation_aqueous_species():
+
+    # Plot of mineral's volume the space coordinates
+    fig = plt.figure()
+    ax = plt.axes(xlim=(-0.01, 0.501), ylim=(0.5e-5, 2))
+    ax.set_xlabel('Distance [m]')
+    ax.set_ylabel('Concentration [molal]')
+    ax.set_yscale('log')
+    ax.set_title(titlestr(0.0))
+    objects = [
+        ax.plot([], [], label=r'$\mathrm{Ca^{2+}}$', **line('C0'))[0],
+        ax.plot([], [], label=r'$\mathrm{Mg^{2+}}$', **line('C1'))[0],
+        ax.plot([], [], label=r'$\mathrm{HCO_3^{-}}$',**line('C2'))[0],
+        ax.plot([], [], label=r'$\mathrm{CO_2(aq)}$',**line('red'))[0],
+        ax.plot([], [], label=r'$\mathrm{H^+}$', **line('darkviolet'))[0],
+    ]
+    ax.legend(loc='upper right')
+
+    def init():
+        return tuple(objects)
+
+    def animate(i):
+        t = i * dt
+        filearray = np.loadtxt(folder_results + '/' + files[i], skiprows=1)
+        data = filearray.T
+
+        data_cacation  = data[indx_Cacation]
+        data_mgcation  = data[indx_Mgcation]
+        data_hco3anion = data[indx_HCO3anion]
+        data_co2aq     = data[indx_CO2aq]
+        data_hcation   = data[indx_Hcation]
+
+        objects[0].set_data(xcells, data_cacation)
+        objects[1].set_data(xcells, data_mgcation)
+        objects[2].set_data(xcells, data_hco3anion)
+        objects[3].set_data(xcells, data_co2aq)
+        objects[4].set_data(xcells, data_hcation)
+        ax.set_title(titlestr(t))
+        return tuple(objects)
+
+    print("Generating the animation of aqueous species behaviour ...")
+    anim = animation.FuncAnimation(fig, animate, init_func=init, frames=animation_frame_range, interval=animation_interval_wait, blit=True)
+    anim.save(folder_videos + '/aqueous-species.mp4', fps=animation_fps, extra_args=['-vcodec', 'libx264'])
+    print("Finished!")
+# -
+
+# Generate animation with the ph behaviour:
+
+plot_animation_ph()
+
+# Show the resulting video:
+
+Video(folder_videos + '/pH.mp4')
+
+# Generate animation with calcite and dolomite dynamics:
+
+plot_animation_calcite_dolomite()
+
+# Show the video with precipitating dolomite and dissolving calcite:
+
+Video(folder_videos + '/calcite-dolomite.mp4')
+
+# Generate an animation with aqueous species:
+
+plot_animation_aqueous_species()
+
+# Show corresponding video:
+
+Video(folder_videos + '/aqueous-species.mp4')
