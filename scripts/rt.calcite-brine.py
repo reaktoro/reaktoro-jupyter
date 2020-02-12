@@ -15,7 +15,8 @@
 #     name: python3
 # ---
 
-# # Reactive transport of CO<sub>2</sub>-saturated brine along a porous rock column
+# # Reactive transport of CO<sub>2</sub>-saturated brine along a porous rock column (using transport solver embedded
+#  into Reaktoro)
 #
 # In this tutorial, we show how Reaktoro can be used for one-dimensional reactive transport calculations for modeling
 # the geochemical reactions that occur along a porous rock column as an aqueous fluid is continuously injected on its
@@ -40,6 +41,12 @@
 # First, we import the **reaktoro** Python package so that we can use its classes
 # and methods for performing the chemical reaction calculations.
 
+print('============================================================')
+print('Make sure you have the following Python packages installed: ')
+print('     numpy, matplotlib, natsort')
+print('These can be installed with pip:')
+print('     pip install numpy matplotlib natsort')
+print('============================================================')
 from reaktoro import *
 import numpy as np
 import os
@@ -48,8 +55,8 @@ from natsort import natsorted
 
 # We import the **reaktoro** Python package so that we can use its classes and methods for performing chemical
 # reaction calculations, **numpy** for working with arrays, **os** to provide a portable way of using operating system
-# dependent functionality, **matplotlib** for plotting capabilities, and *natsort* for sorting lists.
-
+# dependent functionality, **matplotlib** for plotting capabilities, and **natsort** for sorting the lists.
+#
 # ## Defining auxiliary time-related constants
 # In this step, we initialize auxiliary time-related constants from seconds to years. This is only done for
 # convenience, so that we can specify later, for example, fluid velocity as 1 m/week.
@@ -65,27 +72,27 @@ year = 365 * day
 # Next, we define reactive transport and numerical discretization parameters. In particular, we specify the considered
 # rock domain by setting coordinates of its left and right boundaries to 0.0 m and 100.0 m, respectively. The
 # discretization parameters, i.e., the number of cells and steps in time, are both set to 100. The reactive
-# transport modeling procedure assumes a constant fluid velocity of 1 m/week (1.16 · $10^{-5}$ m/s) and the same
-# diffusion coefficient of $10^{-9}$ m<sup>2</sup>/s for all fluid species (without dispersivity). The size of the
+# transport modeling procedure assumes a constant fluid velocity of 1 m/week (1.16 · 10<sup>-5</sup> m/s) and the same
+# diffusion coefficient of 10<sup>-9</sup> m<sup>2</sup>/s for all fluid species (without dispersivity). The size of the
 # time-step is set to 30 minutes. Temperature and pressure are set to 60 &deg;C and 100 bar, respectively,
 # throughout the whole tutorial.
-#
-# Discretisation parameters
 
+# +
+# Discretisation parameters
 xl = 0.0                # the x-coordinate of the left boundary
 xr = 1.0                # the x-coordinate of the right boundary
 ncells = 100            # the number of cells in the discretization
-nsteps = 300             # the number of steps in the reactive transport simulation
+nsteps = 300            # the number of steps in the reactive transport simulation
 dt = 30*minute          # the time step (30 minutes in units of s)
 dx = (xr - xl)/ncells   # length of the mesh cells (in units of m)
 
-# Physical parameters
-
+# Physical and chemical parameters
 D  = 1.0e-9             # the diffusion coefficient (in units of m2/s)
 v  = 1.0/week           # the fluid pore velocity (1 m/week in units of m/s)
 T = 60.0                # the temperature (in units of degC)
 P = 100                 # the pressure (in units of bar)
 phi = 0.1               # the porosity
+# -
 
 # Next, we generate the coordinates of the mesh nodes (array `x`) by equally dividing the interval *[xr, xl]* with
 # the number of cells `ncells`. The length between each consecutive mesh nodes is computed and stored in `dx` (the
@@ -97,38 +104,18 @@ xcells = np.linspace(xl, xr, ncells)    # interval [xl, xr] split into ncells
 # number, which should be less than 1.0.
 
 CFL = v*dt/dx
-print(f"Make sure that CFL = {v*dt/dx} is less that 1.0")
+assert CFL <= 1.0, f"Make sure that CFL = {CFL} is less that 1.0"
 
-# Another auxiliary parameter is the number of digits in the number of steps (e.g., 100 has 3 digits). It is needed for
-# generation of the names of the files, where chemical states are saved, as well as the creating of the videos.
+# Using **os** package, we create required folders for outputting the obtained results and folders to save video files.
 
-ndigits = len(str(nsteps))
-
-# Output folder name:
-
-folder_results = 'results'
-folder_videos  = 'videos'
-
-# ## Auxiliary functions
-
-# Below, we list auxiliary function used in the python tutorial. Function `titlestr` returns a string for the title of
-# a figure in the format `Time: _h__m`, e.g., `Time:1h35m`.
-
-def titlestr(t):
-    t = t / minute   # Convert from seconds to minutes
-    h = int(t) / 60  # The number of hours
-    m = int(t) % 60  # The number of remaining minutes
-    return 'Time: {:>3}h{:>2}m'.format(h, str(m).zfill(2))
-
-# Using **os** package, we create required folders for outputting the obtained results and for the plot and video
-# files later.
-
+folder_results = 'results-rt-calcite-brine'
+folder_videos  = 'videos-rt-calcite-brine'
 def make_results_folders():
     os.system('mkdir -p ' + folder_results)
     os.system('mkdir -p ' + folder_videos)
 
 # ## Reactive transport simulations
-
+#
 # ### Defining the chemical system
 #
 # We need to define a chemical system that can represent both our fluid and rock. We use class
@@ -148,7 +135,7 @@ editor.addMineralPhase('Dolomite')
 # > **Note**: The aqueous phase is defined above by using a list of compounds, which is then broken automatically by
 # > Reaktoro into a list of element names. These element names are then used to find in the database all the aqueous
 # > species that could be formed out of them.
-
+#
 # ### Constructing the chemical system
 #
 # This step is where we create an object of class
@@ -210,20 +197,20 @@ state_bc = equilibrate(problem_bc)
 
 # Scale the volumes of the phases in the initial condition
 state_ic.scalePhaseVolume('Aqueous', 0.1, 'm3') # corresponds to the initial porosity of 10%.
-state_ic.scalePhaseVolume('Quartz', 0.882, 'm3')
-state_ic.scalePhaseVolume('Calcite', 0.018, 'm3')
+state_ic.scalePhaseVolume('Quartz', 0.882, 'm3') # 0.882 = 0.9 * 0.98
+state_ic.scalePhaseVolume('Calcite', 0.018, 'm3') # 0.018 = 0.9 * 0.02
 
 # > **Note**: After this scaling step, the sum of the phase volumes in ``state_ic`` is 1 m<sup>3</sup>. This also
 # > ensures that the amounts of the species in the chemical system are normalized by m<sup>3</sup>, and thus they can
 # > be regarded as concentrations in a unit of mol/m<sup>3</sup> (*bulk volume, not fluid volume!*).
-
+#
 # ### Scaling the boundary condition state
 #
 # Next, we scale the boundary condition state to 1 m<sup>3</sup>, so that we have the amounts of fluid species in
 # `state_bc` also normalized by m<sup>3</sup>.
 #
 # > **Note**: The chemical state represented by `state_bc` has no other stable phase than the aqueous phase (i.e.,
-# > all mineral phases have zero or negligible amounts such as $10^{-21}$ mol).
+# > all mineral phases have zero or negligible amounts such as 10<sup>-21</sup> mol).
 
 state_bc.scaleVolume(1.0, 'm3')
 
@@ -318,6 +305,7 @@ with tqdm(total=nsteps, desc="Reactive transport simulations") as pbar:
         t += dt
         step += 1
 
+        # Update a progress bar
         pbar.update(1)
 # -
 
@@ -325,15 +313,14 @@ with tqdm(total=nsteps, desc="Reactive transport simulations") as pbar:
 # The last block of the main routine is dedicated to plotting of the results and generating a video from the plots to
 # illustrate the time-dependent behavior of the chemical properties. It uses parallel pthread to run `plotfile`
 # function for each file from the list `files`.
-
+#
 # First, we collect files with results using `listdir` function, which returns the list containing the names of
 # the entries in the directory given by path `folder_results`:
 
 files = [file for file in natsorted( os.listdir(folder_results) ) ]
 
 # To generate animations, we exploit **animation** module of the library **matplotlib**, which provides the framework
-# to build videos from the plots. **Note:**: **ffmpeg** must be installed for handling video, audio, and other
-# multimedia files and streams.
+# to build videos from the plots. **Note**: **ffmpeg** must be installed for handling video files and streams.
 
 # +
 from matplotlib import animation
@@ -350,7 +337,6 @@ assert animation_ends_at_frame <= nsteps, "WARNING: The number of the end frame 
 
 animation_fps = 30 # the number of frames per second
 animation_interval_wait = 200    # the time (in milliseconds) to wait between each frame
-
 # Auxiliary animation options
 animation_frame_range = range(animation_starts_at_frame, animation_ends_at_frame, animation_num_frames_to_jump)
 
@@ -366,11 +352,16 @@ indx_CO2aq     = 5
 indx_calcite   = 6
 indx_dolomite  = 7
 
-
-# Routines `plot_animation_ph()`, `plot_animation_calcite_dolomite()`, and 'plot_animation_aqueous_species()'
+# Routines `plot_animation_ph()`, `plot_animation_calcite_dolomite()`, and `plot_animation_aqueous_species()`
 # are dedicated to animating the time-dependent behavior of the chemical properties.
 
 # +
+def titlestr(t):
+    t = t / minute   # Convert from seconds to minutes
+    h = int(t) / 60  # The number of hours
+    m = int(t) % 60  # The number of remaining minutes
+    return 'Time: {:>3}h{:>2}m'.format(h, str(m).zfill(2))
+
 def line(color):
     return {'linestyle': '-', 'color': color, 'zorder': 1, 'linewidth': 2}
 
