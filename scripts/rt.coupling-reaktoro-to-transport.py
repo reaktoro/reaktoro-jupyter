@@ -39,20 +39,21 @@ print('============================================================')
 from reaktoro import *
 import numpy as np
 from natsort import natsorted
+from tqdm.notebook import tqdm
 import os
 
+# Import components of bokeh library
 from bokeh.io import show, output_notebook
 from bokeh.layouts import column
 from bokeh.plotting import figure
 from bokeh.models import Range1d, ColumnDataSource
 from bokeh.models.widgets import Slider
-
-from tqdm.notebook import tqdm
 # -
 
 # We import the **reaktoro** Python package so that we can use its classes and methods for performing chemical
-# reaction calculations, **numpy** for working with arrays, **bokeh** for plotting capabilities, *tqdm* for the
-# progress bar functionality and **os**, to provide a portable way of using operating system dependent functionality.
+# reaction calculations, **numpy** for working with arrays, **tqdm** for the progress bar functionality and **os**,
+# to provide a portable way of using operating system dependent functionality. For plotting capabilities of obtained
+# results, we use **bokeh** library.
 #
 # ## Initializing auxiliary time-related constants
 # In this step, we initialize auxiliary time-related constants from seconds up to years used in the rest of the code.
@@ -65,12 +66,13 @@ week = 7 * day
 year = 365 * day
 
 # ## Defining parameters for the reactive transport simulation
+#
 # Next, we define reactive transport and numerical discretization parameters. In particular, we specify the considered
 # rock domain by setting coordinates of its left and right boundaries to 0.0 m and 100.0 m, respectively. The
 # discretization parameters, i.e., the number of cells and steps in time, are both set to 100. The reactive
-# transport modeling procedure assumes a constant fluid velocity of 1 m/day (1.16 · $10^{-5}$ m/s) and the same
-# diffusion coefficient of $10^{-9}$ m<sup>2</sup>/s for all fluid species (without dispersivity). The size of the
-# time-step is set to 30 minutes. Temperature and pressure are set to 60 &deg;C and 100 bar, respectively,
+# transport modeling procedure assumes a constant fluid velocity of 1 m/day (1.16 · 10<sup>-5</sup> m/s) and the same
+# diffusion coefficient of 10<sup>-9</sup> m<sup>2</sup>/s for all fluid species (without dispersivity). The
+# size of the time-step is set to 30 minutes. Temperature and pressure are set to 60 &deg;C and 100 bar, respectively,
 # throughout the whole tutorial. 
 
 # +
@@ -97,7 +99,7 @@ phi = 0.1           # the porosity
 xcells = np.linspace(xl, xr, ncells + 1)    # interval [xl, xr] split into ncells
 
 # The boolean variable `dirichlet` is set to `True` or `False` depending on which boundary condition is considered in
-# the numerical calculation. `False` corresponds for imposing the flux of the injected fluid, otherwise, `True` means
+# the numerical calculation. `False` corresponds to imposing the flux of the injected fluid, otherwise, `True` means
 # imposing the composition of the fluid on the left boundary.
 
 dirichlet = False      # parameter that determines whether Dirichlet BC must be used
@@ -106,7 +108,7 @@ dirichlet = False      # parameter that determines whether Dirichlet BC must be 
 # number, which should be less than 1.0.
 
 CFL = v*dt/dx
-assert CFL <= 1.0, f"Make sure that CFL = {v*dt/dx} is less that 1.0"
+assert CFL <= 1.0, f"Make sure that CFL = {CFL} is less that 1.0"
 
 # ## Specifying the quantities and properties to be outputted
 # Before running the reactive transport simulations, we specify the list of parameters we are interested in
@@ -137,7 +139,7 @@ output_quantities = """
 # Using **os** package, we create required folders for outputting the obtained results and for the plot and video
 # files later.
 
-folder_results = 'results'
+folder_results = 'results-rt-coupling'
 def make_results_folders():
     os.system('mkdir -p ' + folder_results)
 
@@ -191,7 +193,7 @@ def simulate():
     b, bfluid, bsolid, b_bc = partition_elements_in_mesh_cell(ncells, nelems, state_ic, state_bc)
 
     # Create a list of chemical states for the mesh cells (one for each cell, initialized to state_ic)
-    states = [state_ic.clone() for _ in range(ncells)]
+    states = [state_ic.clone() for _ in range(ncells + 1)]
 
     # Create the equilibrium solver object for the repeated equilibrium calculation
     solver = EquilibriumSolver(system)
@@ -492,7 +494,7 @@ def outputstate(step, system, states):
     output = ChemicalOutput(system)
 
     # Provide the output file name, which will correspond
-    output.filename('results/{}.txt'.format(str(step)))
+    output.filename(folder_results + '/{}.txt'.format(str(step)))
 
     # We define the columns' tags filled with the name of the quantities
     # The first column has a tag 'x' (which corresponds to the center coordinates of the cells )
@@ -520,7 +522,7 @@ simulate()
 
 # ## Plotting of the obtained results
 #
-# The last block of the main routine is dedicated to the plotting of the results in an Jupyter app generated by the
+# The last block of the main routine is dedicated to the plotting of the results in a Jupyter app generated by the
 # library **bokeh**. It is an interactive visualization library that provides elegant, concise construction of
 # versatile graphics, and affords high-performance interactivity over large or streaming datasets.
 #
@@ -568,26 +570,26 @@ def modify_doc(doc):
         return 'Time: %2dh %2dm' % (h, m)
 
     # Plot for ph
-    p1 = figure(plot_width=600, plot_height=300)
+    p1 = figure(plot_width=600, plot_height=250)
     p1.line(x = 'x', y = 'ph',
            color='teal', line_width=2, legend_label='pH',
            source = source)
-    p1.x_range = Range1d(-0.01, 1.001)
-    p1.y_range = Range1d(2.5, 12.0)
+    p1.x_range = Range1d(-0.001, 1.001)
+    p1.y_range = Range1d(4.0, 9.0)
     p1.xaxis.axis_label = 'Distance [m]'
     p1.yaxis.axis_label = 'pH'
     p1.legend.location = 'bottom_right'
     p1.title.text = titlestr(0 * dt)
 
     # Plot for calcite and dolomite
-    p2 = figure(plot_width=600, plot_height=300)
+    p2 = figure(plot_width=600, plot_height=250)
     p2.line(x = 'x', y = 'calcite', color='blue', line_width=2, legend_label='Calcite',
             muted_color='blue', muted_alpha=0.2,
             source = source)
     p2.line(x = 'x', y = 'dolomite', color='orange', line_width=2, legend_label='Dolomite',
             muted_color='orange', muted_alpha=0.2,
             source = source)
-    p2.x_range = Range1d(-0.01, 1.001)
+    p2.x_range = Range1d(-0.001, 1.001)
     p2.y_range = Range1d(-0.1, 2.1)
     p2.xaxis.axis_label = 'Distance [m]'
     p2.yaxis.axis_label = 'Mineral Volume [%vol]'
@@ -602,7 +604,7 @@ def modify_doc(doc):
     p3.line(x = 'x', y = 'hco3anion', color='green', line_width=2, legend_label='HCO3-', source = source)
     p3.line(x = 'x', y = 'co2aq', color='red', line_width=2, legend_label='CO2(aq)', source = source)
     p3.line(x = 'x', y = 'hcation', color='darkviolet', line_width=2, legend_label='H+', source = source)
-    p3.x_range = Range1d(-0.01, 1.001)
+    p3.x_range = Range1d(-0.001, 1.001)
     p3.y_range = Range1d(0.5e-6, 1e0)
     p3.xaxis.axis_label = 'Distance [m]'
     p3.yaxis.axis_label = 'Concentration [molal]'
@@ -653,6 +655,10 @@ def modify_doc(doc):
 #
 # > **Important:** If you run this tutorial in the *localhost*, make sure that number provided to the variable
 # `notebook_url` below  coincides with the number of the localhost you have in your browser.
+#
+# In the app below, we provide an interactive *slider* witget that defines the number of the reactive transport time
+# step. This automatically updates the plots with ph, volume phases of calcite and dolomite, and mollalities of aqueous
+# species (in logarithmic scale).
 
 output_notebook()
 show(modify_doc, notebook_url="http://localhost:8890")
