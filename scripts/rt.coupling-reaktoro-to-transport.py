@@ -16,36 +16,44 @@
 # ---
 
 # # Coupling Reaktoro into other reactive transport codes
-
+#
 # In this tutorial, we show how Reaktoro can be used in other codes for reactive transport modeling. Here,
 # you will find that we have split the mass transport and chemical reaction calculations so that you can see
 # how a dedicated and advanced transport solver could be combined with Reaktoro's solvers for chemical reaction
-# calculations. A basic transport solver is used here instead for the sake of the software coupling demonstration.
-
+# calculations. A basic transport solver is used here for the sake of the software coupling demonstration.
+#
 # The reactive transport problem we consider here is also relatively simple. We proceed with a step-by-step
 # explanation.
-
+#
 # ## Importing python packages
-
+#
 # First, we need to import a few Python packages to enable us to perform the numerical calculations and plotting.
 
+# +
 print('============================================================')
 print('Make sure you have the following Python packages installed: ')
-print('     numpy, matplotlib, joblib, ffmpeg')
+print('     numpy, natsort, bokeh')
 print('These can be installed with pip:')
-print('     pip install numpy matplotlib joblib ffmpeg')
+print('     pip install numpy natsort bokeh')
 print('============================================================')
 from reaktoro import *
-from numpy import *
-import matplotlib.pyplot as plt
-from joblib import Parallel, delayed
+import numpy as np
+from natsort import natsorted
 import os
 
-# We import the **reaktoro** Python package so that we can use its classes and methods for performing chemical
-# reaction calculations, **numpy** for working with arrays, **matplotlib** for plotting capabilities, **joblib** for
-# simple parallel computing, and **os**, to provide a portable way of using operating system dependent functionality.
-# Finally, **ffmpeg** must be installed for handling video, audio, and other multimedia files and streams.
+from bokeh.io import show, output_notebook
+from bokeh.layouts import column
+from bokeh.plotting import figure
+from bokeh.models import Range1d, ColumnDataSource
+from bokeh.models.widgets import Slider
 
+from tqdm.notebook import tqdm
+# -
+
+# We import the **reaktoro** Python package so that we can use its classes and methods for performing chemical
+# reaction calculations, **numpy** for working with arrays, **bokeh** for plotting capabilities, *tqdm* for the
+# progress bar functionality and **os**, to provide a portable way of using operating system dependent functionality.
+#
 # ## Initializing auxiliary time-related constants
 # In this step, we initialize auxiliary time-related constants from seconds up to years used in the rest of the code.
 
@@ -65,39 +73,40 @@ year = 365 * day
 # time-step is set to 30 minutes. Temperature and pressure are set to 60 &deg;C and 100 bar, respectively,
 # throughout the whole tutorial. 
 
-xl = 0.0               # x-coordinate of the left boundary
-xr = 1.0               # x-coordinate of the right boundary
-ncells = 100           # number of cells in the discretization
-nsteps = 10            # number of steps in the reactive transport simulation
-D  = 1.0e-9            # diffusion coefficient (in units of m2/s)
-v  = 1.0/day           # fluid pore velocity (in units of m/s)
-dx = (xr - xl)/ncells  # length of the mesh cells (in units of m)
-dt = 10*minute         # time step (30 minutes in in units of s)
-T = 60.0 + 273.15      # temperature (in units of K)
-P = 100 * 1e5          # pressure (in units of Pa)
+# +
+# Discretization parameters
+xl = 0.0                # x-coordinate of the left boundary
+xr = 1.0                # x-coordinate of the right boundary
+ncells = 100            # number of cells in the discretization
+nsteps = 300            # number of steps in the reactive transport simulation
+dx = (xr - xl) / ncells # length of the mesh cells (in units of m)
+dt = 10 * minute        # time step
 
-# Next, we generate the coordinates of the mesh nodes (array `x`) by equally dividing the interval *[xr, xl]* with
+# Physical parameters
+D = 1.0e-9          # diffusion coefficient (in units of m2/s)
+v = 1.0 / day       # fluid pore velocity (in units of m/s)
+T = 60.0 + 273.15   # temperature (in units of K)
+P = 100 * 1e5       # pressure (in units of Pa)
+phi = 0.1           # the porosity
+# -
+
+# Next, we generate the coordinates of the mesh nodes (array `xcells`) by equally dividing the interval *[xr, xl]* with
 # the number of cells `ncells`. The length between each consecutive mesh node is computed and stored in `dx` (the
 # length of the mesh cells).
 
-x = linspace(xl, xr, ncells + 1)    # interval [xl, xr] split into ncells
+xcells = np.linspace(xl, xr, ncells + 1)    # interval [xl, xr] split into ncells
 
 # The boolean variable `dirichlet` is set to `True` or `False` depending on which boundary condition is considered in
-# the numerical calculation. Set to `False` for imposing the flux of the injected fluid, otherwise, set to `True` for
+# the numerical calculation. `False` corresponds for imposing the flux of the injected fluid, otherwise, `True` means
 # imposing the composition of the fluid on the left boundary.
 
 dirichlet = False      # parameter that determines whether Dirichlet BC must be used
-
-# Another auxiliary parameter is the number of digits in the number of steps (e.g., 100 has 3 digits). It is needed for
-# generation of the names of the files, where chemical states are saved, as well as the creating of the videos.
-
-ndigits = len(str(nsteps))
 
 # To make sure that the applied finite-volume scheme is stable, we need to keep track of Courant–Friedrichs–Lewy (CFL)
 # number, which should be less than 1.0.
 
 CFL = v*dt/dx
-print(f"Make sure that CFL = {v*dt/dx} is less that 1.0")
+assert CFL <= 1.0, f"Make sure that CFL = {v*dt/dx} is less that 1.0"
 
 # ## Specifying the quantities and properties to be outputted
 # Before running the reactive transport simulations, we specify the list of parameters we are interested in
@@ -116,31 +125,29 @@ output_quantities = """
 """.split()
 
 
-# ## Organization of the main function
-# The main function (at the bottom of this tutorial) consists of three parts, each represented by a Python function and
-# documented in the following sections:
+# ## Organization of the program
+#
+# The main part of the program (at the bottom of this tutorial) consists of three parts, each represented by a Python
+# function and documented in the following sections:
 # * creation of folders for the results (function `make_results_folders()`),
 # * simulation of reactive transport problem (method `simulate()`), and
-# * plotting of the obtained results (function `plotting()`).
-
+# * plotting of the obtained results.
+#
 # ## Creating folders for the outputted results
 # Using **os** package, we create required folders for outputting the obtained results and for the plot and video
 # files later.
 
+folder_results = 'results'
 def make_results_folders():
-    os.system('mkdir -p results')
-    os.system('mkdir -p figures/ph')
-    os.system('mkdir -p figures/aqueous-species')
-    os.system('mkdir -p figures/calcite-dolomite')
-    os.system('mkdir -p videos')
+    os.system('mkdir -p ' + folder_results)
 
 # ## Performing the reactive transport simulation
-# The reactive transport simulation is performed in the function `simulate`, which consists of several building
-# blocks (functions):
+# The reactive transport simulation is performed in the function `simulate()`, which consists of several building
+# blocks:
 # * initialization of the reactive transport problem and
 # * performing the reactive transport simulation along defined time interval.
 #
-# The preparatory initialization step consists of the following sub-steps:
+# The *preparatory initialization* step consists of the following sub-steps:
 # * definition of chemical system with its phases and species using `define_chemical_system()`,
 # * definition of the initial condition of the reactive transport problem in `define_initial_condition()`,
 # * definition of the boundary condition of the reactive transport problem in `define_initial_condition()`,
@@ -148,20 +155,23 @@ def make_results_folders():
 # corresponding to fluid and solid species with function `partition_elements_in_mesh_cell()`, and finally
 # * definition of instance of [EquilibriumSolver](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumSolver.html).
 #
-# The simulation of the reactive transport problem is represented by the loop over discretized time interval until
+# The *simulation of the reactive transport problem* is represented by the loop over discretized time interval until
 # the final time is reached. On each step of this loop, the following functionality of performed:
 # * transport calculations using method `transport()`,
 # * reactive chemical calculations with `reactive_chemistry()` function, and
 # * saving the obtained results by means of `outputstate()`.
-
+#
 # Performing of the transport and reactive chemistry sequentially is possible due to the *operator splitting
 # procedure*, in which we first update the amounts of elements `b`. These updated amounts of
 # elements in each cell are used to evaluate its new chemical equilibrium state, thus producing new amounts of the
-# species in both the fluid and solid phases (available in the list `states` of
-# [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html) objects). This chemical reaction
+# species in both the fluid and solid phases (available in the list `states`, the instances of
+# [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html) classes). This chemical reaction
 # equilibrium calculation step, at each mesh cell, permits, for example, aqueous species and minerals to react,
 # and thus causes mineral dissolution or precipitation, depending on how much the amount of mineral species changes.
 # This can then be used, for example, to compute new porosity value for the cell.
+#
+# The structure of the function `simulate`, performing the simulation of reactive transport problem, can be inspected
+# below:
 
 def simulate():
 
@@ -189,23 +199,27 @@ def simulate():
     # Running the reactive transport simulation loop
     step = 0  # the current step number
     t = 0.0  # the current time (in seconds)
+    # Output the initial state of the reactive transport calculation
+    outputstate(step, system, states)
 
-    while step <= nsteps:
-        # Print the progress of the simulation
-        print("Progress: {}/{} steps, {} min".format(step, nsteps, t/minute))
+    with tqdm(total=nsteps, desc="Reactive transport simulations") as pbar:
+        while step <= nsteps:
 
-        # Perform transport calculations
-        bfluid, bsolid, b = transport(states, bfluid, bsolid, b, b_bc, nelems, ifluid_species, isolid_species)
+            # Perform transport calculations
+            bfluid, bsolid, b = transport(states, bfluid, bsolid, b, b_bc, nelems, ifluid_species, isolid_species)
 
-        # Perform reactive chemical calculations
-        states = reactive_chemistry(solver, states, b)
-        
-        # Output the current state of the reactive transport calculation
-        outputstate(step, system, states)
+            # Perform reactive chemical calculations
+            states = reactive_chemistry(solver, states, b)
 
-        # Increment time step and number of time steps
-        t += dt
-        step += 1
+            # Increment time step and number of time steps
+            t += dt
+            step += 1
+
+            # Output the current state of the reactive transport calculation
+            outputstate(step, system, states)
+
+            # Update a progress bar
+            pbar.update(1)
 
     print("Finished!")
 
@@ -338,15 +352,15 @@ def partition_indices(system):
 def partition_elements_in_mesh_cell(ncells, nelems, state_ic, state_bc):
 
     # The concentrations of each element in each mesh cell (in the current time step)
-    b = zeros((ncells, nelems))
+    b = np.zeros((ncells, nelems))
     # Initialize the concentrations (mol/m3) of the elements in each mesh cell
     b[:] = state_ic.elementAmounts()
 
     # The concentrations (mol/m3) of each element in the fluid partition, in each mesh cell
-    bfluid = zeros((ncells, nelems))
+    bfluid = np.zeros((ncells, nelems))
 
     # The concentrations (mol/m3) of each element in the solid partition, in each mesh cell
-    bsolid = zeros((ncells, nelems))
+    bsolid = np.zeros((ncells, nelems))
 
     # Initialize the concentrations (mol/m3) of each element on the boundary
     b_bc = state_bc.elementAmounts()
@@ -416,9 +430,9 @@ def transport_fullimplicit(u, dt, dx, v, D, ul):
     beta = v*dt/dx
 
     # Upwind finite volume scheme
-    a = full(n, -beta - alpha)
-    b = full(n, 1 + beta + 2*alpha)
-    c = full(n, -alpha)
+    a = np.full(n, -beta - alpha)
+    b = np.full(n, 1 + beta + 2*alpha)
+    c = np.full(n, -alpha)
 
     # Set the boundary condition on the left cell
     if dirichlet:
@@ -469,7 +483,8 @@ def reactive_chemistry(solver, states, b):
         solver.solve(states[icell], T, P, b[icell])
     return states
 
-# ### Results saving and analyzing
+# ### Saving and analyzing of the results
+#
 # Function `outputstate` is the auxiliary function to create an output file each time step.
 
 def outputstate(step, system, states):
@@ -477,7 +492,7 @@ def outputstate(step, system, states):
     output = ChemicalOutput(system)
 
     # Provide the output file name, which will correspond
-    output.filename('results/{}.txt'.format(str(step).zfill(ndigits)))
+    output.filename('results/{}.txt'.format(str(step)))
 
     # We define the columns' tags filled with the name of the quantities
     # The first column has a tag 'x' (which corresponds to the center coordinates of the cells )
@@ -489,102 +504,155 @@ def outputstate(step, system, states):
 
     # We update the file with states that correspond to the cells' coordinates stored in x
     output.open()
-    for state, tag in zip(states, x):
+    for state, tag in zip(states, xcells):
         output.update(state, tag)
     output.close()
 
+# # Main parts of the tutorial
+#
+# First, we create folders for the results:
+
+make_results_folders()
+
+# Run the reactive transport simulations:
+
+simulate()
+
 # ## Plotting of the obtained results
-# The last block of the main routine is dedicated to the plotting of the results and generating a video from the
-# plots to illustrate the time-dependent behavior of the chemical properties. It uses parallel pthread to run `plotfile`
-# function for each file from the list `files`.
+#
+# The last block of the main routine is dedicated to the plotting of the results in an Jupyter app generated by the
+# library **bokeh**. It is an interactive visualization library that provides elegant, concise construction of
+# versatile graphics, and affords high-performance interactivity over large or streaming datasets.
+#
+# First, we have to collect files with results corresponding to each step:
 
-def plot():
-    # Plot all result files
-    files = sorted(os.listdir('results'))
-    Parallel(n_jobs=16)(delayed(plotfile)(file) for file in files)
+print("Collecting files...")
+files = [file for file in natsorted(os.listdir(folder_results))]
 
-    # Create videos for the figures
-    ffmpegstr = 'ffmpeg -y -r 30 -i figures/{0}/%0' + str(
-        ndigits) + 'd.png -codec:v mpeg4 -flags:v +qscale -global_quality:v 0 videos/{0}.mp4'
-    os.system(ffmpegstr.format('calcite-dolomite'))
-    os.system(ffmpegstr.format('aqueous-species'))
-    os.system(ffmpegstr.format('ph'))
+# Then, we define the indices of the loaded data saved in the `state-files`. Note, that these indices must correspond
+# to the order of the properties defined in the `output_quantities` list:
 
-# Generate figures for a result file
-def plotfile(file):
+indx_ph        = 0
+indx_Hcation   = 1
+indx_Cacation  = 2
+indx_Mgcation  = 3
+indx_HCO3anion = 4
+indx_CO2aq     = 5
+indx_calcite   = 6
+indx_dolomite  = 7
 
-    # Fetch the step number from name of the file
-    step = int(file.split('.')[0])
-    # Calculate corresponding to this step time moment
-    t = step * dt
+# To make a Bokeh application that helps us study the results of the reactive transport simulations, a function
+# `modify_doc(doc)` that creates Bokeh content and adds it to the app.
 
-    # Auxiliary function that return a string for the title of a figure in the format Time: #h##m
+def modify_doc(doc):
+    # Initialize the data by the initial chemical state
+    filearray = np.loadtxt(folder_results + '/' + files[0], skiprows=1)
+    data = filearray.T
+    source = ColumnDataSource(dict(
+        x=data[0],
+        ph=data[indx_ph + 1],
+        calcite=data[indx_calcite + 1] * 100 / (1 - phi),
+        dolomite=data[indx_dolomite + 1] * 100 / (1 - phi),
+        cacation=data[indx_Cacation + 1],
+        mgcation=data[indx_Mgcation + 1],
+        hco3anion=data[indx_HCO3anion + 1],
+        co2aq=data[indx_CO2aq + 1],
+        hcation=data[indx_Hcation + 1]
+    ))
+
+    # Auxiliary function that returns a string for the title of a figure in the format Time: #h##m
     def titlestr(t):
         t = t / minute  # Convert from seconds to minutes
         h = int(t) / 60  # The number of hours
         m = int(t) % 60  # The number of remaining minutes
         return 'Time: %2dh %2dm' % (h, m)
 
-    print('Plotting figure', step, '...')
+    # Plot for ph
+    p1 = figure(plot_width=600, plot_height=300)
+    p1.line(x = 'x', y = 'ph',
+           color='teal', line_width=2, legend_label='pH',
+           source = source)
+    p1.x_range = Range1d(-0.01, 1.001)
+    p1.y_range = Range1d(2.5, 12.0)
+    p1.xaxis.axis_label = 'Distance [m]'
+    p1.yaxis.axis_label = 'pH'
+    p1.legend.location = 'bottom_right'
+    p1.title.text = titlestr(0 * dt)
 
-    # Loading data from he analyzed file
-    filearray = loadtxt('results/' + file, skiprows=1)
-    data = filearray.T
+    # Plot for calcite and dolomite
+    p2 = figure(plot_width=600, plot_height=300)
+    p2.line(x = 'x', y = 'calcite', color='blue', line_width=2, legend_label='Calcite',
+            muted_color='blue', muted_alpha=0.2,
+            source = source)
+    p2.line(x = 'x', y = 'dolomite', color='orange', line_width=2, legend_label='Dolomite',
+            muted_color='orange', muted_alpha=0.2,
+            source = source)
+    p2.x_range = Range1d(-0.01, 1.001)
+    p2.y_range = Range1d(-0.1, 2.1)
+    p2.xaxis.axis_label = 'Distance [m]'
+    p2.yaxis.axis_label = 'Mineral Volume [%vol]'
+    p2.legend.location = 'center_right'
+    p2.title.text = titlestr(0 * dt)
+    p2.legend.click_policy = 'mute'
 
-    # Plotting ph w.r.t. rock length
-    plt.figure()
-    plt.xlim(left=xl-0.02, right=xr+0.02)
-    plt.ylim(bottom=2-0.1, top=9.0)
-    plt.title(titlestr(t))
-    plt.xlabel('Distance [m]')
-    plt.ylabel('pH')
-    plt.plot(data[0], data[1])
-    plt.tight_layout()
-    plt.savefig('figures/ph/{}.png'.format(str(step).zfill(ndigits)))
+    # Plot for aqueous species
+    p3 = figure(plot_width=600, plot_height=300, y_axis_type = 'log')
+    p3.line(x = 'x', y = 'cacation', color='blue', line_width=2, legend_label='Ca++', source = source)
+    p3.line(x = 'x', y = 'mgcation', color='orange', line_width=2, legend_label='Mg++', source = source)
+    p3.line(x = 'x', y = 'hco3anion', color='green', line_width=2, legend_label='HCO3-', source = source)
+    p3.line(x = 'x', y = 'co2aq', color='red', line_width=2, legend_label='CO2(aq)', source = source)
+    p3.line(x = 'x', y = 'hcation', color='darkviolet', line_width=2, legend_label='H+', source = source)
+    p3.x_range = Range1d(-0.01, 1.001)
+    p3.y_range = Range1d(0.5e-6, 1e0)
+    p3.xaxis.axis_label = 'Distance [m]'
+    p3.yaxis.axis_label = 'Concentration [molal]'
+    p3.legend.location = 'top_right'
+    p3.title.text = titlestr(0 * dt)
+    p3.legend.click_policy = 'mute'
 
-    # Plotting phase volumes of calcite and dolomite w.r.t. rock length
-    plt.figure()
-    plt.xlim(left=xl-0.02, right=xr+0.02)
-    plt.ylim(bottom=-0.1, top=2.1)
-    plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
-    plt.title(titlestr(t))
-    plt.xlabel('Distance [m]')
-    plt.ylabel('Mineral Volume [%$_{\mathsf{vol}}$]')
-    plt.plot(data[0], data[7] * 100, label='Calcite')
-    plt.plot(data[0], data[8] * 100, label='Dolomite')
-    plt.legend(loc='center right')
-    plt.tight_layout()
-    plt.savefig('figures/calcite-dolomite/{}.png'.format(str(step).zfill(ndigits)))
+    step_slider = Slider(start=1,
+                         end=nsteps,
+                         value=0,
+                         step=1,
+                         title='Reactive Transport Step')
 
-    # Plotting concentrations of aqueous species w.r.t. rock length
-    plt.figure()
-    plt.yscale('log')
-    plt.xlim(left=xl-0.02, right=xr+0.02)
-    plt.ylim(bottom=0.5e-5, top=2)
-    plt.title(titlestr(t))
-    plt.xlabel('Distance [m]')
-    plt.ylabel('Concentration [molal]')
-    plt.plot(data[0], data[3], label='Ca++')
-    plt.plot(data[0], data[4], label='Mg++')
-    plt.plot(data[0], data[5], label='HCO3-')
-    plt.plot(data[0], data[6], label='CO2(aq)')
-    plt.plot(data[0], data[2], label='H+')
-    plt.legend(loc='lower right')
-    plt.tight_layout()
-    plt.savefig('figures/aqueous-species/{}.png'.format(str(step).zfill(ndigits)))
+    # Function that return the data dictionary with provided index of the file
+    def get_data(i):
+        filearray = np.loadtxt(folder_results + '/' + files[i], skiprows=1)
+        data = filearray.T
+        return dict(
+            x=data[0],
+            ph=data[indx_ph + 1],
+            calcite=data[indx_calcite + 1] * 100 / (1 - phi),
+            dolomite=data[indx_dolomite + 1] * 100 / (1 - phi),
+            cacation=data[indx_Cacation + 1],
+            mgcation=data[indx_Mgcation + 1],
+            hco3anion=data[indx_HCO3anion + 1],
+            co2aq=data[indx_CO2aq + 1],
+            hcation=data[indx_Hcation + 1]
+        )
 
-    plt.close('all')
+    # Callback function that changes the data and the title of the plots
+    def update_step(attrname, old, new):
+        step = step_slider.value
+        source.data = get_data(step)
+        p1.title.text = titlestr(step * dt)
+        p2.title.text = titlestr(step * dt)
+        p3.title.text = titlestr(step * dt)
+    #
+    step_slider.on_change('value', update_step)
 
-# ## Main function
-# Below, we present the actual definition of the main function.
+    layout = column(step_slider,
+                    column(p1, p2, p3))
 
-if __name__ == '__main__':
+    doc.add_root(layout)
 
-    # Create folders for the results
-    make_results_folders()
+# Outputting the plots to the notebook requires the call of `output_notebook()` that specifies outputting the plot
+# inline in the Jupyter notebook. Finally, the function `modify_doc()` must be passed to `show`, so that the app defined
+# by it is displayed inline.
+#
+# > **Important:** If you run this tutorial in the *localhost*, make sure that number provided to the variable
+# `notebook_url` below  coincides with the number of the localhost you have in your browser.
 
-    # Run the reactive transport simulations
-    simulate()
-
-    # Plotting the result
-    plot()
+output_notebook()
+show(modify_doc, notebook_url="http://localhost:8890")
