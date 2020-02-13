@@ -15,8 +15,7 @@
 #     name: python3
 # ---
 
-# # Reactive transport of CO<sub>2</sub>-saturated brine along a porous rock column (using transport solver embedded
-#  into Reaktoro)
+# # Reactive transport of CO<sub>2</sub>-saturated brine along a porous rock column (using transport solver embedded into Reaktoro)
 #
 # In this tutorial, we show how Reaktoro can be used for one-dimensional reactive transport calculations for modeling
 # the geochemical reactions that occur along a porous rock column as an aqueous fluid is continuously injected on its
@@ -82,8 +81,8 @@ year = 365 * day
 xl = 0.0                # the x-coordinate of the left boundary
 xr = 1.0                # the x-coordinate of the right boundary
 ncells = 100            # the number of cells in the discretization
-nsteps = 300            # the number of steps in the reactive transport simulation
-dt = 30*minute          # the time step (30 minutes in units of s)
+nsteps = 500            # the number of steps in the reactive transport simulation
+dt = 10*minute          # the time step (30 minutes in units of s)
 dx = (xr - xl)/ncells   # length of the mesh cells (in units of m)
 
 # Physical and chemical parameters
@@ -360,7 +359,8 @@ def titlestr(t):
     t = t / minute   # Convert from seconds to minutes
     h = int(t) / 60  # The number of hours
     m = int(t) % 60  # The number of remaining minutes
-    return 'Time: {:>3}h{:>2}m'.format(h, str(m).zfill(2))
+
+    return 'Time: %2dh %2dm' % (h, m)
 
 def line(color):
     return {'linestyle': '-', 'color': color, 'zorder': 1, 'linewidth': 2}
@@ -369,7 +369,7 @@ def plot_animation_ph():
 
     # Plot of mineral's volume the space coordinates
     fig = plt.figure()
-    ax = plt.axes(xlim=(-0.01, 0.501), ylim=(2.5, 12.0))
+    ax = plt.axes(xlim=(-0.01, 0.501), ylim=(4.0, 9.0))
     ax.set_xlabel('Distance [m]')
     ax.set_ylabel('pH')
     ax.set_title(titlestr(0.0))
@@ -399,7 +399,7 @@ def plot_animation_calcite_dolomite():
 
     # Plot of mineral's volume the space coordinates
     fig = plt.figure()
-    ax = plt.axes(xlim=(-0.01, 0.501), ylim=(-0.1, 2.1))
+    ax = plt.axes(xlim=(-0.01, 0.501), ylim=(-0.1, 3.1))
     ax.set_xlabel('Distance [m]')
     ax.set_ylabel('Mineral Volume [%$_{\mathsf{vol}}$]')
     ax.set_title(titlestr(0.0))
