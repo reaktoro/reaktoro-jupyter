@@ -24,7 +24,8 @@
 from reaktoro import *
 
 # To indicate phases and corresponding to them species, as well as models used to evaluate activities of the aqueous
-# species, we use `ChemicalEditor`. Here, the default database SUPCRT98 is used.
+# species, we use the class [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html). Here,
+# the default database SUPCRT98 is used.
 
 editor = ChemicalEditor()
 
@@ -34,7 +35,7 @@ editor = ChemicalEditor()
 # sense*. Every phase in Reaktoro has two associated models: a *thermodynamic model* and a *chemical model*. These
 # denominations are not standard in the literature, but they are useful in the differentiation of two needed types
 # of models for a phase.
-
+#
 # * A *thermodynamic model* is a model for the calculation of *standard thermodynamic properties* of the species.
 # Examples include standard Gibbs energies, or standard chemical potentials, standard molar volumes, standard heat
 # capacities, standard enthalpies, and so forth. These models are functions of *temperature* and *pressure* only.
@@ -59,9 +60,14 @@ editor = ChemicalEditor()
 # efficiency reasons at the expense of chemical realism.
 
 # ### Specifying aqueous phase
-
+#
 # To initialize [AqueousPhase](https://reaktoro.org/cpp/classReaktoro_1_1AqueousPhase.html#details),
-# we add the list of exact names of aqueous species we wish to be simulated in computations.
+# we can add the list of exact names of aqueous species we wish to be simulated in computations.
+#
+# > **Note**: Alternative methods to specify species in aqueous phase are described in documentation of the
+# [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html) class or tutorial
+# [**ChemicalEditor**](cl.chemical-editor.ipynb).
+#
 # The default model to calculate the activities of solvent water and ionic species is the HKF model.
 # Note that activity models are also needed for *neutral species* then an ideal model is used, in which their activity
 # coefficients are one. For some neutral aqueous species, such as CO<sub>2</sub>(aq), we specify the Drummond model
@@ -96,7 +102,10 @@ editor.addAqueousPhase(["H2O(l)", "H+", "OH-", "Na+", "Cl-", "HCO3-", "CO2(aq)",
 aqueous_phase = editor.addAqueousPhaseWithElementsOf("H2O NaCl CO2")
 aqueous_phase.setChemicalModelDebyeHuckel()
 
-# Method `addAqueousPhaseWithElementsOf()` used above is practical in those occasions, where it would be preferable to
+# Method
+# [ChemicalEditor::addAqueousPhaseWithElementsOf](
+# https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html#a23e44f994b87c650a949226ddc195710)
+# used above is practical in those occasions, where it would be preferable to
 # just specify a few compound or substance names, *not necessarily named as in the database*, and then let
 # [ChemicalEditor](https://reaktoro.org/cpp/classReaktorobl_1_1ChemicalEditor.html) to automatically select all chemical
 # species that could be formed out of the combination of those compounds.
@@ -113,7 +122,8 @@ aqueous_phase.setChemicalModelDebyeHuckel()
 editor.addGaseousPhase(["H2O(g)", "CO2(g)"]) \
     .setChemicalModelSpycherPruessEnnis()
 
-# Here, method `setChemicalModelSpycherPruessEnnis()` sets Spycher et al. (2003) equation of state. This model only
+# Here, method [GaseousPhase::setChemicalModelSpycherPruessEnnis](https://reaktoro.org/cpp/classReaktoro_1_1FluidPhase.html#a7fc8a1bc87f24b31939ce3295cd92e8f)
+# sets Spycher et al. (2003) equation of state. This model only
 # supports the gaseous species H<sub>2</sub>O(g) and CO<sub>2</sub>(g). Any other species will result in a runtime
 # error. Alternately, the Spycher and Reed (1988) equation of state can be set (only for H<sub>2</sub>O(g),
 # CO<sub>2</sub>(g), and CH<sub>4</sub>(aq)).
@@ -143,7 +153,7 @@ editor.addMineralPhase(["Calcite", "Magnesite"])
 system = ChemicalSystem(editor)
 
 # Once system is set, the equilibrium problem using [EquilibriumProblem](
-# https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumProblem.html#details) class must be initialized:
+# https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumProblem.html#details) class must be initialized by
 
 problem = EquilibriumProblem(system)
 
@@ -166,16 +176,15 @@ problem.add("CO2", 100, "g")
 # The units above can be changed, or even suppressed. If not provided, default units are used, such as K for
 # temperatures, Pa for pressures, and mol for amounts. The
 # [EquilibriumProblem::add](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumProblem.html#a18d8ff0e8b8fc66f1eec0127057c7d54)
-# method in
-# [EquilibriumProblem](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumProblem.html) supports both amount and
-# mass units, such as `mmol`,  `umol`, `g`, `mg`, etc.
+# method supports both amount and mass units, such as `mmol`,  `umol`, `g`, `mg`, etc.
 
 # To provide computational representation of the state of a multiphase chemical system resulting from  equilibration
 # process, class [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html) must be used.
-# Function `equilibrate()` equilibrates a chemical state instance with an equilibrium problem.
+# Function [equilibrate](https://reaktoro.org/cpp/namespaceReaktoro.html#af2d3b39d3e0b8f9cb5a4d9bbb06b697e)
+# equilibrates a chemical state instance with an equilibrium problem.
 
 # The code below uses the definition of the equilibrium problem stored in the object `problem` to perform the
-# equilibrium calculation with utility method `equilibrate()`. The result of the calculation is the object `state`,
+# equilibrium calculation with utility method [equilibrate](https://reaktoro.org/cpp/namespaceReaktoro.html#af2d3b39d3e0b8f9cb5a4d9bbb06b697e). The result of the calculation is the object `state`,
 # an instance of [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html) class, which is used
 # to store the chemical state (i.e., the temperature, pressure, and molar amounts of all species) of the system at
 # prescribed equilibrium conditions. The [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html)
@@ -183,7 +192,8 @@ problem.add("CO2", 100, "g")
 
 state = equilibrate(problem)
 
-# **Note:** Method `equilibrate` is not the optimal method for performing a sequence of equilibrium calculations
+# **Note:** Method [equilibrate](https://reaktoro.org/cpp/namespaceReaktoro.html#af2d3b39d3e0b8f9cb5a4d9bbb06b697e)
+# is not the optimal method for performing a sequence of equilibrium calculations
 # (e.g., when coupling Reaktoro with other codes for simulating fluid flow, species transport, etc.). In situations,
 # where many equilibrium calculations need to be performed and sufficient initial guesses are available each time
 # (e.g., the equilibrium state at a previous time step serving as an initial guess for the new equilibrium
@@ -199,11 +209,11 @@ state.output("state.txt")
 # properties of each phase, such as *density*, *molar volume*, *volume fraction*, as well specific properties of some
 # phases (e.g., *ionic strength*, *pH*, *pe* for the aqueous phase).
 
-# ### Specifying optional for the equilibrium calculation
+# ### Options for the equilibrium calculation
 
 # To customize options for the equilibrium calculations, class
 # [EquilibriumOptions](https://reaktoro.org/cpp/structReaktoro_1_1EquilibriumOptions.html) can be used.
-# For instance, in [NonlinearOptions](https://reaktoro.org/cpp/structReaktoro_1_1NonlinearOptions.html), it contains
+# For instance, [NonlinearOptions](https://reaktoro.org/cpp/structReaktoro_1_1NonlinearOptions.html) contains
 # information about the nonlinear solver used.
 
 options = EquilibriumOptions()
@@ -213,8 +223,8 @@ options.epsilon = 1e-50
 # Here, we set the field of [OutputterOptions](https://reaktoro.org/cpp/structReaktoro_1_1OutputterOptions.html)
 # class to be `True` to determine whether the intermediate values of equilibrium simulations must be output
 # to the console.
-# Then, we set the parameter $\varepsilon$ (used for the numerical representation of a zero molar amount) to be equal to
-# 1e-50. The molar amount of the *i*th species is considered zero if $n[i] < \varepsilon \cdot \min b$, where *b* is
+# Then, we set the parameter *epsilon* (used for the numerical representation of a zero molar amount) to be equal to
+# 1e-50. The molar amount of the *i*th species is considered zero if *n[i] < epsilon min b*, where *b* is
 # the vector of element molar amounts.
 
 # To encounter provided above options, we use function [equilibrate](
