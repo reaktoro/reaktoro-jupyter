@@ -131,6 +131,27 @@ output_quantities = """
     phaseVolume(Dolomite)
 """.split()
 
+# Then, we define the list of name for the DataFrame columns. Note, that they must correspond
+# to the order of the properties defined in the `output_quantities` list:
+
+column_quantities = """
+    pH
+    Hcation
+    Cacation
+    Mgcation
+    HCO3anion
+    CO2aq
+    calcite
+    dolomite
+""".split()
+
+# Create the list of columns stored in dataframes
+columns = ['step', 'x'] + column_quantities
+import pandas as pd
+
+# Initialize dataframes with above defined columns
+df = pd.DataFrame(columns=columns)
+
 # ## Organization of the program
 #
 # The main part of the program (at the bottom of this tutorial) consists of three parts, each represented by a Python
@@ -205,7 +226,7 @@ def simulate():
     t = 0.0  # the current time (in seconds)
 
     # Output the initial state of the reactive transport calculation
-    outputstate(step, system, states)
+    outputstate_df(step, system, states)
 
     with tqdm(total=nsteps, desc="Reactive transport simulations") as pbar:
         while step <= nsteps:
@@ -215,12 +236,12 @@ def simulate():
             # Perform reactive chemical calculations
             states = reactive_chemistry(solver, states, b)
 
-            # Output the current state of the reactive transport calculation
-            outputstate(step, system, states)
-
             # Increment time step and number of time steps
             t += dt
             step += 1
+
+            # Output the current state of the reactive transport calculation
+            outputstate_df(step, system, states)
 
             # Update a progress bar
             pbar.update(1)
@@ -554,28 +575,25 @@ def reactive_chemistry(solver, states, b):
 
 # ### Results saving and analyzing
 #
-# Function `outputstate` is the auxiliary function to create an output file each time step.
+# Function `outputstate_df` is the auxiliary function to add data to the DataFrame at each time step.
 
-def outputstate(step, system, states):
-    # Create the instance of ChemicalOutput class
-    output = ChemicalOutput(system)
+def outputstate_df(step, system, states):
+    # Define the instance of ChemicalQuantity class
+    quantity = ChemicalQuantity(system)
 
-    # Provide the output file name, which will correspond
-    output.filename(folder_results + '/{}.txt'.format(str(step)))
+    # Create the list with empty values to populate with chemical properties
+    values = [None] * len(columns)
+    for state, x in zip(states, xcells):
 
-    # We define the columns' tags filled with the name of the quantities
-    # The first column has a tag 'x' (which corresponds to the center coordinates of the cells )
-    output.add('tag', 'x')  # The value of the center coordinates of the cells
+        # Populate values with number of reactive transport step and spacial coordinates
+        values[0] = step
+        values[1] = x
 
-    # The rest of the columns correspond to the requested properties
-    for quantity in output_quantities:
-        output.add(quantity)
-
-    # We update the file with states that correspond to the cells' coordinates stored in x
-    output.open()
-    for state, tag in zip(states, xcells):
-        output.update(state, tag)
-    output.close()
+        # Update the
+        quantity.update(state)
+        for quantity_name, i in zip(output_quantities, range(2, len(states))):
+            values[i] = quantity.value(quantity_name) * (100 / (1 - phi) if "phaseVolume" in quantity_name else 1)
+        df.loc[len(df)] = values
 
 # ### Plotting of the obtained results
 #
@@ -583,18 +601,6 @@ def outputstate(step, system, states):
 # library **bokeh**. It is an interactive visualization library that provides elegant, concise construction of
 # versatile graphics, and affords high-performance interactivity over large or streaming datasets.
 #
-# First, we define the indices of the loaded data saved in the `state-files`. Note, that these indices must correspond
-# to the order of the properties defined in the `output_quantities` list:
-
-indx_ph        = 0
-indx_Hcation   = 1
-indx_Cacation  = 2
-indx_Mgcation  = 3
-indx_HCO3anion = 4
-indx_CO2aq     = 5
-indx_calcite   = 6
-indx_dolomite  = 7
-
 # Below, we list auxiliary functions that we use in plotting. Function `titlestr` returns a string for the title
 # of a figure in the  format Time: #h##m
 
@@ -614,12 +620,10 @@ def plot_figures_ph(steps, files):
     for i in steps:
         print("On pH figure at time step: {}".format(i))
         t = i * dt
-        filearray = np.loadtxt(folder_results + '/' + files[i - 1], skiprows=1)
-        data = filearray.T
-        data_ph = data[indx_ph + 1]
+        source = ColumnDataSource(df[df['step'] == i])
 
-        p = figure(plot_width=600, plot_height=2500)
-        p.line(xcells, data_ph, color='teal', line_width=2, legend_label='pH')
+        p = figure(plot_width=600, plot_height=250)
+        p.line(source.data['x'], source.data['pH'], color='teal', line_width=2, legend_label='pH')
         p.x_range = Range1d(-0.001, 1.001)
         p.y_range = Range1d(2.5, 12.0)
         p.xaxis.axis_label = 'Distance [m]'
@@ -637,14 +641,12 @@ def plot_figures_calcite_dolomite(steps, files):
     for i in steps:
         print("On calcite-dolomite figure at time step: {}".format(i))
         t = i * dt
-        filearray = np.loadtxt(folder_results + '/' + files[i - 1], skiprows=1)
-        data = filearray.T
-        data_calcite, data_dolomite = data[indx_calcite + 1], data[indx_dolomite + 1]
+        source = ColumnDataSource(df[df['step'] == i])
 
         p = figure(plot_width=600, plot_height=250)
-        p.line(xcells, data_calcite * 100/(1 - phi), color='blue', line_width=2, legend_label='Calcite',
+        p.line(source.data['x'], source.data['calcite'], color='blue', line_width=2, legend_label='Calcite',
                muted_color='blue', muted_alpha=0.2)
-        p.line(xcells, data_dolomite * 100/(1 - phi), color='orange', line_width=2, legend_label='Dolomite',
+        p.line(source.data['x'], source.data['calcite'], color='orange', line_width=2, legend_label='Dolomite',
                muted_color='orange', muted_alpha=0.2)
         p.x_range = Range1d(-0.001, 1.001)
         p.y_range = Range1d(-0.1, 2.1)
@@ -663,20 +665,13 @@ def plot_figures_aqueous_species(steps, files):
     for i in steps:
         print("On aqueous-species figure at time step: {}".format(i))
         t = i * dt
-        filearray = np.loadtxt(folder_results + '/' + files[i - 1], skiprows=1)
-        data = filearray.T
-        data_cacation = data[indx_Cacation + 1]
-        data_mgcation = data[indx_Mgcation + 1]
-        data_hco3anion = data[indx_HCO3anion + 1]
-        data_co2aq = data[indx_CO2aq + 1]
-        data_hcation = data[indx_Hcation + 1]
-
+        source = ColumnDataSource(df[df['step'] == i])
         p = figure(plot_width=600, plot_height=300, y_axis_type = 'log',)
-        p.line(xcells, data_cacation, color='blue', line_width=2, legend_label='Ca++')
-        p.line(xcells,  data_mgcation, color='orange', line_width=2, legend_label='Mg++')
-        p.line(xcells, data_hco3anion, color='green', line_width=2, legend_label='HCO3-')
-        p.line(xcells,  data_co2aq, color='red', line_width=2, legend_label='CO2(aq)')
-        p.line(xcells, data_hcation, color='darkviolet', line_width=2, legend_label='H+')
+        p.line(source.data['x'], source.data['Cacation'], color='blue', line_width=2, legend_label='Ca++')
+        p.line(source.data['x'], source.data['Mgcation'], color='orange', line_width=2, legend_label='Mg++')
+        p.line(source.data['x'], source.data['HCO3anion'], color='green', line_width=2, legend_label='HCO3-')
+        p.line(source.data['x'], source.data['CO2aq'], color='red', line_width=2, legend_label='CO2(aq)')
+        p.line(source.data['x'], source.data['Hcation'], color='darkviolet', line_width=2, legend_label='H+')
         p.x_range = Range1d(-0.001, 1.001)
         p.y_range = Range1d(0.5e-6, 1e0)
         p.xaxis.axis_label = 'Distance [m]'
@@ -697,9 +692,17 @@ def plot_figures_aqueous_species(steps, files):
 make_results_folders()
 
 # Run the reactive transport simulations. Note that due to selected Pitzer activity model, the reactive transport
-# simulation might be slower than, for instance, Debue-H\"uckel one.
+# simulation might be slower than, for instance, Debye-Huckel one.
 
 simulate()
+
+# To inspect the collected values on any reactive transport step, one can run the code below, where we first define
+# the number of the step and then select the columns of DataFrame we are interested in (cells indices together with the
+# chemical properties):
+
+step = 0
+df_step = df[df['step'] == step].loc[:, ['x'] + column_quantities]
+df_step
 
 # Select the steps, on which results must plotted:
 
@@ -734,20 +737,8 @@ plot_figures_aqueous_species(selected_steps_to_plot, files)
 
 def modify_doc(doc):
     # Initialize the data by the initial chemical state
-    filearray = np.loadtxt(folder_results + '/' + files[0], skiprows=1)
-    data = filearray.T
-    source = ColumnDataSource(dict(
-        x=data[0],
-        ph=data[indx_ph + 1],
-        calcite=data[indx_calcite + 1] * 100 / (1 - phi),
-        dolomite=data[indx_dolomite + 1] * 100 / (1 - phi),
-        cacation=data[indx_Cacation + 1],
-        mgcation=data[indx_Mgcation + 1],
-        hco3anion=data[indx_HCO3anion + 1],
-        co2aq=data[indx_CO2aq + 1],
-        hcation=data[indx_Hcation + 1],
-        step=np.zeros(ncells + 1, dtype=int)
-    ))
+    # source = ColumnDataSource(df[df['step'] == 0].loc[:, column_quantities])
+    source = ColumnDataSource(df[df['step'] == 0])
 
     # Auxiliary function that returns a string for the title of a figure in the format Time: #h##m
     def titlestr(t):
@@ -758,7 +749,7 @@ def modify_doc(doc):
 
     # Plot for ph
     p1 = figure(plot_width=600, plot_height=250)
-    p1.line(x='x', y='ph',
+    p1.line(x='x', y='pH',
             color='teal', line_width=2, legend_label='pH',
             source=source)
     p1.x_range = Range1d(-0.001, 1.001)
@@ -788,16 +779,11 @@ def modify_doc(doc):
 
     # Plot for aqueous species
     p3 = figure(plot_width=600, plot_height=300, y_axis_type='log')
-    p3.line(x='x', y='cacation', color='blue', line_width=2,
-            legend_label='Ca++', source=source)
-    p3.line(x='x', y='mgcation', color='orange', line_width=2,
-            legend_label='Mg++', source=source)
-    p3.line(x='x', y='hco3anion', color='green', line_width=2,
-            legend_label='HCO3-', source=source)
-    p3.line(x='x', y='co2aq', color='red', line_width=2, legend_label='CO2(aq)',
-            source=source)
-    p3.line(x='x', y='hcation', color='darkviolet', line_width=2,
-            legend_label='H+', source=source)
+    p3.line(x='x', y='Cacation', color='blue', line_width=2, legend_label='Ca++', source=source)
+    p3.line(x='x', y='Mgcation', color='orange', line_width=2, legend_label='Mg++', source=source)
+    p3.line(x='x', y='HCO3anion', color='green', line_width=2, legend_label='HCO3-', source=source)
+    p3.line(x='x', y='CO2aq', color='red', line_width=2, legend_label='CO2(aq)', source=source)
+    p3.line(x='x', y='Hcation', color='darkviolet', line_width=2, legend_label='H+', source=source)
     p3.x_range = Range1d(-0.001, 1.001)
     p3.y_range = Range1d(0.5e-6, 1e0)
     p3.xaxis.axis_label = 'Distance [m]'
@@ -815,20 +801,20 @@ def modify_doc(doc):
             step_number = source.data['step'][0] + 1
         else:
             step_number = 0
-        filearray = np.loadtxt(folder_results + '/' + files[step_number], skiprows=1)
-        data = filearray.T
-        new_data = dict(
-            x=data[0],
-            ph=data[indx_ph + 1],
-            calcite=data[indx_calcite + 1] * 100 / (1 - phi),
-            dolomite=data[indx_dolomite + 1] * 100 / (1 - phi),
-            cacation=data[indx_Cacation + 1],
-            mgcation=data[indx_Mgcation + 1],
-            hco3anion=data[indx_HCO3anion + 1],
-            co2aq=data[indx_CO2aq + 1],
-            hcation=data[indx_Hcation + 1],
-            step=step_number * np.ones(ncells + 1, dtype=int)
-        )
+
+        new_source = ColumnDataSource(df[df['step'] == step_number])
+        new_data = dict(index=np.linspace(0, ncells, ncells + 1, dtype=int),
+                        step=new_source.data['step'],
+                        x=new_source.data['x'],
+                        pH=new_source.data['pH'],
+                        calcite=new_source.data['calcite'],
+                        dolomite=new_source.data['dolomite'],
+                        Hcation=new_source.data['Hcation'],
+                        Cacation=new_source.data['Cacation'],
+                        Mgcation=new_source.data['Mgcation'],
+                        HCO3anion=new_source.data['HCO3anion'],
+                        CO2aq=new_source.data['CO2aq'])
+
         p1.title.text = titlestr(step_number * dt)
         p2.title.text = titlestr(step_number * dt)
         p3.title.text = titlestr(step_number * dt)
