@@ -165,8 +165,6 @@ df = pd.DataFrame(columns=columns)
 # files later.
 
 folder_results = 'results-rt-coupling'
-
-
 def make_results_folders():
     os.system('mkdir -p ' + folder_results)
 
