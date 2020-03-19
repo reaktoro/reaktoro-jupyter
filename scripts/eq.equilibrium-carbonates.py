@@ -14,13 +14,10 @@
 #     name: python3
 # ---
 
-
-
 # # Performing a chemical equilibrium calculation of carbonate species
 #
 # This tutorial demonstrates how to use Reaktoro to perform a chemical equilibrium calculation with carbon species.
 # We start by importing the `reaktoro` package:
-#
 
 from reaktoro import *
 
@@ -28,7 +25,6 @@ from reaktoro import *
 #
 # The default thermodynamic databases embedded into Reaktoro is SUPCRT92, so you do not have to initialize the
 # database `db = Database('supcrt98.xml')`, unless you use an alternative one.
-
 # Class [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html)
 # provides convenient operations to initialize
 # [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html) and
@@ -43,9 +39,9 @@ db = Database("supcrt98.xml")
 #  Define the editor of the chemical system
 editor = ChemicalEditor(db)
 
-# To define a chemical system, aqueous, gaseous, and mineral phases must be added. For the aqueous phase, it can be done
-# from a list of chemical element names. The database will be searched for all species that could be formed out of those
-# elements.
+# To define a chemical system, *aqueous*, *gaseous*, and *mineral phases* must be added. For the aqueous phase,
+# it can be done from a list of chemical element names. The database will be searched for all species that could be
+# formed out of those elements:
 
 editor.addAqueousPhaseWithElements("H O C Ca Cl Mg")
 
@@ -104,7 +100,7 @@ state = equilibrate(problem)
 
 # Reaktoro uses an efficient **Gibbs energy minimization** computation to determine the species amounts that correspond
 # to a state of minimum Gibbs energy in the system while satisfying the prescribed amount conditions for the
-# temperature, pressure, and element amounts. The result is stored in the object `state`, of class
+# temperature, pressure, and element amounts. The result is stored in the object `state` of class
 # [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html).
 
 # To output the result of equilibration to the console, we use

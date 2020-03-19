@@ -82,18 +82,18 @@ year = 365 * day
 # +
 # Discretization parameters
 xl = 0.0                # x-coordinate of the left boundary
-xr = 1.0                # x-coordinate of the right boundary
+xr = 100.0              # x-coordinate of the right boundary
 ncells = 100            # number of cells in the discretization
 nsteps = 100            # number of steps in the reactive transport simulation
 dx = (xr - xl) / ncells # length of the mesh cells (in units of m)
-dt = 30 * minute        # time step
+dt = 0.0416*day         # time step
 
 # Physical parameters
-D = 1.0e-9          # diffusion coefficient (in units of m2/s)
-v = 1.0 / week      # fluid pore velocity (in units of m/s)
-T = 60.0 + 273.15   # temperature (in units of K)
-P = 100 * 1e5       # pressure (in units of Pa)
-phi = 0.1           # the porosity
+D = 0               # diffusion coefficient (in units of m2/s)
+v = 1.05e-5         # fluid pore velocity (in units of m/s)
+T = 25.0 + 273.15   # temperature (in units of K)
+P = 1.01325 * 1e5   # pressure (in units of Pa)
+phi = 0.0           # the porosity
 # -
 
 # Next, we generate the coordinates of the mesh nodes (array `xcells`) by equally dividing the interval *[xr, xl]* with
@@ -123,12 +123,13 @@ assert CFL <= 1.0, f"Make sure that CFL = {CFL} is less that 1.0"
 output_quantities = """
     pH
     speciesMolality(H+)
-    speciesMolality(Ca++)
-    speciesMolality(Mg++)
-    speciesMolality(HCO3-)
-    speciesMolality(CO2(aq))
-    phaseVolume(Calcite)
-    phaseVolume(Dolomite)
+    speciesMolality(HS-)
+    speciesMolality(S2--)
+    speciesMolality(SO4--)
+    speciesMolality(HSO4-)
+    speciesMolality(H2S(aq))
+    phaseVolume(Pyrrhotite)
+    phaseVolume(Siderite)
 """.split()
 
 # Then, we define the list of name for the DataFrame columns. Note, that they must correspond
@@ -137,12 +138,13 @@ output_quantities = """
 column_quantities = """
     pH
     Hcation
-    Cacation
-    Mgcation
-    HCO3anion
-    CO2aq
-    calcite
-    dolomite
+    HSanion
+    S2anion
+    SO4anion
+    HSO4anion
+    H2Saq
+    pyrrhotite
+    siderite
 """.split()
 
 # Create the list of columns stored in dataframes
@@ -165,7 +167,7 @@ df = pd.DataFrame(columns=columns)
 # Using **os** package, we create required folders for outputting the obtained results and for the plot and video
 # files later.
 
-folder_results = 'results-rt-calcite-dolomite'
+folder_results = 'results-rt-scaveging'
 def make_results_folders():
     os.system('mkdir -p ' + folder_results)
 
@@ -180,7 +182,7 @@ def make_results_folders():
 # * definition of chemical system with its phases and species using `define_chemical_system()`,
 # * definition of the initial condition of the reactive transport problem in `define_initial_condition()`,
 # * definition of the boundary condition of the reactive transport problem in `define_initial_condition()`,
-# * generation of auxiliary indices to partition elements using `partition_indices()` and elements' partitioning 
+# * generation of auxiliary indices to partition elements using `partition_indices()` and elements' partitioning
 # corresponding to fluid and solid species with function `partition_elements_in_mesh_cell()`, and finally
 # * definition of instance of [EquilibriumSolver](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumSolver.html).
 #
@@ -189,7 +191,7 @@ def make_results_folders():
 # * transport calculations using method `transport()`,
 # * reactive chemical calculations with `reactive_chemistry()` function, and
 # * saving the obtained results by means of `outputstate()`.
-
+#
 # Performing of the transport and reactive chemistry sequentially is possible due to the *operator splitting
 # procedure*, in which we first update the amounts of elements `b`. These updated amounts of
 # elements in the cell are used to evaluate its new chemical equilibrium state, thus producing new amounts of the
@@ -235,6 +237,7 @@ def simulate():
 
             # Perform reactive chemical calculations
             states = reactive_chemistry(solver, states, b)
+
 
             # Increment time step and number of time steps
             t += dt
@@ -295,17 +298,22 @@ def simulate():
 # the local equilibrium assumption is employed.
 
 def define_chemical_system():
+
     # Construct the chemical system with its phases and species
-    db = Database('supcrt98.xml')
+    db = Database('supcrt07.xml')
+    dhModel = DebyeHuckelParams()
+    dhModel.setPHREEQC()
 
     editor = ChemicalEditor(db)
-
-    editor.addAqueousPhaseWithElements('H O Na Cl Ca Mg C Si Ca') \
-        .setChemicalModelPitzerHMW() \
-        .setActivityModelDrummondCO2()
-    editor.addMineralPhase('Quartz')
-    editor.addMineralPhase('Calcite')
-    editor.addMineralPhase('Dolomite')
+    editor.addAqueousPhase(['H2O(l)', 'H+', 'OH-', 'HCO3-', 'Mg(HCO3)+', 'Ca(HCO3)+', 'MgCO3(aq)',
+                            'CO3--', 'CaCO3(aq)', 'Ca++', 'CaSO4(aq)', 'CaOH+', 'Cl-', 'FeCl++',
+                            'FeCl2(aq)', 'FeCl+', 'Fe++', 'FeOH+', 'FeOH++', 'Fe+++', 'H2(aq)', 'K+',
+                            'KSO4-', 'Mg++', 'MgSO4(aq)', 'MgCO3(aq)', 'MgOH+', 'Na+', 'NaSO4-',
+                            'O2(aq)', 'H2S(aq)', 'HS-', 'S5--', 'S4--', 'S3--', 'S2--', 'SO4--',
+                            'NaSO4-', 'MgSO4(aq)', 'CaSO4(aq)', 'KSO4-', 'HSO4-']).\
+        setChemicalModelDebyeHuckel(dhModel)
+    editor.addMineralPhase('Pyrrhotite')
+    editor.addMineralPhase('Siderite')
 
     system = ChemicalSystem(editor)
 
@@ -322,21 +330,32 @@ def define_chemical_system():
 # 0.7 molal NaCl brine in equilibrium with the rock minerals with a calculated pH of 10.0.
 
 def define_initial_condition(system):
-    problem_ic = EquilibriumProblem(system)
+
+    problem_ic = EquilibriumInverseProblem(system)
     problem_ic.setTemperature(T)
     problem_ic.setPressure(P)
-    problem_ic.add('H2O', 1.0, 'kg')
-    problem_ic.add('NaCl', 0.7, 'mol')
-    problem_ic.add('CaCO3', 10, 'mol')
-    problem_ic.add('SiO2', 10, 'mol')
+    problem_ic.add("H2O", 58.0, "kg");
+    problem_ic.add("Cl-", 1122.3e-3, "kg");
+    problem_ic.add("Na+", 624.08e-3, "kg");
+    problem_ic.add("SO4--", 157.18e-3, "kg");
+    problem_ic.add("Mg++", 74.820e-3, "kg");
+    problem_ic.add("Ca++", 23.838e-3, "kg");
+    problem_ic.add("K+", 23.142e-3, "kg");
+    problem_ic.add("HCO3-", 8.236e-3, "kg");
+    problem_ic.add("O2(aq)", 58e-12, "kg");
+    problem_ic.add("Pyrrhotite", 0.0, "mol");
+    problem_ic.add("Siderite", 0.5, "mol");
+    problem_ic.pH(8.951);
+    problem_ic.pE(8.676);
 
     # Calculate the equilibrium states for the initial conditions
     state_ic = equilibrate(problem_ic)
 
     # Scale the volumes of the phases in the initial condition
     state_ic.scalePhaseVolume('Aqueous', 0.1, 'm3')
-    state_ic.scalePhaseVolume('Quartz', 0.882, 'm3')
-    state_ic.scalePhaseVolume('Calcite', 0.018, 'm3')
+    state_ic.scaleVolume(1.0, 'm3')
+    #state_ic.scalePhaseVolume('Quartz', 0.882, 'm3')
+    #state_ic.scalePhaseVolume('Calcite', 0.018, 'm3')
 
     return state_ic
 
@@ -385,15 +404,26 @@ def define_initial_condition(system):
 # consistent with a \mathrm{mol/m^3} scale.
 
 def define_boundary_condition(system):
+
     # Define the boundary condition of the reactive transport modeling problem
-    problem_bc = EquilibriumProblem(system)
+    problem_bc = EquilibriumInverseProblem(system)
     problem_bc.setTemperature(T)
     problem_bc.setPressure(P)
-    problem_bc.add('H2O', 1.0, 'kg')
-    problem_bc.add('NaCl', 0.90, 'mol')
-    problem_bc.add('MgCl2', 0.05, 'mol')
-    problem_bc.add('CaCl2', 0.01, 'mol')
-    problem_bc.add('CO2', 0.75, 'mol')
+    problem_bc.add("H2O", 58.0, "kg")
+    problem_bc.add("Cl-", 1122.3e-3, "kg")
+    problem_bc.add("Na+", 624.08e-3, "kg")
+    problem_bc.add("SO4--", 157.18e-3, "kg")
+    problem_bc.add("Mg++", 74.820e-3, "kg")
+    problem_bc.add("Ca++", 23.838e-3, "kg")
+    problem_bc.add("K+", 23.142e-3, "kg")
+    problem_bc.add("HCO3-", 8.236e-3, "kg")
+    problem_bc.add("O2(aq)", 58e-12, "kg")
+    problem_bc.add("Pyrrhotite", 0.0, "mol")
+    problem_bc.add("Siderite", 0.0, "mol")
+    problem_bc.add("HS-", 0.0196504, "mol")
+    problem_bc.add("H2S(aq)", 0.167794, "mol")
+    problem_bc.pH(5.726)
+    problem_bc.pE(8.220)
 
     # Calculate the equilibrium states for the boundary conditions
     state_bc = equilibrate(problem_bc)
@@ -623,9 +653,9 @@ def plot_figures_ph(steps, files):
         source = ColumnDataSource(df[df['step'] == i])
 
         p = figure(plot_width=600, plot_height=250)
-        p.line(source.data['x'], source.data['pH'], color='teal', line_width=2, legend_label='pH')
+        p.line(x='x', y='pH', color='teal', line_width=2, legend_label='pH', source=source)
         p.x_range = Range1d(-0.001, 1.001)
-        p.y_range = Range1d(2.5, 12.0)
+        p.y_range = Range1d(4, 8.5)
         p.xaxis.axis_label = 'Distance [m]'
         p.yaxis.axis_label = 'pH'
         p.legend.location = 'bottom_right'
@@ -644,12 +674,12 @@ def plot_figures_calcite_dolomite(steps, files):
         source = ColumnDataSource(df[df['step'] == i])
 
         p = figure(plot_width=600, plot_height=250)
-        p.line(source.data['x'], source.data['calcite'], color='blue', line_width=2, legend_label='Calcite',
-               muted_color='blue', muted_alpha=0.2)
-        p.line(source.data['x'], source.data['calcite'], color='orange', line_width=2, legend_label='Dolomite',
-               muted_color='orange', muted_alpha=0.2)
+        p.line(x='x', y='pyrrhotite', color='blue', line_width=2, legend_label='Pyrrhotite',
+               muted_color='blue', muted_alpha=0.2, source=source)
+        p.line(x='x', y='siderite', color='orange', line_width=2, legend_label='Siderite',
+               muted_color='orange', muted_alpha=0.2, source=source)
         p.x_range = Range1d(-0.001, 1.001)
-        p.y_range = Range1d(-0.1, 2.1)
+        p.y_range = Range1d(-0.001, 0.016)
         p.xaxis.axis_label = 'Distance [m]'
         p.yaxis.axis_label = 'Mineral Volume [%vol]'
         p.legend.location = 'center_right'
@@ -664,16 +694,18 @@ def plot_figures_aqueous_species(steps, files):
     plots = []
     for i in steps:
         print("On aqueous-species figure at time step: {}".format(i))
-        t = i * dt
         source = ColumnDataSource(df[df['step'] == i])
+        t = dt * i
+
         p = figure(plot_width=600, plot_height=300, y_axis_type = 'log',)
-        p.line(source.data['x'], source.data['Cacation'], color='blue', line_width=2, legend_label='Ca++')
-        p.line(source.data['x'], source.data['Mgcation'], color='orange', line_width=2, legend_label='Mg++')
-        p.line(source.data['x'], source.data['HCO3anion'], color='green', line_width=2, legend_label='HCO3-')
-        p.line(source.data['x'], source.data['CO2aq'], color='red', line_width=2, legend_label='CO2(aq)')
-        p.line(source.data['x'], source.data['Hcation'], color='darkviolet', line_width=2, legend_label='H+')
+        p.line(x='x', y='HSanion', color='blue', line_width=2, legend_label='HS-', source=source)
+        p.line(x='x', y='S2anion', color='orange', line_width=2, legend_label='S2--', source=source)
+        p.line(x='x', y='SO4anion', color='green', line_width=2, legend_label='SO4--', source=source)
+        p.line(x='x', y='HSO4anion', color='red', line_width=2, legend_label='HSO4-', source=source)
+        p.line(x='x', y='H2Saq', color='yellow', line_width=2, legend_label='H2S(aq)', source=source)
+        p.line(x='x', y='Hcation', color='darkviolet', line_width=2, legend_label='H+', source=source)
         p.x_range = Range1d(-0.001, 1.001)
-        p.y_range = Range1d(0.5e-6, 1e0)
+        p.y_range = Range1d(1e-12, 1e-1)
         p.xaxis.axis_label = 'Distance [m]'
         p.yaxis.axis_label = 'Concentration [molal]'
         p.legend.location = 'top_right'
@@ -692,17 +724,17 @@ def plot_figures_aqueous_species(steps, files):
 make_results_folders()
 
 # Run the reactive transport simulations. Note that due to selected Pitzer activity model, the reactive transport
-# simulation might be slower than, for instance, Debye-Huckel one.
+# simulation might be slower than, for instance, Debue-H\"uckel one.
 
 simulate()
 
-# To inspect the collected values on any reactive transport step, one can run the code below, where we first define
-# the number of the step and then select the columns of DataFrame we are interested in (cells indices together with the
-# chemical properties):
+# To inspect the collected data, one can run:
 
-step = 0
-df_step = df[df['step'] == step].loc[:, ['x'] + column_quantities]
-df_step
+df
+
+# To save the results in csv-format, please execute:
+
+df.to_csv(folder_results + '/rt.scaveging.csv', index=False)
 
 # Select the steps, on which results must plotted:
 
@@ -737,7 +769,6 @@ plot_figures_aqueous_species(selected_steps_to_plot, files)
 
 def modify_doc(doc):
     # Initialize the data by the initial chemical state
-    # source = ColumnDataSource(df[df['step'] == 0].loc[:, column_quantities])
     source = ColumnDataSource(df[df['step'] == 0])
 
     # Auxiliary function that returns a string for the title of a figure in the format Time: #h##m
@@ -753,7 +784,7 @@ def modify_doc(doc):
             color='teal', line_width=2, legend_label='pH',
             source=source)
     p1.x_range = Range1d(-0.001, 1.001)
-    p1.y_range = Range1d(4.0, 9.0)
+    p1.y_range = Range1d(4.0, 8.5)
     p1.xaxis.axis_label = 'Distance [m]'
     p1.yaxis.axis_label = 'pH'
     p1.legend.location = 'bottom_right'
@@ -761,16 +792,16 @@ def modify_doc(doc):
 
     # Plot for calcite and dolomite
     p2 = figure(plot_width=600, plot_height=250)
-    p2.line(x='x', y='calcite', color='blue', line_width=2,
-            legend_label='Calcite',
+    p2.line(x='x', y='pyrrhotite', color='blue', line_width=2,
+            legend_label='Pyrrhotite',
             muted_color='blue', muted_alpha=0.2,
             source=source)
-    p2.line(x='x', y='dolomite', color='orange', line_width=2,
-            legend_label='Dolomite',
+    p2.line(x='x', y='siderite', color='orange', line_width=2,
+            legend_label='Siderite',
             muted_color='orange', muted_alpha=0.2,
             source=source)
     p2.x_range = Range1d(-0.001, 1.001)
-    p2.y_range = Range1d(-0.1, 2.1)
+    p2.y_range = Range1d(-0.001, 0.016)
     p2.xaxis.axis_label = 'Distance [m]'
     p2.yaxis.axis_label = 'Mineral Volume [%vol]'
     p2.legend.location = 'center_right'
@@ -779,13 +810,14 @@ def modify_doc(doc):
 
     # Plot for aqueous species
     p3 = figure(plot_width=600, plot_height=300, y_axis_type='log')
-    p3.line(x='x', y='Cacation', color='blue', line_width=2, legend_label='Ca++', source=source)
-    p3.line(x='x', y='Mgcation', color='orange', line_width=2, legend_label='Mg++', source=source)
-    p3.line(x='x', y='HCO3anion', color='green', line_width=2, legend_label='HCO3-', source=source)
-    p3.line(x='x', y='CO2aq', color='red', line_width=2, legend_label='CO2(aq)', source=source)
+    p3.line(x='x', y='HSanion', color='blue', line_width=2, legend_label='HS-', source=source)
+    p3.line(x='x', y='S2anion', color='orange', line_width=2, legend_label='S2--', source=source)
+    p3.line(x='x', y='SO4anion', color='green', line_width=2, legend_label='SO4--', source=source)
+    p3.line(x='x', y='HSO4anion', color='red', line_width=2, legend_label='HSO4-', source=source)
+    p3.line(x='x', y='H2Saq', color='yellow', line_width=2, legend_label='H2S(aq)', source=source)
     p3.line(x='x', y='Hcation', color='darkviolet', line_width=2, legend_label='H+', source=source)
     p3.x_range = Range1d(-0.001, 1.001)
-    p3.y_range = Range1d(0.5e-6, 1e0)
+    p3.y_range = Range1d(1e-12, 1e-1)
     p3.xaxis.axis_label = 'Distance [m]'
     p3.yaxis.axis_label = 'Concentration [molal]'
     p3.legend.location = 'top_right'
@@ -806,14 +838,15 @@ def modify_doc(doc):
         new_data = dict(index=np.linspace(0, ncells, ncells + 1, dtype=int),
                         step=new_source.data['step'],
                         x=new_source.data['x'],
-                        pH=new_source.data['pH'],
-                        calcite=new_source.data['calcite'],
-                        dolomite=new_source.data['dolomite'],
-                        Hcation=new_source.data['Hcation'],
-                        Cacation=new_source.data['Cacation'],
-                        Mgcation=new_source.data['Mgcation'],
-                        HCO3anion=new_source.data['HCO3anion'],
-                        CO2aq=new_source.data['CO2aq'])
+                           pH=new_source.data['pH'],
+                           pyrrhotite=new_source.data['pyrrhotite'],
+                           siderite=new_source.data['siderite'],
+                           HSanion=new_source.data['HSanion'],
+                           S2anion=new_source.data['S2anion'],
+                           SO4anion=new_source.data['SO4anion'],
+                           HSO4anion=new_source.data['HSO4anion'],
+                           H2Saq=new_source.data['H2Saq'],
+                           Hcation=new_source.data['Hcation'])
 
         p1.title.text = titlestr(step_number * dt)
         p2.title.text = titlestr(step_number * dt)
