@@ -50,6 +50,10 @@ from natsort import natsorted
 # reaction calculations, **numpy** for working with arrays, **os** to provide a portable way of using operating system
 # dependent functionality, **matplotlib** for plotting capabilities, and *natsort* for sorting lists.
 
+# > **Note**: To make sure that all the widgets are working correctly, make sure to run:
+# > `$ jupyter nbextension enable --py widgetsnbextension` and
+# > `$jupyter labextension install @jupyter-widgets/jupyterlab-manager`.
+
 # ## Defining auxiliary time-related constants
 # In this step, we initialize auxiliary time-related constants from seconds to years. This is only done for
 # convenience, so that we can specify later, for example, fluid velocity as 1 m/week.
