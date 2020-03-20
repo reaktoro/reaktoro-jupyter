@@ -129,6 +129,12 @@ output_quantities = """
     speciesMolality(CO2(aq))
     phaseVolume(Calcite)
     phaseVolume(Dolomite)
+    speciesMolality(CO3--)
+    speciesMolality(CaCl+)
+    speciesMolality(Ca(HCO3)+)
+    speciesMolality(MgCl+)
+    speciesMolality(Mg(HCO3)+)
+    speciesMolality(OH-)
 """.split()
 
 # Then, we define the list of name for the DataFrame columns. Note, that they must correspond
@@ -143,6 +149,12 @@ column_quantities = """
     CO2aq
     calcite
     dolomite
+    CO3anion
+    CaClcation
+    CaHCO3cation
+    MgClcation
+    MgHCO3cation
+    OHanion
 """.split()
 
 # Create the list of columns stored in dataframes
@@ -319,7 +331,7 @@ def define_chemical_system():
 # with already prescribed equilibrium conditions for *temperature*, *pressure*, and *amounts of elements* that are
 # consistent to model reactive transport of injected NaCl-MgCl<sub>2</sub>-CaCl<sub>2</sub> brine into the
 # rock-fluid composition of quartz and calcite at 60 &deg;C and 100 bar. In particular, we consider resident fluid is a
-# 0.7 molal NaCl brine in equilibrium with the rock minerals with a calculated pH of 10.0.
+# 0.7 molal NaCl brine in equilibrium with the rock minerals with a calculated pH of 8.43095.
 
 def define_initial_condition(system):
     problem_ic = EquilibriumProblem(system)
@@ -618,7 +630,6 @@ def plot_figures_ph(steps, files):
     # Plot ph on the selected steps
     plots = []
     for i in steps:
-        print("On pH figure at time step: {}".format(i))
         t = i * dt
         source = ColumnDataSource(df[df['step'] == i])
 
@@ -639,14 +650,13 @@ def plot_figures_ph(steps, files):
 def plot_figures_calcite_dolomite(steps, files):
     plots = []
     for i in steps:
-        print("On calcite-dolomite figure at time step: {}".format(i))
         t = i * dt
         source = ColumnDataSource(df[df['step'] == i])
 
         p = figure(plot_width=600, plot_height=250)
         p.line(source.data['x'], source.data['calcite'], color='blue', line_width=2, legend_label='Calcite',
                muted_color='blue', muted_alpha=0.2)
-        p.line(source.data['x'], source.data['calcite'], color='orange', line_width=2, legend_label='Dolomite',
+        p.line(source.data['x'], source.data['dolomite'], color='orange', line_width=2, legend_label='Dolomite',
                muted_color='orange', muted_alpha=0.2)
         p.x_range = Range1d(-0.001, 1.001)
         p.y_range = Range1d(-0.1, 2.1)
@@ -663,17 +673,24 @@ def plot_figures_calcite_dolomite(steps, files):
 def plot_figures_aqueous_species(steps, files):
     plots = []
     for i in steps:
-        print("On aqueous-species figure at time step: {}".format(i))
         t = i * dt
         source = ColumnDataSource(df[df['step'] == i])
         p = figure(plot_width=600, plot_height=300, y_axis_type = 'log',)
+
         p.line(source.data['x'], source.data['Cacation'], color='blue', line_width=2, legend_label='Ca++')
         p.line(source.data['x'], source.data['Mgcation'], color='orange', line_width=2, legend_label='Mg++')
         p.line(source.data['x'], source.data['HCO3anion'], color='green', line_width=2, legend_label='HCO3-')
         p.line(source.data['x'], source.data['CO2aq'], color='red', line_width=2, legend_label='CO2(aq)')
         p.line(source.data['x'], source.data['Hcation'], color='darkviolet', line_width=2, legend_label='H+')
+        p.line(source.data['x'], source.data['CO3anion'], color='teal', line_width=2, legend_label='CO3--')
+        p.line(source.data['x'], source.data['CaClcation'], color='coral', line_width=2, legend_label='CaCl+')
+        p.line(source.data['x'], source.data['CaHCO3cation'], color='mediumseagreen', line_width=2, legend_label='Ca(HCO3)+')
+        p.line(source.data['x'], source.data['MgClcation'], color='darkred', line_width=2, legend_label='MgCl+')
+        p.line(source.data['x'], source.data['MgHCO3cation'], color='indigo', line_width=2, legend_label='Mg(HCO3)+')
+        p.line(source.data['x'], source.data['OHanion'], color='grey', line_width=2, legend_label='OH-')
+
         p.x_range = Range1d(-0.001, 1.001)
-        p.y_range = Range1d(0.5e-6, 1e0)
+        p.y_range = Range1d(1e-9, 1e0)
         p.xaxis.axis_label = 'Distance [m]'
         p.yaxis.axis_label = 'Concentration [molal]'
         p.legend.location = 'top_right'
@@ -784,8 +801,15 @@ def modify_doc(doc):
     p3.line(x='x', y='HCO3anion', color='green', line_width=2, legend_label='HCO3-', source=source)
     p3.line(x='x', y='CO2aq', color='red', line_width=2, legend_label='CO2(aq)', source=source)
     p3.line(x='x', y='Hcation', color='darkviolet', line_width=2, legend_label='H+', source=source)
+    p3.line(x='x', y='CO3anion', color='teal', line_width=2, legend_label='CO3--', source=source)
+    p3.line(x='x', y='CaClcation', color='coral', line_width=2, legend_label='CaCl+', source=source)
+    p3.line(x='x', y='CaHCO3cation', color='mediumseagreen', line_width=2, legend_label='Ca(HCO3)+', source=source)
+    p3.line(x='x', y='MgClcation', color='darkred', line_width=2, legend_label='MgCl+', source=source)
+    p3.line(x='x', y='MgHCO3cation', color='indigo', line_width=2, legend_label='Mg(HCO3)+', source=source)
+    p3.line(x='x', y='OHanion', color='grey', line_width=2, legend_label='OH-', source=source)
+
     p3.x_range = Range1d(-0.001, 1.001)
-    p3.y_range = Range1d(0.5e-6, 1e0)
+    p3.y_range = Range1d(1e-9, 1e0)
     p3.xaxis.axis_label = 'Distance [m]'
     p3.yaxis.axis_label = 'Concentration [molal]'
     p3.legend.location = 'top_right'
@@ -813,7 +837,13 @@ def modify_doc(doc):
                         Cacation=new_source.data['Cacation'],
                         Mgcation=new_source.data['Mgcation'],
                         HCO3anion=new_source.data['HCO3anion'],
-                        CO2aq=new_source.data['CO2aq'])
+                        CO2aq=new_source.data['CO2aq'],
+                        CO3anion=new_source.data['CO3anion'],
+                        CaClcation=new_source.data['CaClcation'],
+                        CaHCO3cation=new_source.data['CaHCO3cation'],
+                        MgClcation=new_source.data['MgClcation'],
+                        MgHCO3cation=new_source.data['MgHCO3cation'],
+                        OHanion=new_source.data['OHanion'])
 
         p1.title.text = titlestr(step_number * dt)
         p2.title.text = titlestr(step_number * dt)
@@ -835,4 +865,4 @@ def modify_doc(doc):
 # plots for ph, volume phases of calcite and dolomite, and mollalities of aqueous species (in logarithmic scale).
 
 output_notebook()
-show(modify_doc, notebook_url="http://localhost:8892")
+show(modify_doc, notebook_url="http://localhost:8888")
