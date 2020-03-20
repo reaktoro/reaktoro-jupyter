@@ -54,6 +54,10 @@ from bokeh.layouts import gridplot
 # to provide a portable way of using operating system dependent functionality. For plotting capabilities of obtained
 # results, we use **bokeh** library.
 #
+# > **Note**: To make sure that all the widgets are working correctly, make sure to run:
+# > `$ jupyter nbextension enable --py widgetsnbextension` and
+# > `$jupyter labextension install @jupyter-widgets/jupyterlab-manager`.
+#
 # > **Note**: To simplify the tutorials, we use `from reaktoro import *`, which imports all components of the
 # > **reaktoro** package into the default Python namespace. We note that this can potentially create name conflicts
 # > when used in bigger projects. For your applications, consider using `import reaktoro as rkt` instead,

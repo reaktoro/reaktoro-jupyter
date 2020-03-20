@@ -56,6 +56,10 @@ from bokeh.models.widgets import Slider
 # to provide a portable way of using operating system dependent functionality. For plotting capabilities of obtained
 # results, we use **bokeh** library.
 #
+# > **Note**: To make sure that all the widgets are working correctly, make sure to run:
+# > `$ jupyter nbextension enable --py widgetsnbextension` and
+# > `$jupyter labextension install @jupyter-widgets/jupyterlab-manager`.
+#
 # ## Initializing auxiliary time-related constants
 # In this step, we initialize auxiliary time-related constants from seconds up to years used in the rest of the code.
 

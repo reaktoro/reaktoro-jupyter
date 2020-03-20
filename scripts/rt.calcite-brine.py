@@ -373,7 +373,7 @@ def plot_animation_ph():
 
     # Plot of mineral's volume the space coordinates
     fig = plt.figure()
-    ax = plt.axes(xlim=(-0.01, 0.501), ylim=(4.0, 9.0))
+    ax = plt.axes(xlim=(-0.01, 0.501), ylim=(4.0, 12.0))
     ax.set_xlabel('Distance [m]')
     ax.set_ylabel('pH')
     ax.set_title(titlestr(0.0))
@@ -403,7 +403,7 @@ def plot_animation_calcite_dolomite():
 
     # Plot of mineral's volume the space coordinates
     fig = plt.figure()
-    ax = plt.axes(xlim=(-0.01, 0.501), ylim=(-0.1, 3.1))
+    ax = plt.axes(xlim=(-0.01, 0.501), ylim=(-0.1, 2.1))
     ax.set_xlabel('Distance [m]')
     ax.set_ylabel('Mineral Volume [%$_{\mathsf{vol}}$]')
     ax.set_title(titlestr(0.0))
