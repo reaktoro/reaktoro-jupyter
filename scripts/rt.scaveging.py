@@ -15,10 +15,10 @@
 #     name: python3
 # ---
 
-# # Reactive transport modeling along a rock core after injection of the fluid-rock composition
+# # Reactive transport modeling of a scavenging process along a rock core
 #
-# In this tutorial, we show how Reaktoro can be used for sequential calculations of the reactive transport along a
-# rock column after injecting the fluid and rock composition at temperature 60 &deg;C and pressure 100 bar.
+# In this tutorial, we show how Reaktoro can be used for sequential calculations of the reactive transport of scavenging
+# process along the rock column.
 #
 # Using Reaktoro in Python requires first an import of the python package **reaktoro**. From this point on,
 # we can use the library components of Reaktoro (classes, methods, constants), which are needed to define our
@@ -74,26 +74,26 @@ year = 365 * day
 # Next, we define reactive transport and numerical discretization parameters. In particular, we specify the considered
 # rock domain by setting coordinates of its left and right boundaries to 0.0 m and 100.0 m, respectively. The
 # discretization parameters, i.e., the number of cells and steps in time, are both set to 100. The reactive
-# transport modeling procedure assumes a constant fluid velocity of 1 m/week (1.65 · 10<sup>-6</sup> m/s) and
-# the same diffusion coefficient of 10<sup>-9</sup> m<sup>2</sup>/s for all fluid species (without dispersivity).
-# The size of the time-step is set to 30 minutes. Temperature and pressure are set to 60 &deg;C and 100 bar,
-# respectively, throughout the whole tutorial.
+# transport modeling procedure assumes a constant fluid velocity of 1.05 · 10<sup>-5</sup> m/s and
+# the zero diffusion coefficient for all fluid species. The size of the time-step is set to 0.05 day (1.2 hours).
+# Temperature and pressure are set to 25 &deg;C and 1.01325 bar, respectively, throughout the whole tutorial.
+# The porosity fo the rock is set to 10%.
 
 # +
 # Discretization parameters
 xl = 0.0                # x-coordinate of the left boundary
 xr = 100.0              # x-coordinate of the right boundary
 ncells = 100            # number of cells in the discretization
-nsteps = 100            # number of steps in the reactive transport simulation
+nsteps = 1000            # number of steps in the reactive transport simulation
 dx = (xr - xl) / ncells # length of the mesh cells (in units of m)
-dt = 0.0416*day         # time step
+dt = 0.05*day           # time step
 
 # Physical parameters
 D = 0               # diffusion coefficient (in units of m2/s)
 v = 1.05e-5         # fluid pore velocity (in units of m/s)
 T = 25.0 + 273.15   # temperature (in units of K)
 P = 1.01325 * 1e5   # pressure (in units of Pa)
-phi = 0.0           # the porosity
+phi = 0.1           # the porosity
 # -
 
 # Next, we generate the coordinates of the mesh nodes (array `xcells`) by equally dividing the interval *[xr, xl]* with
@@ -128,6 +128,8 @@ output_quantities = """
     speciesMolality(SO4--)
     speciesMolality(HSO4-)
     speciesMolality(H2S(aq))
+    phaseAmount(Pyrrhotite)
+    phaseAmount(Siderite)
     phaseVolume(Pyrrhotite)
     phaseVolume(Siderite)
 """.split()
@@ -143,8 +145,10 @@ column_quantities = """
     SO4anion
     HSO4anion
     H2Saq
-    pyrrhotite
-    siderite
+    pyrrhotite_phase_amount
+    siderite_phase_amount
+    pyrrhotite_phase_volume
+    siderite_phase_volume
 """.split()
 
 # Create the list of columns stored in dataframes
@@ -312,6 +316,7 @@ def define_chemical_system():
                             'O2(aq)', 'H2S(aq)', 'HS-', 'S5--', 'S4--', 'S3--', 'S2--', 'SO4--',
                             'NaSO4-', 'MgSO4(aq)', 'CaSO4(aq)', 'KSO4-', 'HSO4-']).\
         setChemicalModelDebyeHuckel(dhModel)
+
     editor.addMineralPhase('Pyrrhotite')
     editor.addMineralPhase('Siderite')
 
@@ -352,10 +357,8 @@ def define_initial_condition(system):
     state_ic = equilibrate(problem_ic)
 
     # Scale the volumes of the phases in the initial condition
-    state_ic.scalePhaseVolume('Aqueous', 0.1, 'm3')
+    state_ic.scalePhaseVolume('Aqueous', 0.1, 'm3') # 10% of porosity
     state_ic.scaleVolume(1.0, 'm3')
-    #state_ic.scalePhaseVolume('Quartz', 0.882, 'm3')
-    #state_ic.scalePhaseVolume('Calcite', 0.018, 'm3')
 
     return state_ic
 
@@ -644,7 +647,7 @@ def titlestr(t):
 # are dedicated to drawing the plots with chemical properties on the selected steps that are specified by the user
 # below.
 
-def plot_figures_ph(steps, files):
+def plot_figures_ph(steps):
     # Plot ph on the selected steps
     plots = []
     for i in steps:
@@ -654,8 +657,8 @@ def plot_figures_ph(steps, files):
 
         p = figure(plot_width=600, plot_height=250)
         p.line(x='x', y='pH', color='teal', line_width=2, legend_label='pH', source=source)
-        p.x_range = Range1d(-0.001, 1.001)
-        p.y_range = Range1d(4, 8.5)
+        p.x_range = Range1d(-1, 101)
+        p.y_range = Range1d(4, 9.0)
         p.xaxis.axis_label = 'Distance [m]'
         p.yaxis.axis_label = 'pH'
         p.legend.location = 'bottom_right'
@@ -666,7 +669,7 @@ def plot_figures_ph(steps, files):
     grid = gridplot(plots)
     show(grid)
 
-def plot_figures_calcite_dolomite(steps, files):
+def plot_figures_pyrrhotite_siderite_volume(steps):
     plots = []
     for i in steps:
         print("On calcite-dolomite figure at time step: {}".format(i))
@@ -674,12 +677,12 @@ def plot_figures_calcite_dolomite(steps, files):
         source = ColumnDataSource(df[df['step'] == i])
 
         p = figure(plot_width=600, plot_height=250)
-        p.line(x='x', y='pyrrhotite', color='blue', line_width=2, legend_label='Pyrrhotite',
+        p.line(x='x', y='pyrrhotite_phase_volume', color='blue', line_width=2, legend_label='Pyrrhotite',
                muted_color='blue', muted_alpha=0.2, source=source)
-        p.line(x='x', y='siderite', color='orange', line_width=2, legend_label='Siderite',
+        p.line(x='x', y='siderite_phase_volume', color='orange', line_width=2, legend_label='Siderite',
                muted_color='orange', muted_alpha=0.2, source=source)
-        p.x_range = Range1d(-0.001, 1.001)
-        p.y_range = Range1d(-0.001, 0.016)
+        p.x_range = Range1d(-1, 101)
+        p.y_range = Range1d(-0.001, 0.018)
         p.xaxis.axis_label = 'Distance [m]'
         p.yaxis.axis_label = 'Mineral Volume [%vol]'
         p.legend.location = 'center_right'
@@ -690,7 +693,31 @@ def plot_figures_calcite_dolomite(steps, files):
     grid = gridplot(plots)
     show(grid)
 
-def plot_figures_aqueous_species(steps, files):
+def plot_figures_pyrrhotite_siderite_amount(steps):
+    plots = []
+    for i in steps:
+        print("On calcite-dolomite figure at time step: {}".format(i))
+        t = i * dt
+        source = ColumnDataSource(df[df['step'] == i])
+
+        p = figure(plot_width=600, plot_height=250)
+        p.line(x='x', y='pyrrhotite_phase_amount', color='blue', line_width=2, legend_label='Pyrrhotite',
+               muted_color='blue', muted_alpha=0.2, source=source)
+        p.line(x='x', y='siderite_phase_amount', color='orange', line_width=2, legend_label='Siderite',
+               muted_color='orange', muted_alpha=0.2, source=source)
+        p.x_range = Range1d(-1, 101)
+        p.y_range = Range1d(-0.5, 5.5)
+        p.xaxis.axis_label = 'Distance [m]'
+        p.yaxis.axis_label = 'Mineral Amount [mol]'
+        p.legend.location = 'center_right'
+        p.title.text = titlestr(t)
+        p.legend.click_policy = 'mute'
+        plots.append([p])
+
+    grid = gridplot(plots)
+    show(grid)
+
+def plot_figures_aqueous_species(steps):
     plots = []
     for i in steps:
         print("On aqueous-species figure at time step: {}".format(i))
@@ -702,9 +729,9 @@ def plot_figures_aqueous_species(steps, files):
         p.line(x='x', y='S2anion', color='orange', line_width=2, legend_label='S2--', source=source)
         p.line(x='x', y='SO4anion', color='green', line_width=2, legend_label='SO4--', source=source)
         p.line(x='x', y='HSO4anion', color='red', line_width=2, legend_label='HSO4-', source=source)
-        p.line(x='x', y='H2Saq', color='yellow', line_width=2, legend_label='H2S(aq)', source=source)
+        p.line(x='x', y='H2Saq', color='gray', line_width=2, legend_label='H2S(aq)', source=source)
         p.line(x='x', y='Hcation', color='darkviolet', line_width=2, legend_label='H+', source=source)
-        p.x_range = Range1d(-0.001, 1.001)
+        p.x_range = Range1d(-1, 101)
         p.y_range = Range1d(1e-12, 1e-1)
         p.xaxis.axis_label = 'Distance [m]'
         p.yaxis.axis_label = 'Concentration [molal]'
@@ -738,14 +765,9 @@ df.to_csv(folder_results + '/rt.scaveging.csv', index=False)
 
 # Select the steps, on which results must plotted:
 
-selected_steps_to_plot = [10, 100]
+selected_steps_to_plot = [1, 10, 100]
 assert all(step <= nsteps for step in selected_steps_to_plot), f"Make sure that selceted steps are less than " \
                                                                f"total amount of steps {nsteps}"
-
-# Then, we collect files with results corresponding to each step:
-
-print("Collecting files...")
-files = [file for file in natsorted(os.listdir(folder_results))]
 
 # Outputting the plots to the notebook requires the call of `output_notebook()` that specifies outputting the plot
 # inline in the Jupyter notebook:
@@ -754,15 +776,16 @@ output_notebook()
 
 # Plot ph on the selected steps:
 
-plot_figures_ph(selected_steps_to_plot, files)
+plot_figures_ph(selected_steps_to_plot)
 
 # Plot calcite and dolomite on the selected steps:
 
-plot_figures_calcite_dolomite(selected_steps_to_plot, files)
+plot_figures_pyrrhotite_siderite_volume(selected_steps_to_plot)
+plot_figures_pyrrhotite_siderite_amount(selected_steps_to_plot)
 
 # Plot aqueous species on the selected steps:
 
-plot_figures_aqueous_species(selected_steps_to_plot, files)
+plot_figures_aqueous_species(selected_steps_to_plot)
 
 # To study the time-dependent behavior of the chemical properties, we create a Bokeh application using function
 # `modify_doc(doc)`. It creates Bokeh content and adds it to the app. Streaming of the reactive transport data:
@@ -783,8 +806,8 @@ def modify_doc(doc):
     p1.line(x='x', y='pH',
             color='teal', line_width=2, legend_label='pH',
             source=source)
-    p1.x_range = Range1d(-0.001, 1.001)
-    p1.y_range = Range1d(4.0, 8.5)
+    p1.x_range = Range1d(-1, 101)
+    p1.y_range = Range1d(4.0, 9.0)
     p1.xaxis.axis_label = 'Distance [m]'
     p1.yaxis.axis_label = 'pH'
     p1.legend.location = 'bottom_right'
@@ -792,18 +815,18 @@ def modify_doc(doc):
 
     # Plot for calcite and dolomite
     p2 = figure(plot_width=600, plot_height=250)
-    p2.line(x='x', y='pyrrhotite', color='blue', line_width=2,
+    p2.line(x='x', y='pyrrhotite_phase_volume', color='blue', line_width=2,
             legend_label='Pyrrhotite',
             muted_color='blue', muted_alpha=0.2,
             source=source)
-    p2.line(x='x', y='siderite', color='orange', line_width=2,
+    p2.line(x='x', y='siderite_phase_volume', color='orange', line_width=2,
             legend_label='Siderite',
             muted_color='orange', muted_alpha=0.2,
             source=source)
-    p2.x_range = Range1d(-0.001, 1.001)
-    p2.y_range = Range1d(-0.001, 0.016)
+    p2.x_range = Range1d(-1, 101)
+    p2.y_range = Range1d(-0.001, 0.018)
     p2.xaxis.axis_label = 'Distance [m]'
-    p2.yaxis.axis_label = 'Mineral Volume [%vol]'
+    p2.yaxis.axis_label = 'Phase Volume [%vol]'
     p2.legend.location = 'center_right'
     p2.title.text = titlestr(0 * dt)
     p2.legend.click_policy = 'mute'
@@ -814,9 +837,9 @@ def modify_doc(doc):
     p3.line(x='x', y='S2anion', color='orange', line_width=2, legend_label='S2--', source=source)
     p3.line(x='x', y='SO4anion', color='green', line_width=2, legend_label='SO4--', source=source)
     p3.line(x='x', y='HSO4anion', color='red', line_width=2, legend_label='HSO4-', source=source)
-    p3.line(x='x', y='H2Saq', color='yellow', line_width=2, legend_label='H2S(aq)', source=source)
+    p3.line(x='x', y='H2Saq', color='gray', line_width=2, legend_label='H2S(aq)', source=source)
     p3.line(x='x', y='Hcation', color='darkviolet', line_width=2, legend_label='H+', source=source)
-    p3.x_range = Range1d(-0.001, 1.001)
+    p3.x_range = Range1d(-1, 101)
     p3.y_range = Range1d(1e-12, 1e-1)
     p3.xaxis.axis_label = 'Distance [m]'
     p3.yaxis.axis_label = 'Concentration [molal]'
@@ -839,8 +862,10 @@ def modify_doc(doc):
                         step=new_source.data['step'],
                         x=new_source.data['x'],
                            pH=new_source.data['pH'],
-                           pyrrhotite=new_source.data['pyrrhotite'],
-                           siderite=new_source.data['siderite'],
+                           pyrrhotite_phase_volume=new_source.data['pyrrhotite_phase_volume'],
+                           siderite_phase_volume=new_source.data['siderite_phase_volume'],
+                           pyrrhotite_phase_amount=new_source.data['pyrrhotite_phase_amount'],
+                           siderite_phase_amount=new_source.data['siderite_phase_amount'],
                            HSanion=new_source.data['HSanion'],
                            S2anion=new_source.data['S2anion'],
                            SO4anion=new_source.data['SO4anion'],
@@ -868,4 +893,4 @@ def modify_doc(doc):
 # plots for ph, volume phases of calcite and dolomite, and mollalities of aqueous species (in logarithmic scale).
 
 output_notebook()
-show(modify_doc, notebook_url="http://localhost:8892")
+show(modify_doc, notebook_url="http://localhost:8888")
