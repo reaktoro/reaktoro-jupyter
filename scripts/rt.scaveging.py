@@ -117,8 +117,8 @@ assert CFL <= 1.0, f"Make sure that CFL = {CFL} is less that 1.0"
 # ## Specifying the quantities and properties to be outputted
 #
 # Before running the reactive transport simulations, we specify the list of parameters we are interested in
-# outputting. In this case, it is pH, molality of `H+`, `Ca++`, `Mg++`, `HCO3-`, `CO2(aq)`, as well as a phase volume
-# of calcite and dolomite.
+# outputting. In this case, it is pH, molality of `H+`, `HS-`, `S2--`, `SO4--`, `H2S(aq)`, as well as a phase amount/volume
+# of pyrrhotite and siderite.
 
 output_quantities = """
     pH
@@ -258,6 +258,20 @@ def simulate():
 #
 # ### Construction of the chemical system with its phases and species
 #
+# In order to define chemical system, we need to intialize the class
+# [Database](https://reaktoro.org/cpp/classReaktoro_1_1Database.html)
+# that provides operations to retrieve physical and thermodynamic data of chemical species. To achieve that,
+# we use [supcrt07.xml](https://github.com/reaktoro/reaktoro/blob/master/databases/supcrt/supcrt07.xml)
+# database file.
+#
+# **Note:** If filename does not point
+# to a valid database file or the database file is not found, then a default built-in database with the same name
+# will be tried. If no default built-in database exists with a given name, an exception will be thrown.
+#
+# In addition to the database, we also need to initialize parameters in the Debye–Huckel activity model used for aqueous
+# mixtures. Method `setPHREEQC` allows to set parameters *&#229;* and *b* of the ionic species according to those used
+# in PHREEQC v3 when the `phreeqc.dat` database file is used.
+
 # Reaktoro is a general-purpose chemical solver that avoids as much as possible presuming specific assumptions about
 # your problems. Thus, you need to specify how your chemical system should be defined. This encompasses the
 # specification of all phases in the system as well as the chemical species that compose each phase. By using the
@@ -266,17 +280,11 @@ def simulate():
 #
 # In this step, we create an object of class [ChemicalEditor](
 # https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html) and specify two phases, an *aqueous* and a
-# *mineral*, should be considered in the chemical system. The aqueous phase is defined by using a list of
-# compounds, which will be broken into a list of element names, and the database will then be searched for all
-# species that could be formed out of those elements. The mineral phase is defined as three mineral species:
-# quartz (SiO<sub>2</sub>), calcite (CaCO<sub>3</sub>), and dolomite (CaMg(CO<sub>3</sub>)<sub>2</sub>).
+# *mineral*, should be considered in the chemical system. The aqueous phase is defined by specifying the list of
+# chemical species. Function `setChemicalModelDebyeHuckel()` helps to set the chemical model of the phase with
+# the Debye-Huckel equation of state, providing  specific parameters `dhModel` defined earlier. The mineral phase
+# is defined as two mineral species: pyrrhotite (FeS) and siderite (FeCO<sub>3</sub>).
 #
-# > **Note**: An automatic search for chemical species can result in a large number of species in the phase,
-# > potentially causing the chemical reaction calculations to be more computationally expensive. If you are using
-# > Reaktoro in demanding applications (e.g., as a chemical solver in a reactive transport simulator), you might want
-# > to manually specify the chemical species of each phase in your chemical system. This can be achieved by providing a
-# > list of species names as `editor.addAqueousPhaseWithElements(['H2O(l)', 'H+', 'OH-', 'Na+', 'Cl-', 'Ca++', 'Mg++',
-# > 'HCO3-', 'CO2(aq)', 'CO3--' ]).
 #
 # Finally, we create an object of class [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html)
 # using the chemical system definition details stored in the object `editor`.
@@ -305,6 +313,8 @@ def define_chemical_system():
 
     # Construct the chemical system with its phases and species
     db = Database('supcrt07.xml')
+    #db = Database('phreeqc.dat')
+
     dhModel = DebyeHuckelParams()
     dhModel.setPHREEQC()
 
@@ -327,12 +337,16 @@ def define_chemical_system():
 
 # ### Initial condition (IC) of the reactive transport problem
 #
-# We have now defined and constructed our chemical system of interest, enabling us to move on to the next step in
+# We have now defined and constructed the chemical system of interest, enabling us to move on to the next step in
 # Reaktoro's modeling workflow: *defining our chemical reaction problems*. Below we define its **initial condition**
 # with already prescribed equilibrium conditions for *temperature*, *pressure*, and *amounts of elements* that are
 # consistent to model reactive transport of injected NaCl-MgCl<sub>2</sub>-CaCl<sub>2</sub> brine into the
-# rock-fluid composition of quartz and calcite at 60 &deg;C and 100 bar. In particular, we consider resident fluid is a
-# 0.7 molal NaCl brine in equilibrium with the rock minerals with a calculated pH of 10.0.
+# rock-fluid composition of siderite at 25 &deg;C and 1.01325 bar. For that purpose, the class
+# [EquilibriumInverseProblem](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumInverseProblem.html) is used, where
+# specific fixed pH and pE can be prescribed.
+#
+# > *See tutorials [**EquilibriumInverseProblem**](eq.inverse-equilibrium.ipynb) for more detailed explanation of
+# > capabilities of this class*.
 
 def define_initial_condition(system):
 
@@ -362,11 +376,24 @@ def define_initial_condition(system):
 
     return state_ic
 
-# > **Note**: Our **0.7 molal NaCl brine** is here represented by the mixture of 1 kg of H<sub>2</sub>O and 0.7 mol of
-# > NaCl.
+# The resident fluid in the rock is obtained by the mixture of the aqueous species summarized in the following table:
 #
-# > **Note**: After providing the amounts of substances H<sub>2</sub>O, NaCl, quartz SiO<sub>2</sub>,
-# > and calcite CaCO<sub>3</sub> in the above code, Reaktoro parses these chemical formulas and determines the
+# | Aqueous species | Amount (kg) |
+# |-----------------|-------------|
+# | H<sub>2</sub>O  | 58.0        |
+# | Cl<sup>-</sup>O | 1122.3 · 10<sup>-3</sup>  |
+# | Na<sup>+</sup>O | 624.08 · 10<sup>-3</sup>|
+# | SO<sub>4</sub><sup>2-</sup>O | 157.18 · 10<sup>-3</sup>|
+# | Mg<sup>2+</sup>O | 74.820 · 10<sup>-3</sup>|
+# | Ca<sup>2+</sup>O | 23.838 · 10<sup>-3</sup>|
+# | K<sup>+</sup>O | 23.142 · 10<sup>-3</sup>|
+# | HCO<sub>3</sub><sup>-</sup>O | 8.236 · 10<sup>-3</sup>|
+# | O<sub>2</sub>(aq) | 58 · 10<sup>-12</sup>|
+#
+# TODO: After the equilibration, we scale the phase volume my ...
+#
+# > **Note**: After providing the amounts of substances H<sub>2</sub>O, aqueous species, pyrrhotite, and siderite in
+# > the above code, Reaktoro parses these chemical formulas (using the thermodynamic database) and determines the
 # > elements and their coefficients. Once this is done, the amount of each element stored inside the object
 # > `problem_ic` is incremented according to the given amount of substance and its coefficient in the formula. The
 # > amounts of elements you provide are then used as constraints for the Gibbs energy minimization calculation when
@@ -397,12 +424,11 @@ def define_initial_condition(system):
 # ### Boundary condition (BC) of the reactive transport problem
 #
 # Next, we define the **boundary condition** of the constructed chemical system with its *temperature*, *pressure*,
-# and *amounts of elements*. In particular, we prescribe the amount of injected aqueous fluid resulting from
-# the mixture of 1 kg of water with 0.90 moles of NaCl, 0.05 molal MgCl<sub>2</sub>, 0.01 CaCl<sub>2</sub>,
-# and 0.75 molal CO<sub>2</sub>, in a state very close to CO<sub>2</sub> saturation.
-# The temperature and the pressure stays the same, i.e., 60 &deg;C and 100 bar, respectively.
+# and *amounts of elements*. In particular, we prescribe the amount of injected aqueous fluid, which differs from the
+# resident fluid in the rock by presence of 0.0196504 mol of HS<sup>-</sup> and 0.167794 mol of aqueous hydrogen sulfide
+# (H2S(aq)). The fixed ph is lowered in comparison to the initial state to 5.726.
 #
-# After equilibration, the obtained chemical state representing the boundary condition for the injected fluid
+# TODO: After equilibration, the obtained chemical state representing the boundary condition for the injected fluid
 # composition, we scale its volume to 1 m<sup>3</sup>. This is done so that the amounts of the species in the fluid are
 # consistent with a \mathrm{mol/m^3} scale.
 
