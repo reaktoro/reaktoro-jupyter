@@ -271,7 +271,7 @@ def simulate():
 # In addition to the database, we also need to initialize parameters in the Debye–Huckel activity model used for aqueous
 # mixtures. Method `setPHREEQC` allows to set parameters *&#229;* and *b* of the ionic species according to those used
 # in PHREEQC v3 when the `phreeqc.dat` database file is used.
-
+#
 # Reaktoro is a general-purpose chemical solver that avoids as much as possible presuming specific assumptions about
 # your problems. Thus, you need to specify how your chemical system should be defined. This encompasses the
 # specification of all phases in the system as well as the chemical species that compose each phase. By using the
@@ -284,7 +284,6 @@ def simulate():
 # chemical species. Function `setChemicalModelDebyeHuckel()` helps to set the chemical model of the phase with
 # the Debye-Huckel equation of state, providing  specific parameters `dhModel` defined earlier. The mineral phase
 # is defined as two mineral species: pyrrhotite (FeS) and siderite (FeCO<sub>3</sub>).
-#
 #
 # Finally, we create an object of class [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html)
 # using the chemical system definition details stored in the object `editor`.
@@ -306,7 +305,7 @@ def simulate():
 # 1992). The database file [slop98.dat](https://github.com/reaktoro/reaktoro/blob/master/databases/supcrt/slop98.dat)
 # from the software SUPCRT92 is used to obtain the parameters for the equations of state.
 # The equation of state of Wagner and Pruss (2002) is used to calculate the *density of water* and its temperature and
-# pressure derivatives. Kinetics of *dissolution* and *precipitation* of both calcite and dolomite is neglected, i.e.,
+# pressure derivatives. Kinetics of *dissolution* and *precipitation* of both pyrrhotite and siderite is neglected, i.e.,
 # the local equilibrium assumption is employed.
 
 def define_chemical_system():
@@ -340,13 +339,25 @@ def define_chemical_system():
 # We have now defined and constructed the chemical system of interest, enabling us to move on to the next step in
 # Reaktoro's modeling workflow: *defining our chemical reaction problems*. Below we define its **initial condition**
 # with already prescribed equilibrium conditions for *temperature*, *pressure*, and *amounts of elements* that are
-# consistent to model reactive transport of injected NaCl-MgCl<sub>2</sub>-CaCl<sub>2</sub> brine into the
-# rock-fluid composition of siderite at 25 &deg;C and 1.01325 bar. For that purpose, the class
-# [EquilibriumInverseProblem](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumInverseProblem.html) is used, where
-# specific fixed pH and pE can be prescribed.
+# consistent to model reactive transport of injected hydrogen sulfide into the
+# rock-fluid composition of siderite at 25 &deg;C and 1.01325 bar.
+# The resident fluid in the rock is obtained by the mixture of the aqueous species summarized in the following table:
 #
-# > *See tutorials [**EquilibriumInverseProblem**](eq.inverse-equilibrium.ipynb) for more detailed explanation of
-# > capabilities of this class*.
+# | Aqueous species | Amount (kg) |
+# |-----------------|-------------|
+# | H<sub>2</sub>O  | 58.0        |
+# | Cl<sup>-</sup>O | 1122.3 · 10<sup>-3</sup>  |
+# | Na<sup>+</sup>O | 624.08 · 10<sup>-3</sup>|
+# | SO<sub>4</sub><sup>2-</sup>O | 157.18 · 10<sup>-3</sup>|
+# | Mg<sup>2+</sup>O | 74.820 · 10<sup>-3</sup>|
+# | Ca<sup>2+</sup>O | 23.838 · 10<sup>-3</sup>|
+# | K<sup>+</sup>O | 23.142 · 10<sup>-3</sup>|
+# | HCO<sub>3</sub><sup>-</sup>O | 8.236 · 10<sup>-3</sup>|
+# | O<sub>2</sub>(aq) | 58 · 10<sup>-12</sup>|
+#
+# For that purpose, the class
+# [EquilibriumInverseProblem](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumInverseProblem.html) is used, where
+# specific fixed pH and pE can be prescribed to 8.951 and 8.676, respectively.
 
 def define_initial_condition(system):
 
@@ -376,22 +387,6 @@ def define_initial_condition(system):
 
     return state_ic
 
-# The resident fluid in the rock is obtained by the mixture of the aqueous species summarized in the following table:
-#
-# | Aqueous species | Amount (kg) |
-# |-----------------|-------------|
-# | H<sub>2</sub>O  | 58.0        |
-# | Cl<sup>-</sup>O | 1122.3 · 10<sup>-3</sup>  |
-# | Na<sup>+</sup>O | 624.08 · 10<sup>-3</sup>|
-# | SO<sub>4</sub><sup>2-</sup>O | 157.18 · 10<sup>-3</sup>|
-# | Mg<sup>2+</sup>O | 74.820 · 10<sup>-3</sup>|
-# | Ca<sup>2+</sup>O | 23.838 · 10<sup>-3</sup>|
-# | K<sup>+</sup>O | 23.142 · 10<sup>-3</sup>|
-# | HCO<sub>3</sub><sup>-</sup>O | 8.236 · 10<sup>-3</sup>|
-# | O<sub>2</sub>(aq) | 58 · 10<sup>-12</sup>|
-#
-# TODO: After the equilibration, we scale the phase volume my ...
-#
 # > **Note**: After providing the amounts of substances H<sub>2</sub>O, aqueous species, pyrrhotite, and siderite in
 # > the above code, Reaktoro parses these chemical formulas (using the thermodynamic database) and determines the
 # > elements and their coefficients. Once this is done, the amount of each element stored inside the object
@@ -408,18 +403,23 @@ def define_initial_condition(system):
 # > problems, you often only need to ensure that the initial conditions for elements amounts result in feasible initial
 # > species amounts.
 #
-# Next, we use method [equilibrate](https://reaktoro.org/cpp/namespaceReaktoro.html#af2d3b39d3e0b8f9cb5a4d9bbb06b697e)
-# to calculate the chemical equilibrium state of the system with the given initial conditions stored in the objects
-# `problem_ic`. The numerical solution of each problem results in the objects `state_ic` of class
-# [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html), which stores the temperature,
+# To calculate the chemical equilibrium state of the system with the given initial conditions, we use method
+# [equilibrate](https://reaktoro.org/cpp/namespaceReaktoro.html#af2d3b39d3e0b8f9cb5a4d9bbb06b697e), the numerical
+# solution of which is written in the objects `problem_ic`. It is an instance of the class
+# [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html) that stores the temperature,
 # pressure, and the amounts of every species in the system.
 # For this calculation, Reaktoro uses an efficient **Gibbs energy minimization** computation to determine the species
 # amounts that correspond to a state of minimum Gibbs energy in the system, while satisfying the prescribed amount
-# conditions for temperature, pressure, and element amounts.
+# conditions for temperature, pressure, and element amounts. In an inverse equilibrium problem, however, not all
+# elements have known molar amounts. Their amount constraints are replaced by other equilibrium constraints such as
+# fixed pH and pE.
 #
-# The function ends with scaling the volumes of the aqueous and mineral phases so that they are consistent with a 10 %
-# porosity and the required volume percentages of the rock minerals (98 %<sub>vol</sub> of quartz and 2 %<sub>vol</sub>
-# of calcite).
+# > *See tutorials [**EquilibriumInverseProblem**](eq.inverse-equilibrium.ipynb) for more detailed explanation of
+# > capabilities of this class*.
+#
+# The function ends with scaling the volume to 1 m<sup>3</sup>. Moreover, we specify the 10% porosity by calling
+# `state_ic.scalePhaseVolume('Aqueous', 0.1, 'm3')`.
+#
 #
 # ### Boundary condition (BC) of the reactive transport problem
 #
@@ -428,9 +428,9 @@ def define_initial_condition(system):
 # resident fluid in the rock by presence of 0.0196504 mol of HS<sup>-</sup> and 0.167794 mol of aqueous hydrogen sulfide
 # (H2S(aq)). The fixed ph is lowered in comparison to the initial state to 5.726.
 #
-# TODO: After equilibration, the obtained chemical state representing the boundary condition for the injected fluid
+# After equilibration, the obtained chemical state representing the boundary condition for the injected fluid
 # composition, we scale its volume to 1 m<sup>3</sup>. This is done so that the amounts of the species in the fluid are
-# consistent with a \mathrm{mol/m^3} scale.
+# consistent with a mol/<sup>3</sup> scale.
 
 def define_boundary_condition(system):
 
@@ -669,9 +669,9 @@ def titlestr(t):
     m = int(t) % 60  # The number of remaining minutes
     return 'Time: %2dh %2dm' % (h, m)
 
-# Routines `plot_figures_ph()`, `plot_figures_calcite_dolomite()`, and 'plot_figures_aqueous_species()'
-# are dedicated to drawing the plots with chemical properties on the selected steps that are specified by the user
-# below.
+# Routines `plot_figures_ph()`, `plot_figures_pyrrhotite_siderite_volume()`, `plot_figures_pyrrhotite_siderite_amount()`,
+# and 'plot_figures_aqueous_species()' are dedicated to drawing the plots with chemical properties on the selected steps
+# that are specified by the user below.
 
 def plot_figures_ph(steps):
     # Plot ph on the selected steps
@@ -698,7 +698,7 @@ def plot_figures_ph(steps):
 def plot_figures_pyrrhotite_siderite_volume(steps):
     plots = []
     for i in steps:
-        print("On calcite-dolomite figure at time step: {}".format(i))
+        print("On pyrrhotite-siderite figure at time step: {}".format(i))
         t = i * dt
         source = ColumnDataSource(df[df['step'] == i])
 
@@ -722,7 +722,7 @@ def plot_figures_pyrrhotite_siderite_volume(steps):
 def plot_figures_pyrrhotite_siderite_amount(steps):
     plots = []
     for i in steps:
-        print("On calcite-dolomite figure at time step: {}".format(i))
+        print("On pyrrhotite-siderite figure at time step: {}".format(i))
         t = i * dt
         source = ColumnDataSource(df[df['step'] == i])
 
