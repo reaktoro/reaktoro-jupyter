@@ -150,7 +150,7 @@ state.output("state.txt")
 
 # ## Analyzing chemical properties
 
-# If you require chemical properties of a system that depend on temperature (*T*), pressure (*P*), and composition (*n*), 
+# If you require chemical properties of a system that depend on temperature (*T*), pressure (*P*), and composition (*n*),
 # then [ChemicalProperties](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalProperties.html) class is what you need
 
 properties = ChemicalProperties(system)

@@ -40,6 +40,14 @@ chemical equilibrium, chemical kinetics, and reactive transport problems.
 * [Dissolution of calcite in an acidic HCl-solution](kin.calcite-hcl.ipynb)
 * [Dissolution of carbonate minerals in a carbon dioxide saturated brine](kin.carbonates-co2.ipynb)
 
+### Tutorials on performing reactive transport calculations:
+
+* [Reactive transport of CO<sub>2</sub>-saturated brine along a porous rock column (using transport solver embedded
+ into Reaktoro)](rt.calcite-brine.ipynb)
+* [Reactive transport modeling along a rock core after injection of the fluid-rock composition](rt.calcite-dolomite.ipynb)
+* [Coupling Reaktoro into other reactive transport codes](rt.coupling-reaktoro-to-transport.ipynb)
+* [Reactive transport modeling of the H<sub>2</sub>S scavenging process along a rock core](rt.scavenging.ipynb)
+
 ### Tutorials on explaining the most important classes in Reaktoro:
 
 For a comprehensive documentation of all Reaktoro’s classes and methods, please check [Reaktoro’s C++ API programming reference](https://reaktoro.org/cpp/index.html).

@@ -9,7 +9,7 @@ dependencies:
   - numpy
   - jupyter
   - jupyterlab
-  - joblib
+  - natsort
   - matplotlib
   - ffmpeg
   - pip
@@ -21,3 +21,6 @@ dependencies:
     - voila
   - jupytext  # not required in tutorial
   - pytest  # not required in tutorial
+  - ipywidgets
+  - nodejs
+  - tqdm
