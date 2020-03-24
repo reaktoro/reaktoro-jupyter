@@ -260,7 +260,7 @@ def simulate():
 #
 # ### Construction of the chemical system with its phases and species
 #
-# In order to define the chemical system, we need to initialize the class
+# To define the chemical system, we need to initialize the class
 # [Database](https://reaktoro.org/cpp/classReaktoro_1_1Database.html)
 # that provides operations to retrieve physical and thermodynamic data of chemical species. To achieve that, we use
 # [supcrt07.xml](https://github.com/reaktoro/reaktoro/blob/master/databases/supcrt/supcrt07.xml) database file.
@@ -423,7 +423,7 @@ def define_initial_condition(system):
 # ### Boundary condition (BC) of the reactive transport problem
 #
 # Next, we define the **boundary condition** of the constructed chemical system with its *temperature*, *pressure*,
-# and *amounts of elements*. In particular, we prescribe the amount of injected hydrogen sulfide brine, in particular,
+# and *amounts of elements*. We prescribe the amount of injected hydrogen sulfide brine, in particular,
 # 0.0196504 mol of hydrosulfide ion (HS<sup>-</sup>) and 0.167794 mol of aqueous hydrogen sulfide (H2S(aq)).
 # Here, the ph is lowered in comparison to the initial state to 5.726.
 #
