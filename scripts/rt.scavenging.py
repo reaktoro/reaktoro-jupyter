@@ -15,7 +15,7 @@
 #     name: python3
 # ---
 
-# # Reactive transport modeling of a scavenging process along a rock core
+# # Reactive transport modeling of the H<sub>2</sub>S scavenging process along a rock core
 #
 # In this tutorial, we show how Reaktoro can be used for sequential reactive transport calculations of the injected
 # H<sub>2</sub>S-rich brine into siderite bearing reservoir with subsequent FeS precipitation.

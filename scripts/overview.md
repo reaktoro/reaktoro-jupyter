@@ -46,6 +46,7 @@ chemical equilibrium, chemical kinetics, and reactive transport problems.
  into Reaktoro)](rt.calcite-brine.ipynb)
 * [Reactive transport modeling along a rock core after injection of the fluid-rock composition](rt.calcite-dolomite.ipynb)
 * [Coupling Reaktoro into other reactive transport codes](rt.coupling-reaktoro-to-transport.ipynb)
+* [Reactive transport modeling of the H<sub>2</sub>S scavenging process along a rock core](rt.scavenging.ipynb)
 
 ### Tutorials on explaining the most important classes in Reaktoro:
 
