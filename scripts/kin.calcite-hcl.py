@@ -200,14 +200,14 @@ def custom_figure(title, y_axis_label):
 
 time = data[time_indx, :]  # fetch time from the data matrix
 fig1 = custom_figure(title="Amount of Ca w.r.t. time", y_axis_label='Amount of Ca [mmolal]')
-fig1.line(time, data[ca_elem_indx], line_width=4)
+fig1.line(time, data[ca_elem_indx], line_width=4, color="coral")
 show(fig1)
 
 # The increase of the amount of Ca element is happening along the dissolution of calcite on the
 # plot below:
 
 fig2 = custom_figure(title="Mass of Calcite w.r.t. time", y_axis_label='Mass of Calcite [g]')
-fig2.line(time, data[calcite_indx], line_width=4)
+fig2.line(time, data[calcite_indx], line_width=4, color="blue")
 show(fig2)
 
 # As calcite dissolves, the molallities of species Ca<sup>2+</sup> and HCO3<sup>-</sup> are growing too:
@@ -220,6 +220,6 @@ show(fig3)
 # Finally, the pH of the overall chemical system is increasing as well:
 
 fig4 = custom_figure(title="pH w.r.t. time", y_axis_label='pH [-]')
-fig4.line(time, data[ph_indx], line_width=4)
+fig4.line(time, data[ph_indx], line_width=4, color="darkviolet")
 show(fig4)
 
