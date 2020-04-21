@@ -276,7 +276,7 @@ def custom_figure(title, y_axis_label):
 # increasing and later decreasing. This coincides with the behavior of the mass of minerals on the plots below.
 
 time = data[time_indx, :]  # fetch time from the data matrix
-fig1 = custom_figure(title="Ca and Mg molality w.r.t. time", y_axis_label="Amount of CO2 added [mol]")
+fig1 = custom_figure(title="Ca and Mg molality w.r.t. time", y_axis_label="Amount of Ca and Mg [mmolal]")
 fig1.line(time, data[ca_elem_indx], line_width=4, legend_label="Ca", color="orange")
 fig1.line(time, data[mg_elem_indx], line_width=4, legend_label="Mg", color="green")
 show(fig1)
