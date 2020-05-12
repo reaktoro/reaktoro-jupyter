@@ -59,3 +59,9 @@ Below you find a more interactive documentation of a few selected classes.
 * [**EquilibriumSolver**](cl.equilibrium-solver.ipynb)
 * [**Thermo**](cl.thermo.ipynb)
 
+### Geofluids, Part III tutorials:
+
+* [**Sodium chloride solubility**](eq.mixing-water-and-sodium-chloride.ipynb)
+* [**CO2 solubility**](eq.opening-bottle-with-soda-experiment.ipynb)
+* [**Mass balance and mass action equations**](eq.mass-balance-and-mass-action-equations.ipynb)
+* [**Ionic sterngth and activity coefficients of aqueous species**](eq.ionic-strength-and-activity-coeffs-for-aqueous-species.ipynb)
