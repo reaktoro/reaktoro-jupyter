@@ -173,12 +173,12 @@ problem.add("H2O", 1, "kg")
 problem.add("NaCl", 1, "mol")
 problem.add("CO2", 1, "mol")
 
-# **Note:** To ensure that the equilibrium calculation performed in the next step ignores the kinetic species in the
-# system so that we maintain a disequilibrium state between equilibrium and kinetic species, it is important not to
-# forget to call
-# [EquilibriumProblem::setPartition](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumProblem.html#a53a9496c9d4ffc72a85903146b390e44)
-# method. Ignoring this step will produce an initial condition for the amounts of equilibrium and kinetic species
-# that correspond to a complete equilibrium state in the system so that no kinetics calculation makes sense afterwards.
+# > **Note:** To ensure that the equilibrium calculation performed in the next step ignores the kinetic species in the
+# > system so that we maintain a disequilibrium state between equilibrium and kinetic species, **it is important!** not to
+# > forget to call
+# > [EquilibriumProblem::setPartition](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumProblem.html#a53a9496c9d4ffc72a85903146b390e44)
+# > method. Ignoring this step will produce an initial condition for the amounts of equilibrium and kinetic species
+# > that correspond to a complete equilibrium state in the system so that no kinetics calculation makes sense afterwards.
 #
 # ### Calculating the initial amounts of the equilibrium species
 #
