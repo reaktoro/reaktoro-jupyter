@@ -61,14 +61,16 @@ dt = 1 * hour           # time step
 nsteps_cb = 45
 nsteps_sw = 255
 t_cb = 45 * hour
-t_sw = 855 * hour
+t_sw = 255 * hour
 nsteps = nsteps_cb + nsteps_sw # number of steps in the reactive transport simulation
+
+water_kg = 58
 
 # Physical parameters
 D = 0               # diffusion coefficient (in units of m2/s)
 v = 1.05e-5         # fluid pore velocity (in units of m/s)
-T = 60.0 + 273.15   # temperature (in units of K)
-P = 200 * 1.01325 * 1e5   # pressure (in units of Pa)
+T = 60.0            # temperature (in units of celsius)
+P = 200             # pressure (in units of atm)
 phi = 0.1           # the porosity
 # -
 
@@ -187,78 +189,6 @@ def make_results_folders():
 
 # ## Performing the reactive transport simulation
 
-'''
-def simulate():
-    # Construct the chemical system with its phases and species
-    system = define_chemical_system()
-
-    # Define the initial condition of the reactive transport modeling problem
-    state_ic = define_initial_condition(system)
-
-    # Define the boundary condition of the reactive transport modeling problem composed of two different stages
-    state_bc_cb = define_boundary_condition_cb(system)
-    state_bc_sw = define_boundary_condition_sw(system)
-
-    # Generate indices of partitioning fluid and solid species
-    nelems, ifluid_species, isolid_species = partition_indices(system)
-
-    # Partitioning fluid and solid species
-    b, bfluid, bsolid, b_bc_cb, b_bc_sw \
-        = partition_elements_in_mesh_cell(ncells, nelems, state_ic, state_bc_cb, state_bc_sw)
-
-    # Create a list of chemical states for the mesh cells (one for each cell, initialized to state_ic)
-    states = [state_ic.clone() for _ in range(ncells + 1)]
-
-    # Create the equilibrium solver object for the repeated equilibrium calculation
-    solver = EquilibriumSolver(system)
-
-    # Running the reactive transport simulation loop
-    step = 0  # the current step number
-    t = 0.0  # the current time (in seconds)
-
-    # Output the initial state of the reactive transport calculation
-    outputstate_df(step, system, states)
-
-    with tqdm(total=nsteps_cb, desc="45 hours of completion brine (CB) injection") as pbar:
-        while step <= nsteps_cb:
-            # Perform transport calculations
-            bfluid, bsolid, b = transport(states, bfluid, bsolid, b, b_bc_cb, nelems, ifluid_species, isolid_species)
-
-            # Perform reactive chemical calculations
-            states = reactive_chemistry(solver, states, b)
-
-
-            # Increment time step and number of time steps
-            t += dt
-            step += 1
-
-            # Output the current state of the reactive transport calculation
-            outputstate_df(step, system, states)
-
-            # Update a progress bar
-            pbar.update(1)
-
-    step = 0  # update the step number
-    
-    with tqdm(total=nsteps_sw, desc="855 hours of seawater (SW) injection") as pbar:
-        while step <= nsteps_sw:
-            # Perform transport calculations
-            bfluid, bsolid, b = transport(states, bfluid, bsolid, b, b_bc_sw, nelems, ifluid_species, isolid_species)
-
-            # Perform reactive chemical calculations
-            states = reactive_chemistry(solver, states, b)
-
-            # Increment time step and number of time steps
-            t += dt
-            step += 1
-
-            # Output the current state of the reactive transport calculation
-            outputstate_df(step, system, states)
-
-            # Update a progress bar
-            pbar.update(1)
-'''
-
 # Subsections below correspond to the methods responsible for each of the functional parts of `simulate()` method.
 #
 # ### Construction of the chemical system with its phases and species
@@ -273,7 +203,7 @@ def define_chemical_system():
     dhModel.setPHREEQC()
 
     editor = ChemicalEditor(db)
-    editor.addAqueousPhaseWithElements("H Cl S O Ba Ca Sr Na K Mg C").\
+    editor.addAqueousPhaseWithElements("H Cl S O Ba Ca Sr Na K Mg C Si").\
         setChemicalModelDebyeHuckel(dhModel)
 
     editor.addMineralPhase('Barite')
@@ -282,7 +212,7 @@ def define_chemical_system():
     #editor.addMineralPhase('Celestite')
 
     system = ChemicalSystem(editor)
-    print(system)
+    #print(system)
 
     return system
 
@@ -293,9 +223,7 @@ def define_initial_condition_fw(system):
     # Formation water at equilbrium:
     # contain bivalent cations in relative abundance 
     # little sulfate
-
-    # the Miller analysis: 
-
+    # the Miller analysis:
     # Na+ = 27250 mg/kg
     # K+ = 1730 mg/kg
     # Mg++ = 110 mg/kg
@@ -309,19 +237,18 @@ def define_initial_condition_fw(system):
     #  FW → high Ba2+ and low SO42- concentration
 
     problem_ic = EquilibriumProblem(system)
-    problem_ic.setTemperature(T)
-    problem_ic.setPressure(P)
-    problem_ic.add("H2O", 58.0, "kg")
-    problem_ic.add("SO4--", 1e-6 * 58, "kg") # SO4-- = 10 ug/kg
-    problem_ic.add("Ca++", 0.995 * 58, "kg") # Ca++ = 995 mg/kg
-    problem_ic.add("Ba++", 0.995 * 58, "kg") # Ba++ = 995 mg/kg 
-    problem_ic.add("Sr++", 0.105 * 58, "kg") # Sr++ = 105 mg/kg
-
-    problem_ic.add("Na+", 27.250 * 58, "kg") # Na+ = 27250 mg/kg
-    problem_ic.add("K+", 1.730 * 58, "kg") # K+ = 1730 mg/kg
-    problem_ic.add("Mg++", 0.110 * 58, "kg") # Mg++ = 110 mg/kg
-    problem_ic.add("Cl-", 45.150 * 58, "kg") # Cl- = 45150 mg/kg
-    problem_ic.add("HCO3-", 1.980 * 58, "kg") # HCO3- = 1980 mg/kg
+    problem_ic.setTemperature(T, "celsius")
+    problem_ic.setPressure(P, "atm")
+    problem_ic.add("H2O", water_kg, "kg")
+    problem_ic.add("SO4--", 1e-6 * water_kg, "kg") # SO4-- = 10 ug/kg
+    problem_ic.add("Ca++", 0.995 * water_kg, "kg") # Ca++ = 995 mg/kg
+    problem_ic.add("Ba++", 0.995 * water_kg, "kg") # Ba++ = 995 mg/kg
+    problem_ic.add("Sr++", 0.105 * water_kg, "kg") # Sr++ = 105 mg/kg
+    problem_ic.add("Na+", 27.250 * water_kg, "kg") # Na+ = 27250 mg/kg
+    problem_ic.add("K+", 1.730 * water_kg, "kg") # K+ = 1730 mg/kg
+    problem_ic.add("Mg++", 0.110 * water_kg, "kg") # Mg++ = 110 mg/kg
+    problem_ic.add("Cl-", 45.150 * water_kg, "kg") # Cl- = 45150 mg/kg
+    problem_ic.add("HCO3-", 1.980 * water_kg, "kg") # HCO3- = 1980 mg/kg
 
     # Calculate the equilibrium states for the initial conditions
     state_ic = equilibrate(problem_ic)
@@ -330,7 +257,51 @@ def define_initial_condition_fw(system):
     state_ic.scalePhaseVolume('Aqueous', 0.1, 'm3') # 10% of porosity
     state_ic.scaleVolume(1.0, 'm3')
 
-    print("state_ic = \n", state_ic)
+    props = state_ic.properties()
+    evaluate_pH = ChemicalProperty.pH(system)
+    pH = evaluate_pH(props)
+
+    #print("state_ic = \n", state_ic)
+    #print("state_ic = \n", state_ic)
+    print("ph(FW) = ", pH.val)
+
+    return state_ic
+
+def define_initial_condition_fw_phreeqc(system):
+
+    # Formation water at equilbrium:
+    # contain bivalent cations in relative abundance
+    # little sulfate
+    #
+    # Not correct yet!
+
+    problem_ic = EquilibriumProblem(system)
+    problem_ic.setTemperature(T, "celsius")
+    problem_ic.setPressure(P, "atm")
+    problem_ic.add("H2O", water_kg, "kg")
+    problem_ic.add("SO4--", 1e-6 * water_kg, "kg") # SO4-- = 10 ug/kg
+    problem_ic.add("Ca++", 0.995 * water_kg, "kg") # Ca++ = 995 mg/kg
+    problem_ic.add("Ba++", 0.995 * water_kg, "kg") # Ba++ = 995 mg/kg
+    problem_ic.add("Sr++", 0.105 * water_kg, "kg") # Sr++ = 105 mg/kg
+    problem_ic.add("Na+", 27.250 * water_kg, "kg") # Na+ = 27250 mg/kg
+    problem_ic.add("K+", 1.730 * water_kg, "kg") # K+ = 1730 mg/kg
+    problem_ic.add("Mg++", 0.110 * water_kg, "kg") # Mg++ = 110 mg/kg
+    problem_ic.add("Cl-", 45.150 * water_kg, "kg") # Cl- = 45150 mg/kg
+    problem_ic.add("HCO3-", 1.980 * water_kg, "kg") # HCO3- = 1980 mg/kg
+
+    # Calculate the equilibrium states for the initial conditions
+    state_ic = equilibrate(problem_ic)
+
+    # Scale the volumes of the phases in the initial condition
+    state_ic.scalePhaseVolume('Aqueous', 0.1, 'm3') # 10% of porosity
+    state_ic.scaleVolume(1.0, 'm3')
+
+    #print("state_ic = \n", state_ic)
+
+    props = state_ic.properties()
+    evaluate_pH = ChemicalProperty.pH(system)
+    pH = evaluate_pH(props)
+    print("ph(FW, PHREEQC) = ", pH.val)
 
     return state_ic
 
@@ -340,9 +311,9 @@ def define_boundary_condition_cb(system):
 
     # Define the boundary condition of the reactive transport modeling problem
     problem_bc = EquilibriumProblem(system)
-    problem_bc.setTemperature(T)
-    problem_bc.setPressure(P)
-    problem_bc.add("H2O", 58.0, "kg")
+    problem_bc.setTemperature(T, "celsius")
+    problem_bc.setPressure(P, "atm")
+    problem_bc.add("H2O", water_kg, "kg")
     problem_bc.add("NaCl", 7, "mol")
     
     # Calculate the equilibrium states for the boundary conditions
@@ -350,10 +321,14 @@ def define_boundary_condition_cb(system):
     # Scale the boundary condition state to 1 m3
     state_bc.scaleVolume(1.0, 'm3')
 
-    print("state_bc_cb = \n", state_bc)
+    #print("state_bc_cb = \n", state_bc)
+
+    props = state_bc.properties()
+    evaluate_pH = ChemicalProperty.pH(system)
+    pH = evaluate_pH(props)
+    print("ph(CB) = ", pH.val)
 
     return state_bc
-
 
 def define_boundary_condition_sw(system):
 
@@ -361,24 +336,36 @@ def define_boundary_condition_sw(system):
     # rich in sulfate > 2500 mg / kg
     # poor in Ca++ and
     # nearly depleted in Sr++ and Ba++
-    #
-    # SW → low Ba2+ and high SO 42- concentration
+    # SW → low Ba2+ and high SO42- concentration
+
+    # Seewater from Bethke, Table 30.1:
+    # Cl - = 19350 mg / kg
+    # Ca ++ = 411 mg / kg
+    # Mg ++ = 1290 mg / kg
+    # Na + = 10760 mg / kg
+    # K + = 399 mg / kg
+    # SO4 -- = 2710 mg / kg
+    # HCO3 - = 142 mg / kg
+    # SiO2(aq) = 6 mg / kg
+    # Ca ++ = 411 mg / kg
+    # Sr ++ = 8 mg / kg
+    # Ba ++ = 0.01 mg / kg
 
     problem_bc = EquilibriumInverseProblem(system)
-    problem_bc.setTemperature(T)
-    problem_bc.setPressure(P)
-    problem_bc.add("H2O", 58.0, "kg")
-    problem_bc.add("SO4--", 157.18, "kg") # 157180 / 58 = 2710 > 2500 mg / kg
-    problem_bc.add("Ca++", 23.838, "kg")  # 411 mg / kg = 0.411 kg / kg => 0.411 * 58 = 23.838
-    problem_bc.add("Ba++", 5.8e-4, "kg")  # 0.01 mg / kg = 0.00001 kg / kg => 0.00001 * 58 = 0.00058
-    problem_bc.add("Sr++", 0.464, "kg")   # 8 mg / kg = 0.008 kg / kg => 0.008 * 58 = 0.464
-
-    problem_bc.add("Na+", 624.08, "kg") # 10760  mg / kg = 10.760 * 58 = 624.08
-    problem_bc.add("K+", 23.142, "kg") # 399 mg / kg = 0.399 * 58 = 23.142 
-    problem_bc.add("Mg++", 74.82, "kg") # 1290 mg / kg = 1.29 * 58 = 74.82
-    problem_bc.add("Cl-", 1122.3, "kg") # 19350 mg / kg = 19.350 * 58 = 1122.3
-    problem_bc.add("HCO3-", 8.236, "kg") # 142 mg / kg = 0.142 * 58 = 8.236
-    problem_bc.pH(8.1)
+    problem_bc.setTemperature(T, "celsius")
+    problem_bc.setPressure(P, "atm")
+    problem_bc.add("H2O", water_kg, "kg")
+    problem_bc.add("SO4--", 2.710 * water_kg, "kg") # 2710 mg / kg = 2.710 kg / kg * 58 kg = 157.18 kg
+    problem_bc.add("Ca++", 0.411 * water_kg, "kg")  # 411 mg / kg = 0.411 kg / kg * 58 kg = 23.838 kg
+    problem_bc.add("Ba++", 0.00001 * water_kg, "kg")    # 0.01 mg / kg = 0.00001 kg / kg * 58 kg = 0.00058 kg
+    problem_bc.add("Sr++", 0.008 * water_kg, "kg")   # 8 mg / kg = 0.008 kg / kg * 58 kg = 0.464 kg
+    problem_bc.add("Na+", 10.760 * water_kg, "kg") # 10760  mg / kg = 10.760 kg / kg * 58 kg = 624.08 kg
+    problem_bc.add("K+", 0.399 * water_kg, "kg") # 399 mg / kg = 0.399 kg / kg * 58 kg = 23.142 kg
+    problem_bc.add("Mg++", 1.29 * water_kg, "kg") # 1290 mg / kg = 1.29 kg / kg * 58 kg = 74.82 kg
+    problem_bc.add("Cl-", 19.350 * water_kg, "kg") # 19350 mg / kg = 19.350 kg / kg * 58 kg = 1122.3 kg
+    problem_bc.add("HCO3-", 0.142 * water_kg, "kg") # 142 mg / kg = 0.142 kg / kg * 58 kg = 8.236 kg
+    #problem_bc.pH(8.1)
+    problem_bc.pH(8.1, "NaCl(aq)")
     #problem_bc.pH(8.1, "HCl")
     #problem_bc.pH(8.1, "CO2")
     #problem_bc.pH(8.1, "HCl", "NaOH")
@@ -388,10 +375,69 @@ def define_boundary_condition_sw(system):
     # Scale the boundary condition state to 1 m3
     state_bc.scaleVolume(1.0, 'm3')
 
-    print("state_bc_sw = \n", state_bc)
+    #print("state_bc_sw = \n", state_bc)
+
+    props = state_bc.properties()
+    evaluate_pH = ChemicalProperty.pH(system)
+    pH = evaluate_pH(props)
+    print("ph(SW) = ", pH.val)
 
     return state_bc
 
+def define_boundary_condition_sw_phreeqc(system):
+
+    # Seawater:
+    # rich in sulfate > 2500 mg / kg
+    # poor in Ca++ and
+    # nearly depleted in Sr++ and Ba++
+    # SW → low Ba2+ and high SO42- concentration
+
+    # Seawater:
+    # Concentration is in ppm (parts per million)
+    # Assuming that 1 ppm = 1 mg/kg
+    #         pH      8.22
+    #         pe      8.451
+    #         density 1.023
+    #         temp    25.0
+    #         Ca              412.3
+    #         Mg              1291.8
+    #         Na              10768.0
+    #         K               399.1
+    #         Si              4.28
+    #         Cl              19353.0
+    #         Alkalinity      141.682 as HCO3
+    #         SO4--           2712.0
+    problem_bc = EquilibriumInverseProblem(system)
+    problem_bc.setTemperature(T, "celsius")
+    problem_bc.setPressure(P, "atm")
+    problem_bc.add("H2O", water_kg, "kg")
+    problem_bc.add("Ca++", 0.4123 * water_kg, "kg")  # 412.3 mg / kg = 0.4123 kg / kg => 0.4123 * 58 = 23.9134
+    problem_bc.add("Mg++", 1.2918 * water_kg, "kg")  # 1291.8 mg / kg = 1.2918 kg / kg => 1.2918 * 58 = 74.9244
+    problem_bc.add("Na+", 10.768 * water_kg, "kg")  # 10768.0  mg / kg = 10.768 kg / kg => 10.768 * 58 = 624.544
+    problem_bc.add("K+", 0.3991 * water_kg, "kg")  # 399.1 mg / kg = 0.3991 kg / kg => 0.3991 * 58 = 23.1478
+    problem_bc.add("Si", 0.00428 * water_kg, "kg")  # 4.28 mg / kg = 0.00428 kg / kg => 0.00428 * 58 = 0.24824
+    problem_bc.add("Cl-", 19.353 * water_kg, "kg")  # 19353.0 mg / kg = 19.353 kg / kg => 19.353 * 58 = 1122.474
+    problem_bc.add("HCO3-", 0.142682 * water_kg, "kg")  # 141.682 mg / kg = 0.142682 kg / kg => 0.142682 * 58 = 8.275556
+    problem_bc.add("SO4--", 2.712 * water_kg, "kg") # 2712.0 mg / kg = 2.712 kg / kg => 2.712 * 58 = 157.296
+    #problem_bc.pH(8.22)
+    #problem_bc.pE(8.451)
+    problem_bc.pH(8.22, "NaCl(aq)")
+    #problem_bc.pH(8.1, "CO2")
+    #problem_bc.pH(8.1, "HCl", "NaOH")
+
+    # Calculate the equilibrium states for the boundary conditions
+    state_bc = equilibrate(problem_bc)
+    # Scale the boundary condition state to 1 m3
+    state_bc.scaleVolume(1.0, 'm3')
+
+    #print("state_bc_sw = \n", state_bc)
+
+    props = state_bc.properties()
+    evaluate_pH = ChemicalProperty.pH(system)
+    pH = evaluate_pH(props)
+    print("ph(SW, PHREEQC) = ", pH.val)
+
+    return state_bc
 
 # ### Indices of partitioning fluid and solid species
 
@@ -555,8 +601,8 @@ def plot_figures_ph(steps):
 
         p = figure(plot_width=600, plot_height=250)
         p.line(x='x', y='pH', color='teal', line_width=2, legend_label='pH', source=source)
-        p.x_range = Range1d(xl-1, xr+1)
-        p.y_range = Range1d(6.0, 26.0)
+        p.x_range = Range1d(xl, xr-1)
+        #p.y_range = Range1d(6.0, 26.0)
         p.xaxis.axis_label = 'Distance [m]'
         p.yaxis.axis_label = 'pH'
         p.legend.location = 'bottom_right'
@@ -577,8 +623,8 @@ def plot_figures_barite_phase_amount(steps):
         p = figure(plot_width=600, plot_height=250)
         p.line(x='x', y='Barite_phase_amount', color='blue', line_width=2, legend_label='Barite',
                muted_color='blue', muted_alpha=0.2, source=source)
-        p.x_range = Range1d(xl-1, xr+1)
-        p.y_range = Range1d(-0.001, 60.0)
+        p.x_range = Range1d(xl, xr-1)
+        #p.y_range = Range1d(-0.001, 60.0)
         p.xaxis.axis_label = 'Distance [m]'
         p.yaxis.axis_label = 'Mineral Phase Amount [mol]'
         p.legend.location = 'center_right'
@@ -604,7 +650,7 @@ def plot_figures_aqueous_species(steps):
         #p.line(x='x', y='Cacation', color='indianred', line_width=2, legend_label='Ca++', source=source)
         #p.line(x='x', y='Srcation', color='darkblue', line_width=2, legend_label='Sr++', source=source)
         #p.line(x='x', y='Nacation', color='blue', line_width=2, legend_label='Na+', source=source)
-        p.x_range = Range1d(xl-1, xr+1)
+        p.x_range = Range1d(xl, xr-1)
         #p.y_range = Range1d(1e-12, 1e-1)
         p.xaxis.axis_label = 'Distance [m]'
         p.yaxis.axis_label = 'Concentration [molal]'
@@ -631,7 +677,7 @@ def plot_figures_aqueous_species(steps):
         #p.line(x='x', y='Cacation', color='indianred', line_width=2, legend_label='Ca++', source=source)
         #p.line(x='x', y='Srcation', color='darkblue', line_width=2, legend_label='Sr++', source=source)
         #p.line(x='x', y='Nacation', color='blue', line_width=2, legend_label='Na+', source=source)
-        p.x_range = Range1d(xl-1, xr+1)
+        p.x_range = Range1d(xl, xr)
         #p.y_range = Range1d(1e-12, 1e-1)
         p.xaxis.axis_label = 'Distance [m]'
         p.yaxis.axis_label = 'Concentration [molal]'
@@ -649,17 +695,24 @@ def plot_figures_aqueous_species(steps):
 
 make_results_folders()
 
-# Run the reactive transport simulations:
-# ------------------------------------------------------------------------------------------------------------
+# # Run the reactive transport simulations:
+
 # Construct the chemical system with its phases and species
 system = define_chemical_system()
 
 # Define the initial condition of the reactive transport modeling problem
 state_ic = define_initial_condition_fw(system)
 
-# Define the boundary condition of the reactive transport modeling problem composed of two different stages
+# # Define the boundary condition of the reactive transport modeling problem composed of two different stages
+
+# Define the completion brine (CB)
 state_bc_cb = define_boundary_condition_cb(system)
+
+# Define the seawater (SW)
 state_bc_sw = define_boundary_condition_sw(system)
+
+# Define the seawater (SW)
+state_bc_sw = define_boundary_condition_sw_phreeqc(system)
 
 # Generate indices of partitioning fluid and solid species
 nelems, ifluid_species, isolid_species = partition_indices(system)
@@ -670,6 +723,7 @@ b, bfluid, bsolid, b_bc_cb, b_bc_sw \
 
 # Create a list of chemical states for the mesh cells (one for each cell, initialized to state_ic)
 states = [state_ic.clone() for _ in range(ncells + 1)]
+print(len(states))
 
 # Create the equilibrium solver object for the repeated equilibrium calculation
 solver = EquilibriumSolver(system)
@@ -680,6 +734,8 @@ t = 0.0  # the current time (in seconds)
 
 # Output the initial state of the reactive transport calculation
 outputstate_df(step, system, states)
+
+df.shape
 
 with tqdm(total=nsteps_cb, desc="45 hours of completion brine (CB) injection") as pbar:
     while step < nsteps_cb:
@@ -703,7 +759,6 @@ with tqdm(total=nsteps_cb, desc="45 hours of completion brine (CB) injection") a
 
 print(f"time: {t / hour} hours")
 
-# df['Barite_SI'] = rows * [0]
 
 with tqdm(total=nsteps_sw, desc="855 hours of seawater (SW) injection") as pbar:
     while step < nsteps_sw + nsteps_cb:
@@ -722,7 +777,6 @@ with tqdm(total=nsteps_sw, desc="855 hours of seawater (SW) injection") as pbar:
 
         # Update a progress bar
         pbar.update(1)
-# ------------------------------------------------------------------------------------------------------------
 
 # To inspect the collected data, one can run:
 
@@ -746,18 +800,12 @@ assert all(step <= nsteps for step in selected_steps_to_plot), f"Make sure that 
 output_notebook()
 
 # Plot ph on the selected steps:
-
 plot_figures_ph(selected_steps_to_plot)
 
 # Plot calcite and dolomite on the selected steps:
-
 plot_figures_barite_phase_amount(selected_steps_to_plot)
 
-# One can also call `plot_figures_pyrrhotite_siderite_volume(selected_steps_to_plot)` instead of the function
-# `plot_figures_pyrrhotite_siderite_amount()`.
-
 # Plot aqueous species on the selected steps:
-
 plot_figures_aqueous_species(selected_steps_to_plot)
 
 
@@ -780,8 +828,8 @@ def modify_doc(doc):
     # Plot for ph
     p1 = figure(plot_width=600, plot_height=250)
     p1.line(x='x', y='pH', color='teal', line_width=2, legend_label='pH', source=source)
-    p1.x_range = Range1d(xl - 1, xr + 1)
-    p1.y_range = Range1d(6.0, 26.0)
+    p1.x_range = Range1d(xl, xr-1)
+    #p1.y_range = Range1d(6.0, 26.0)
     p1.xaxis.axis_label = 'Distance [m]'
     p1.yaxis.axis_label = 'pH'
     p1.legend.location = 'bottom_right'
@@ -792,7 +840,7 @@ def modify_doc(doc):
     p2.line(x='x', y='Barite_phase_amount', color='blue', line_width=2,
             legend_label='Barite', muted_color='blue', muted_alpha=0.2,
             source=source)
-    p2.x_range = Range1d(xl - 1, xr + 1)
+    p2.x_range = Range1d(xl, xr-1)
     p2.y_range = Range1d(-0.001, 60.0)
     p2.xaxis.axis_label = 'Distance [m]'
     p2.yaxis.axis_label = 'Phase Amount [mol]'
@@ -808,7 +856,7 @@ def modify_doc(doc):
     #p3.line(x='x', y='Cacation', color='indianred', line_width=2, legend_label='Ca++', source=source)
     #p3.line(x='x', y='Srcation', color='darkblue', line_width=2, legend_label='Sr++', source=source)
     #p3.line(x='x', y='Nacation', color='blue', line_width=2, legend_label='Na+', source=source)
-    p3.x_range = Range1d(xl - 1, xr + 1)
+    p3.x_range = Range1d(xl, xr-1)
     p3.xaxis.axis_label = 'Distance [m]'
     p3.yaxis.axis_label = 'Concentration [molal]'
     p3.legend.location = 'top_right'
@@ -847,7 +895,7 @@ def modify_doc(doc):
         p2.title.text = titlestr(step_number * dt)
         p3.title.text = titlestr(step_number * dt)
 
-        source.stream(new_data, rollover=ncells+1)
+        source.stream(new_data, rollover=ncells + 1)
 
     doc.add_periodic_callback(update, 500)
     doc.add_root(layout)
