@@ -64,7 +64,7 @@ t_cb = 45 * hour
 t_sw = 255 * hour
 nsteps = nsteps_cb + nsteps_sw # number of steps in the reactive transport simulation
 
-water_kg = 58
+water_kg = 1
 
 # Physical parameters
 D = 0               # diffusion coefficient (in units of m2/s)
@@ -240,15 +240,15 @@ def define_initial_condition_fw(system):
     problem_ic.setTemperature(T, "celsius")
     problem_ic.setPressure(P, "atm")
     problem_ic.add("H2O", water_kg, "kg")
-    problem_ic.add("SO4--", 1e-6 * water_kg, "kg") # SO4-- = 10 ug/kg
-    problem_ic.add("Ca++", 0.995 * water_kg, "kg") # Ca++ = 995 mg/kg
-    problem_ic.add("Ba++", 0.995 * water_kg, "kg") # Ba++ = 995 mg/kg
-    problem_ic.add("Sr++", 0.105 * water_kg, "kg") # Sr++ = 105 mg/kg
-    problem_ic.add("Na+", 27.250 * water_kg, "kg") # Na+ = 27250 mg/kg
-    problem_ic.add("K+", 1.730 * water_kg, "kg") # K+ = 1730 mg/kg
-    problem_ic.add("Mg++", 0.110 * water_kg, "kg") # Mg++ = 110 mg/kg
-    problem_ic.add("Cl-", 45.150 * water_kg, "kg") # Cl- = 45150 mg/kg
-    problem_ic.add("HCO3-", 1.980 * water_kg, "kg") # HCO3- = 1980 mg/kg
+    problem_ic.add("SO4", 10 * water_kg, "ug")  # SO4-- = 10 ug/kg
+    problem_ic.add("Ca", 995 * water_kg, "mg")  # Ca++ = 995 mg/kg
+    problem_ic.add("Ba", 995 * water_kg, "mg")  # Ba++ = 995 mg/kg
+    problem_ic.add("Sr", 105 * water_kg, "mg")  # Sr++ = 105 mg/kg
+    problem_ic.add("Na", 27250 * water_kg, "mg")  # Na+ = 27250 mg/kg
+    problem_ic.add("K", 1730 * water_kg, "mg")  # K+ = 1730 mg/kg
+    problem_ic.add("Mg", 110 * water_kg, "mg")  # Mg++ = 110 mg/kg
+    problem_ic.add("Cl", 45150 * water_kg, "mg")  # Cl- = 45150 mg/kg
+    problem_ic.add("HCO3", 1980 * water_kg, "mg")  # HCO3- = 1980 mg/kg
 
     # Calculate the equilibrium states for the initial conditions
     state_ic = equilibrate(problem_ic)
@@ -264,44 +264,6 @@ def define_initial_condition_fw(system):
     #print("state_ic = \n", state_ic)
     #print("state_ic = \n", state_ic)
     print("ph(FW) = ", pH.val)
-
-    return state_ic
-
-def define_initial_condition_fw_phreeqc(system):
-
-    # Formation water at equilbrium:
-    # contain bivalent cations in relative abundance
-    # little sulfate
-    #
-    # Not correct yet!
-
-    problem_ic = EquilibriumProblem(system)
-    problem_ic.setTemperature(T, "celsius")
-    problem_ic.setPressure(P, "atm")
-    problem_ic.add("H2O", water_kg, "kg")
-    problem_ic.add("SO4--", 1e-6 * water_kg, "kg") # SO4-- = 10 ug/kg
-    problem_ic.add("Ca++", 0.995 * water_kg, "kg") # Ca++ = 995 mg/kg
-    problem_ic.add("Ba++", 0.995 * water_kg, "kg") # Ba++ = 995 mg/kg
-    problem_ic.add("Sr++", 0.105 * water_kg, "kg") # Sr++ = 105 mg/kg
-    problem_ic.add("Na+", 27.250 * water_kg, "kg") # Na+ = 27250 mg/kg
-    problem_ic.add("K+", 1.730 * water_kg, "kg") # K+ = 1730 mg/kg
-    problem_ic.add("Mg++", 0.110 * water_kg, "kg") # Mg++ = 110 mg/kg
-    problem_ic.add("Cl-", 45.150 * water_kg, "kg") # Cl- = 45150 mg/kg
-    problem_ic.add("HCO3-", 1.980 * water_kg, "kg") # HCO3- = 1980 mg/kg
-
-    # Calculate the equilibrium states for the initial conditions
-    state_ic = equilibrate(problem_ic)
-
-    # Scale the volumes of the phases in the initial condition
-    state_ic.scalePhaseVolume('Aqueous', 0.1, 'm3') # 10% of porosity
-    state_ic.scaleVolume(1.0, 'm3')
-
-    #print("state_ic = \n", state_ic)
-
-    props = state_ic.properties()
-    evaluate_pH = ChemicalProperty.pH(system)
-    pH = evaluate_pH(props)
-    print("ph(FW, PHREEQC) = ", pH.val)
 
     return state_ic
 
@@ -355,20 +317,16 @@ def define_boundary_condition_sw(system):
     problem_bc.setTemperature(T, "celsius")
     problem_bc.setPressure(P, "atm")
     problem_bc.add("H2O", water_kg, "kg")
-    problem_bc.add("SO4--", 2.710 * water_kg, "kg") # 2710 mg / kg = 2.710 kg / kg * 58 kg = 157.18 kg
-    problem_bc.add("Ca++", 0.411 * water_kg, "kg")  # 411 mg / kg = 0.411 kg / kg * 58 kg = 23.838 kg
-    problem_bc.add("Ba++", 0.00001 * water_kg, "kg")    # 0.01 mg / kg = 0.00001 kg / kg * 58 kg = 0.00058 kg
-    problem_bc.add("Sr++", 0.008 * water_kg, "kg")   # 8 mg / kg = 0.008 kg / kg * 58 kg = 0.464 kg
-    problem_bc.add("Na+", 10.760 * water_kg, "kg") # 10760  mg / kg = 10.760 kg / kg * 58 kg = 624.08 kg
-    problem_bc.add("K+", 0.399 * water_kg, "kg") # 399 mg / kg = 0.399 kg / kg * 58 kg = 23.142 kg
-    problem_bc.add("Mg++", 1.29 * water_kg, "kg") # 1290 mg / kg = 1.29 kg / kg * 58 kg = 74.82 kg
-    problem_bc.add("Cl-", 19.350 * water_kg, "kg") # 19350 mg / kg = 19.350 kg / kg * 58 kg = 1122.3 kg
-    problem_bc.add("HCO3-", 0.142 * water_kg, "kg") # 142 mg / kg = 0.142 kg / kg * 58 kg = 8.236 kg
-    #problem_bc.pH(8.1)
-    problem_bc.pH(8.1, "NaCl(aq)")
-    #problem_bc.pH(8.1, "HCl")
-    #problem_bc.pH(8.1, "CO2")
-    #problem_bc.pH(8.1, "HCl", "NaOH")
+    problem_bc.add("SO4--", 2710 * water_kg, "mg")  # 2710 mg / kg = 2.710 kg / kg * 58 kg = 157.18 kg
+    problem_bc.add("Ca++", 411 * water_kg, "mg")  # 411 mg / kg = 0.411 kg / kg * 58 kg = 23.838 kg
+    problem_bc.add("Ba++", 0.01 * water_kg, "mg")  # 0.01 mg / kg = 0.00001 kg / kg * 58 kg = 0.00058 kg
+    problem_bc.add("Sr++", 8 * water_kg, "mg")  # 8 mg / kg = 0.008 kg / kg * 58 kg = 0.464 kg
+    problem_bc.add("Na+", 10760 * water_kg, "mg")  # 10760  mg / kg = 10.760 kg / kg * 58 kg = 624.08 kg
+    problem_bc.add("K+", 399 * water_kg, "mg")  # 399 mg / kg = 0.399 kg / kg * 58 kg = 23.142 kg
+    problem_bc.add("Mg++", 1290 * water_kg, "mg")  # 1290 mg / kg = 1.29 kg / kg * 58 kg = 74.82 kg
+    problem_bc.add("Cl-", 19350 * water_kg, "mg")  # 19350 mg / kg = 19.350 kg / kg * 58 kg = 1122.3 kg
+    problem_bc.add("HCO3-", 142 * water_kg, "mg")  # 142 mg / kg = 0.142 kg / kg * 58 kg = 8.236 kg
+    problem_bc.pH(8.1, "HCl", "NaOH")
 
     # Calculate the equilibrium states for the boundary conditions
     state_bc = equilibrate(problem_bc)
@@ -411,19 +369,15 @@ def define_boundary_condition_sw_phreeqc(system):
     problem_bc.setTemperature(T, "celsius")
     problem_bc.setPressure(P, "atm")
     problem_bc.add("H2O", water_kg, "kg")
-    problem_bc.add("Ca++", 0.4123 * water_kg, "kg")  # 412.3 mg / kg = 0.4123 kg / kg => 0.4123 * 58 = 23.9134
-    problem_bc.add("Mg++", 1.2918 * water_kg, "kg")  # 1291.8 mg / kg = 1.2918 kg / kg => 1.2918 * 58 = 74.9244
-    problem_bc.add("Na+", 10.768 * water_kg, "kg")  # 10768.0  mg / kg = 10.768 kg / kg => 10.768 * 58 = 624.544
-    problem_bc.add("K+", 0.3991 * water_kg, "kg")  # 399.1 mg / kg = 0.3991 kg / kg => 0.3991 * 58 = 23.1478
-    problem_bc.add("Si", 0.00428 * water_kg, "kg")  # 4.28 mg / kg = 0.00428 kg / kg => 0.00428 * 58 = 0.24824
-    problem_bc.add("Cl-", 19.353 * water_kg, "kg")  # 19353.0 mg / kg = 19.353 kg / kg => 19.353 * 58 = 1122.474
-    problem_bc.add("HCO3-", 0.142682 * water_kg, "kg")  # 141.682 mg / kg = 0.142682 kg / kg => 0.142682 * 58 = 8.275556
-    problem_bc.add("SO4--", 2.712 * water_kg, "kg") # 2712.0 mg / kg = 2.712 kg / kg => 2.712 * 58 = 157.296
-    #problem_bc.pH(8.22)
-    #problem_bc.pE(8.451)
-    problem_bc.pH(8.22, "NaCl(aq)")
-    #problem_bc.pH(8.1, "CO2")
-    #problem_bc.pH(8.1, "HCl", "NaOH")
+    problem_bc.add("Ca++", 412.3 * water_kg, "mg")  # 412.3 mg / kg = 0.4123 kg / kg => 0.4123 * 58 = 23.9134
+    problem_bc.add("Mg++", 1291.8 * water_kg, "mg")  # 1291.8 mg / kg = 1.2918 kg / kg => 1.2918 * 58 = 74.9244
+    problem_bc.add("Na+", 10768.0 * water_kg, "mg")  # 10768.0  mg / kg = 10.768 kg / kg => 10.768 * 58 = 624.544
+    problem_bc.add("K+", 399.1 * water_kg, "mg")  # 399.1 mg / kg = 0.3991 kg / kg => 0.3991 * 58 = 23.1478
+    problem_bc.add("Si", 4.28 * water_kg, "mg")  # 4.28 mg / kg = 0.00428 kg / kg => 0.00428 * 58 = 0.24824
+    problem_bc.add("Cl-", 19353 * water_kg, "mg")  # 19353.0 mg / kg = 19.353 kg / kg => 19.353 * 58 = 1122.474
+    problem_bc.add("HCO3-", 141.682 * water_kg, "mg")  # 141.682 mg / kg = 0.142682 kg / kg => 0.142682 * 58 = 8.275556
+    problem_bc.add("SO4--", 2712 * water_kg, "mg") # 2712.0 mg / kg = 2.712 kg / kg => 2.712 * 58 = 157.296
+    problem_bc.pH(8.22, "HCl")
 
     # Calculate the equilibrium states for the boundary conditions
     state_bc = equilibrate(problem_bc)
@@ -712,7 +666,7 @@ state_bc_cb = define_boundary_condition_cb(system)
 state_bc_sw = define_boundary_condition_sw(system)
 
 # Define the seawater (SW)
-state_bc_sw = define_boundary_condition_sw_phreeqc(system)
+# state_bc_sw = define_boundary_condition_sw_phreeqc(system)
 
 # Generate indices of partitioning fluid and solid species
 nelems, ifluid_species, isolid_species = partition_indices(system)
@@ -723,7 +677,6 @@ b, bfluid, bsolid, b_bc_cb, b_bc_sw \
 
 # Create a list of chemical states for the mesh cells (one for each cell, initialized to state_ic)
 states = [state_ic.clone() for _ in range(ncells + 1)]
-print(len(states))
 
 # Create the equilibrium solver object for the repeated equilibrium calculation
 solver = EquilibriumSolver(system)
@@ -734,8 +687,6 @@ t = 0.0  # the current time (in seconds)
 
 # Output the initial state of the reactive transport calculation
 outputstate_df(step, system, states)
-
-df.shape
 
 with tqdm(total=nsteps_cb, desc="45 hours of completion brine (CB) injection") as pbar:
     while step < nsteps_cb:
