@@ -59,16 +59,16 @@ dx = (xr - xl) / ncells # length of the mesh cells (in units of m)
 dt = 1 * hour           # time step
 
 nsteps_cb = 45
-nsteps_sw = 255
+nsteps_sw = 855
 t_cb = 45 * hour
-t_sw = 255 * hour
+t_sw = 855 * hour
 nsteps = nsteps_cb + nsteps_sw # number of steps in the reactive transport simulation
 
 water_kg = 1
 
 # Physical parameters
 D = 0               # diffusion coefficient (in units of m2/s)
-v = 1.05e-5         # fluid pore velocity (in units of m/s)
+v = 0.8e-5         # fluid pore velocity (in units of m/s)
 T = 60.0            # temperature (in units of celsius)
 P = 200             # pressure (in units of atm)
 phi = 0.1           # the porosity
@@ -90,6 +90,7 @@ dirichlet = False  # parameter that determines whether Dirichlet BC must be used
 # number, which should be less than 1.0.
 
 CFL = v * dt / dx
+print("CFL = ", CFL)
 assert CFL <= 1.0, f"Make sure that CFL = {CFL} is less that 1.0"
 
 # ## Specifying the quantities and properties to be outputted
@@ -107,11 +108,9 @@ output_quantities = """
     speciesMolality(Ca++)
     speciesMolality(Sr++)
     speciesMolality(Na+)
+    speciesMolality(Barite)
     phaseAmount(Barite)
-    activity(Ba++)
-    activity(SO4--)
-    activityCoefficient(Ba++)
-    activityCoefficient(SO4--)
+    phaseVolume(Barite)
 """.split()
 
 # output_quantities = """
@@ -135,7 +134,7 @@ output_quantities = """
 # K_sp = a(Ba++) * a(SO4--) / a(Barite) = a(Ba++) * a(SO4--)
 # IAP = a_actual(Ba++) * a_actual(SO4--)
 # SI = log(a_actual(Ba++) * a_actual(SO4--) / a(Ba++) / a(SO4--))
-# 𝑎𝑖 = 𝛾𝑖 * 𝑚𝑖 - actualy activity? 
+# 𝑎𝑖 = 𝛾𝑖 * 𝑚𝑖 - actualy activity?
 
 # Then, we define the list of names for the DataFrame columns. Note, that they must correspond
 # to the order of the properties defined in the `output_quantities` list:
@@ -149,11 +148,10 @@ column_quantities = """
     Cacation
     Srcation
     Nacation
+    Barite
     Barite_phase_amount
-    Bacation_activity
-    SO4anion_activity
-    Bacation_activity_cofficient
-    SO4anion_activity_cofficient
+    Barite_phase_volume
+    Barite_SI
 """.split()
 
 # column_quantities = """
@@ -198,7 +196,7 @@ def define_chemical_system():
 
     # Construct the chemical system with its phases and species
     db = Database('supcrt07.xml')
-    
+
     dhModel = DebyeHuckelParams()
     dhModel.setPHREEQC()
 
@@ -221,7 +219,7 @@ def define_chemical_system():
 def define_initial_condition_fw(system):
 
     # Formation water at equilbrium:
-    # contain bivalent cations in relative abundance 
+    # contain bivalent cations in relative abundance
     # little sulfate
     # the Miller analysis:
     # Na+ = 27250 mg/kg
@@ -261,8 +259,6 @@ def define_initial_condition_fw(system):
     evaluate_pH = ChemicalProperty.pH(system)
     pH = evaluate_pH(props)
 
-    #print("state_ic = \n", state_ic)
-    #print("state_ic = \n", state_ic)
     print("ph(FW) = ", pH.val)
 
     return state_ic
@@ -277,13 +273,11 @@ def define_boundary_condition_cb(system):
     problem_bc.setPressure(P, "atm")
     problem_bc.add("H2O", water_kg, "kg")
     problem_bc.add("NaCl", 7, "mol")
-    
+
     # Calculate the equilibrium states for the boundary conditions
     state_bc = equilibrate(problem_bc)
     # Scale the boundary condition state to 1 m3
     state_bc.scaleVolume(1.0, 'm3')
-
-    #print("state_bc_cb = \n", state_bc)
 
     props = state_bc.properties()
     evaluate_pH = ChemicalProperty.pH(system)
@@ -294,7 +288,7 @@ def define_boundary_condition_cb(system):
 
 def define_boundary_condition_sw(system):
 
-    # Seawater: 
+    # Seawater:
     # rich in sulfate > 2500 mg / kg
     # poor in Ca++ and
     # nearly depleted in Sr++ and Ba++
@@ -332,8 +326,6 @@ def define_boundary_condition_sw(system):
     state_bc = equilibrate(problem_bc)
     # Scale the boundary condition state to 1 m3
     state_bc.scaleVolume(1.0, 'm3')
-
-    #print("state_bc_sw = \n", state_bc)
 
     props = state_bc.properties()
     evaluate_pH = ChemicalProperty.pH(system)
@@ -383,8 +375,6 @@ def define_boundary_condition_sw_phreeqc(system):
     state_bc = equilibrate(problem_bc)
     # Scale the boundary condition state to 1 m3
     state_bc.scaleVolume(1.0, 'm3')
-
-    #print("state_bc_sw = \n", state_bc)
 
     props = state_bc.properties()
     evaluate_pH = ChemicalProperty.pH(system)
@@ -507,7 +497,9 @@ def thomas(a, b, c, d):
 def reactive_chemistry(solver, states, b):
     # Equilibrating all cells with the updated element amounts
     for icell in range(ncells):
-        solver.solve(states[icell], T, P, b[icell])
+        T_kelvin = T + 273.15
+        P_bar = P * 1.01325 * 1e5
+        solver.solve(states[icell], T_kelvin, P_bar, b[icell])
     return states
 
 
@@ -531,6 +523,13 @@ def outputstate_df(step, system, states):
         quantity.update(state)
         for quantity_name, i in zip(output_quantities, range(2, len(states))):
             values[i] = quantity.value(quantity_name) * (100 / (1 - phi) if "phaseVolume" in quantity_name else 1)
+
+        # Fetch Barite's saturation index
+        phase_SI = state.phaseStabilityIndices()
+        barite_phase_index = system.indexPhase("Barite")
+        values[-1] = phase_SI[barite_phase_index]
+
+        # Add values into the dataframe
         df.loc[len(df)] = values
 
 # ### Plotting of the obtained results
@@ -555,8 +554,8 @@ def plot_figures_ph(steps):
 
         p = figure(plot_width=600, plot_height=250)
         p.line(x='x', y='pH', color='teal', line_width=2, legend_label='pH', source=source)
-        p.x_range = Range1d(xl, xr-1)
-        #p.y_range = Range1d(6.0, 26.0)
+        p.x_range = Range1d(xl-0.1, xr+0.1)
+        p.y_range = Range1d(7.0, 10.0)
         p.xaxis.axis_label = 'Distance [m]'
         p.yaxis.axis_label = 'pH'
         p.legend.location = 'bottom_right'
@@ -575,12 +574,34 @@ def plot_figures_barite_phase_amount(steps):
         source = ColumnDataSource(df[df['step'] == i])
 
         p = figure(plot_width=600, plot_height=250)
-        p.line(x='x', y='Barite_phase_amount', color='blue', line_width=2, legend_label='Barite',
-               muted_color='blue', muted_alpha=0.2, source=source)
-        p.x_range = Range1d(xl, xr-1)
-        #p.y_range = Range1d(-0.001, 60.0)
+        p.line(x='x', y='Barite_phase_amount', color='steelblue', line_width=2, legend_label='Barite',
+               muted_color='steelblue', muted_alpha=0.2, source=source)
+        p.x_range = Range1d(xl-0.1, xr+0.1)
+        p.y_range = Range1d(-0.001, 0.7)
         p.xaxis.axis_label = 'Distance [m]'
         p.yaxis.axis_label = 'Mineral Phase Amount [mol]'
+        p.legend.location = 'center_right'
+        p.title.text = titlestr(t)
+        p.legend.click_policy = 'mute'
+        plots.append([p])
+
+    grid = gridplot(plots)
+    show(grid)
+
+def plot_figures_barite_molality(steps):
+    plots = []
+    for i in steps:
+        print("On barite figure at time step: {}".format(i))
+        t = i * dt
+        source = ColumnDataSource(df[df['step'] == i])
+
+        p = figure(plot_width=600, plot_height=250)
+        p.line(x='x', y='Barite', color='forestgreen', line_width=2, legend_label='Barite',
+               muted_color='forestgreen', muted_alpha=0.2, source=source)
+        p.x_range = Range1d(xl-0.1, xr+0.1)
+        p.y_range = Range1d(-0.001, 1e-3)
+        p.xaxis.axis_label = 'Distance [m]'
+        p.yaxis.axis_label = 'Contration [molal]'
         p.legend.location = 'center_right'
         p.title.text = titlestr(t)
         p.legend.click_policy = 'mute'
@@ -604,8 +625,8 @@ def plot_figures_aqueous_species(steps):
         #p.line(x='x', y='Cacation', color='indianred', line_width=2, legend_label='Ca++', source=source)
         #p.line(x='x', y='Srcation', color='darkblue', line_width=2, legend_label='Sr++', source=source)
         #p.line(x='x', y='Nacation', color='blue', line_width=2, legend_label='Na+', source=source)
-        p.x_range = Range1d(xl, xr-1)
-        #p.y_range = Range1d(1e-12, 1e-1)
+        p.x_range = Range1d(xl-0.1, xr+0.1)
+        p.y_range = Range1d(1e-8, 1e2)
         p.xaxis.axis_label = 'Distance [m]'
         p.yaxis.axis_label = 'Concentration [molal]'
         p.legend.location = 'top_right'
@@ -616,26 +637,20 @@ def plot_figures_aqueous_species(steps):
     grid = gridplot(plots)
     show(grid)
 
-def plot_figures_aqueous_species(steps):
+def plot_figues_barite_saturation_index(steps):
     plots = []
     for i in steps:
-        print("On aqueous-species figure at time step: {}".format(i))
+        print("On barite's SI figure at time step: {}".format(i))
+        t = i * dt
         source = ColumnDataSource(df[df['step'] == i])
-        t = dt * i
 
-        p = figure(plot_width=600, plot_height=300, y_axis_type = 'log',)
-        #p.line(x='x', y='Hcation', color='darkviolet', line_width=2, legend_label='H+', source=source)
-        p.line(x='x', y='Clanion', color='darkcyan', line_width=2, legend_label='Cl-', source=source)
-        p.line(x='x', y='SO4anion', color='darkorange', line_width=2, legend_label='SO4--', source=source)
-        p.line(x='x', y='Bacation', color='seagreen', line_width=2, legend_label='Ba++', source=source)
-        #p.line(x='x', y='Cacation', color='indianred', line_width=2, legend_label='Ca++', source=source)
-        #p.line(x='x', y='Srcation', color='darkblue', line_width=2, legend_label='Sr++', source=source)
-        #p.line(x='x', y='Nacation', color='blue', line_width=2, legend_label='Na+', source=source)
-        p.x_range = Range1d(xl, xr)
-        #p.y_range = Range1d(1e-12, 1e-1)
+        p = figure(plot_width=600, plot_height=250)
+        p.line(x='x', y='Barite_SI', color='indianred', line_width=2, legend_label='SI (Barite)',
+               muted_color='teal', muted_alpha=0.2, source=source)
+        p.x_range = Range1d(xl-0.1, xr+0.1)
         p.xaxis.axis_label = 'Distance [m]'
-        p.yaxis.axis_label = 'Concentration [molal]'
-        p.legend.location = 'top_right'
+        p.yaxis.axis_label = 'SI [-]'
+        p.legend.location = 'center_right'
         p.title.text = titlestr(t)
         p.legend.click_policy = 'mute'
         plots.append([p])
@@ -706,13 +721,12 @@ with tqdm(total=nsteps_cb, desc="45 hours of completion brine (CB) injection") a
         # Update a progress bar
         pbar.update(1)
 
-# (rows, columns) = df.shape
-
 print(f"time: {t / hour} hours")
 
+df
 
 with tqdm(total=nsteps_sw, desc="855 hours of seawater (SW) injection") as pbar:
-    while step < nsteps_sw + nsteps_cb:
+    while step < nsteps_cb + nsteps_sw:
         # Perform transport calculations
         bfluid, bsolid, b = transport(states, bfluid, bsolid, b, b_bc_sw, nelems, ifluid_species, isolid_species)
 
@@ -754,17 +768,27 @@ output_notebook()
 plot_figures_ph(selected_steps_to_plot)
 
 # Plot calcite and dolomite on the selected steps:
+#selected_steps_to_plot = [120, 260, 300, 360, 480, 560, 600]
+selected_steps_to_plot = [120, 260, 300, 360, 480, 560, 600]
+assert all(step <= nsteps for step in selected_steps_to_plot), f"Make sure that selceted steps are less than " \
+                                                               f"total amount of steps {nsteps}"
+# Plot barite's phase amount on the selected steps:
 plot_figures_barite_phase_amount(selected_steps_to_plot)
+
+# Plot barite's concetration on the selected steps:
+plot_figures_barite_molality(selected_steps_to_plot)
 
 # Plot aqueous species on the selected steps:
 plot_figures_aqueous_species(selected_steps_to_plot)
 
-
-step = 10
+# Plot barite's saturation index on the selected steps:
+plot_figues_barite_saturation_index(selected_steps_to_plot)
 
 # The data streaming is looped, i.e., we will return to the initial time step when reaching the end of the reactive
 # transport simulations.
 
+# +
+step = 10
 def modify_doc(doc):
     # Initialize the data by the initial chemical state
     source = ColumnDataSource(df[df['step'] == 0])
@@ -779,22 +803,20 @@ def modify_doc(doc):
     # Plot for ph
     p1 = figure(plot_width=600, plot_height=250)
     p1.line(x='x', y='pH', color='teal', line_width=2, legend_label='pH', source=source)
-    p1.x_range = Range1d(xl, xr-1)
-    #p1.y_range = Range1d(6.0, 26.0)
+    p1.x_range = Range1d(xl-0.1, xr+0.1)
+    p1.y_range = Range1d(7.0, 10.0)
     p1.xaxis.axis_label = 'Distance [m]'
     p1.yaxis.axis_label = 'pH'
     p1.legend.location = 'bottom_right'
     p1.title.text = titlestr(0 * dt)
 
-    # Plot for calcite and dolomite
     p2 = figure(plot_width=600, plot_height=250)
-    p2.line(x='x', y='Barite_phase_amount', color='blue', line_width=2,
-            legend_label='Barite', muted_color='blue', muted_alpha=0.2,
-            source=source)
-    p2.x_range = Range1d(xl, xr-1)
-    p2.y_range = Range1d(-0.001, 60.0)
+    p2.line(x='x', y='Barite', color='forestgreen', line_width=2, legend_label='Barite',
+           muted_color='forestgreen', muted_alpha=0.2, source=source)
+    p2.x_range = Range1d(xl, xr - 1)
+    p2.y_range = Range1d(0.0, 8e-4)
     p2.xaxis.axis_label = 'Distance [m]'
-    p2.yaxis.axis_label = 'Phase Amount [mol]'
+    p2.yaxis.axis_label = 'Contration [molal]'
     p2.legend.location = 'center_right'
     p2.title.text = titlestr(0 * dt)
     p2.legend.click_policy = 'mute'
@@ -807,14 +829,25 @@ def modify_doc(doc):
     #p3.line(x='x', y='Cacation', color='indianred', line_width=2, legend_label='Ca++', source=source)
     #p3.line(x='x', y='Srcation', color='darkblue', line_width=2, legend_label='Sr++', source=source)
     #p3.line(x='x', y='Nacation', color='blue', line_width=2, legend_label='Na+', source=source)
-    p3.x_range = Range1d(xl, xr-1)
+    p3.x_range = Range1d(xl-0.1, xr+0.1)
+    p3.y_range = Range1d(1e-8, 1e2)
     p3.xaxis.axis_label = 'Distance [m]'
     p3.yaxis.axis_label = 'Concentration [molal]'
     p3.legend.location = 'top_right'
     p3.title.text = titlestr(0 * dt)
     p3.legend.click_policy = 'mute'
 
-    layout = column(p1, p2, p3)
+    p4 = figure(plot_width=600, plot_height=250)
+    p4.line(x='x', y='Barite_SI', color='indianred', line_width=2, legend_label='SI (Barite)',
+           muted_color='teal', muted_alpha=0.2, source=source)
+    p4.x_range = Range1d(xl, xr - 1)
+    p4.xaxis.axis_label = 'Distance [m]'
+    p4.yaxis.axis_label = 'SI [-]'
+    p4.legend.location = 'center_right'
+    p4.title.text = titlestr(0 * dt)
+    p4.legend.click_policy = 'mute'
+
+    layout = column(p1, p2, p3, p4)
 
     # Function that return the data dictionary with provided index of the file
     def update():
@@ -837,19 +870,20 @@ def modify_doc(doc):
                         Cacation=new_source.data['Cacation'],
                         Srcation=new_source.data['Srcation'],
                         Nacation=new_source.data['Nacation'],
-                        Bacation_activity=new_source.data['Bacation_activity'],
-                        SO4anion_activity=new_source.data['SO4anion_activity'],
-                        Bacation_activity_cofficient=new_source.data['Bacation_activity_cofficient'],
-                        SO4anion_activity_cofficient=new_source.data['SO4anion_activity_cofficient'])
+                        Barite=new_source.data['Barite'],
+                        Barite_phase_volume=new_source.data['Barite_phase_volume'],
+                        Barite_SI=new_source.data['Barite_SI'])
 
         p1.title.text = titlestr(step_number * dt)
         p2.title.text = titlestr(step_number * dt)
         p3.title.text = titlestr(step_number * dt)
+        p4.title.text = titlestr(step_number * dt)
 
         source.stream(new_data, rollover=ncells + 1)
 
     doc.add_periodic_callback(update, 500)
     doc.add_root(layout)
+# -
 
 # Outputting the plots to the notebook requires the call of `output_notebook()` that specifies outputting the plot
 # inline in the Jupyter notebook. Finally, the function `modify_doc()` must be passed to `show`, so that the app defined
