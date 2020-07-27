@@ -15,8 +15,13 @@
 #     name: python3
 # ---
 
-# # Simple 1D RTM model of scaling
+# # One-dimensional reactive transport modeling of scaling (without oil)
 #
+# This tutorial demonstrates sequential reactive transport calculations of the barite
+# scaling resulting from the waterflooding of the oil reservoirs.
+#
+# We start by importing Python packages (including the **reaktoro** itself) to enable us to perform
+# all the necessary numerical calculations, analyze the obtained results, and visualize them.
 
 # +
 print('============================================================')
@@ -27,18 +32,22 @@ print('     pip install numpy natsort bokeh')
 print('============================================================')
 from reaktoro import *
 import numpy as np
-from natsort import natsorted
 from tqdm.notebook import tqdm
 import os
+import pandas as pd
 
 # Import components of bokeh library
 from bokeh.io import show, output_notebook
-from bokeh.layouts import column
+from bokeh.layouts import column, row
 from bokeh.plotting import figure
 from bokeh.models import Range1d, ColumnDataSource
 from bokeh.layouts import gridplot
 # -
 
+# ## Initializing auxiliary time-related constants, discretization, and physical parameters
+#
+# We start with the initialization of the auxiliary time-related constants from seconds up to years used in the rest of
+# the code.
 
 second = 1
 minute = 60
@@ -47,46 +56,53 @@ day = 24 * hour
 week = 7 * day
 year = 365 * day
 
-# +
-# ## Defining parameters for the reactive transport simulation
+# Next, we define reactive transport and numerical discretization parameters. In particular, we specify the
+# rock size by setting coordinates of its left and right boundaries to 0.0 m and 25.0 m, respectively. The
+# discretization parameters, i.e., the number of cells and steps in time, are set to 243 and 900. Considering
+# that the time-step `dt` is fixed to one hour, the simulation lasts 900 hours. Out of these 900 hours, the first
+# 45 hours the completion brine (CB) is injected, whereas the rest of the time seawater (SW) is infused.
 #
+# The reactive transport modeling procedure assumes a constant fluid velocity of 0.8e-5 · 10<sup>-5</sup> m/s and
+# the zero diffusion coefficient for all fluid species. Temperature and pressure are set to 60 &deg;C and 1 atm,
+# respectively, throughout the tutorial. The porosity of the rock is set to 10%. Finally, we assume that
+# 1kg of water is considered in all the mixtures (for simplicity).
+
 # +
 # Discretization parameters
 xl = 0.0                # x-coordinate of the left boundary
-xr = 25.0              # x-coordinate of the right boundary
+xr = 25.0               # x-coordinate of the right boundary
 ncells = 243            # number of cells in the discretization
 dx = (xr - xl) / ncells # length of the mesh cells (in units of m)
 dt = 1 * hour           # time step
 
-nsteps_cb = 45
-nsteps_sw = 855
-t_cb = 45 * hour
-t_sw = 855 * hour
-nsteps = nsteps_cb + nsteps_sw # number of steps in the reactive transport simulation
-
-water_kg = 1
+t_cb = 45 * hour                # duration of the completion brine (CB) injection
+t_sw = 855 * hour               # duration of the seawater (SW) injection
+nsteps_cb = 45                  # number of time steps of the completion brine (CB) injection
+nsteps_sw = 855                 # number of time steps of the seawater (SW) injection
+nsteps = nsteps_cb + nsteps_sw  # the total number of steps in the reactive transport simulation
 
 # Physical parameters
 D = 0               # diffusion coefficient (in units of m2/s)
-v = 0.8e-5         # fluid pore velocity (in units of m/s)
+v = 0.8e-5          # fluid pore velocity (in units of m/s)
 T = 60.0            # temperature (in units of celsius)
 P = 200             # pressure (in units of atm)
 phi = 0.1           # the porosity
+water_kg = 1        # amount of water in the initial and injected chemical states
 # -
 
-# Next, we generate the coordinates of the mesh nodes (array `xcells`) by equally dividing the interval *[xr, xl]* with
+# Next, we generate the mesh nodes (array `xcells`) by equally dividing the interval *[xr, xl]* with
 # the number of cells `ncells`. The length between each consecutive mesh node is computed and stored in `dx` (the
 # length of the mesh cells).
 
 xcells = np.linspace(xl, xr, ncells + 1)  # interval [xl, xr] split into ncells
 
-# The boolean variable `dirichlet` is set to `True` or `False` depending on which boundary condition is considered in
-# the numerical calculation. `False` corresponds to imposing the flux of the injected fluid, otherwise, `True` means
+# The boolean variable `dirichlet` is set to `True` or `False`, depending on which boundary condition, is considered in
+# the numerical calculation. `False` corresponds to imposing the flux of the injected fluid; otherwise, `True` means
 # imposing the composition of the fluid on the left boundary.
 
 dirichlet = False  # parameter that determines whether Dirichlet BC must be used
 
-# To make sure that the applied finite-volume scheme is stable, we need to keep track of Courant–Friedrichs–Lewy (CFL)
+# To ensure that the applied finite-volume scheme is stable, we need to keep track of Courant–Friedrichs–Lewy (CFL)
 # number, which should be less than 1.0.
 
 CFL = v * dt / dx
@@ -96,8 +112,8 @@ assert CFL <= 1.0, f"Make sure that CFL = {CFL} is less that 1.0"
 # ## Specifying the quantities and properties to be outputted
 #
 # Before running the reactive transport simulations, we specify the list of parameters we are interested in outputting.
-# In this case, it is `pH`, molality of `H+`, `HS-`, `S2--`, `SO4--`, `H2S(aq)`, as well as a phase amount/volume
-# of pyrrhotite and siderite.
+# In this case, it is `pH`, molality of `H+`, `Cl-`, `SO4--`, `Ba++`, `Ca++`, `Sr++`, `Na+`, as well as a concentration,
+# phase amount, and the volume of barite (BaSO<sub>4</sub>) mineral.
 
 output_quantities = """
     pH
@@ -113,30 +129,7 @@ output_quantities = """
     phaseVolume(Barite)
 """.split()
 
-# output_quantities = """
-#     pH
-#     speciesMolality(H+)
-#     speciesMolality(Cl-)
-#     speciesMolality(SO4--)
-#     speciesMolality(Ba++)
-#     speciesMolality(Ca++)
-#     speciesMolality(Sr++)
-#     speciesMolality(Na+)
-#     phaseAmount(Barite)
-#     phaseAmount(Anhydrite)
-#     phaseAmount(Celestite)
-#     activity(Ba++)
-#     activity(SO4--)
-#     activityCoefficient(Ba++)
-#     activityCoefficient(SO4--)
-# """.split()
-
-# K_sp = a(Ba++) * a(SO4--) / a(Barite) = a(Ba++) * a(SO4--)
-# IAP = a_actual(Ba++) * a_actual(SO4--)
-# SI = log(a_actual(Ba++) * a_actual(SO4--) / a(Ba++) / a(SO4--))
-# 𝑎𝑖 = 𝛾𝑖 * 𝑚𝑖 - actualy activity?
-
-# Then, we define the list of names for the DataFrame columns. Note, that they must correspond
+# Then, we define the list of names for the *DataFrame columns*. Note, that they must correspond
 # to the order of the properties defined in the `output_quantities` list:
 
 column_quantities = """
@@ -154,99 +147,102 @@ column_quantities = """
     Barite_SI
 """.split()
 
-# column_quantities = """
-#     pH
-#     Hcation
-#     Clanion
-#     SO4anion
-#     Bacation
-#     Cacation
-#     Srcation
-#     Nacation
-#     Barite_phase_amount
-#     Anhydrite_phase_amount
-#     Celestite_phase_amount
-#     Bacation_activity
-#     SO4anion_activity
-#     Bacation_activity_cofficient
-#     SO4anion_activity_cofficient
-# """.split()
+# > **Note**: All the properties mentioned above (except barite's saturation/equilibrium index) are available using
+# the class [ChemicalOutput](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalOutput.html). To retrieve properties
+# that are not included in `ChemicalOutput` functionality, we add several lines of code to the `outputstate_df()`
+# function.
 
-# Create the list of columns stored in dataframes
+# Create the list of columns stored in the dataframe structure and initialize it with the defined columns:
+
 columns = ['step', 'x'] + column_quantities
-import pandas as pd
-
-# Initialize dataframes with above defined columns
 df = pd.DataFrame(columns=columns)
 
-# ## Organization of the program
-#
+# Finally, we create required folders for outputting the obtained results:
+
 folder_results = 'results-rt-scaling'
 def make_results_folders():
     os.system('mkdir -p ' + folder_results)
 
 # ## Performing the reactive transport simulation
 
-# Subsections below correspond to the methods responsible for each of the functional parts of `simulate()` method.
+# Subsections below correspond to the methods responsible for each of the functional parts of the reactive transport
+# simulation performed at the end.
 #
 # ### Construction of the chemical system with its phases and species
 #
+# To define the chemical system, we need to initialize the class
+# [Database](https://reaktoro.org/cpp/classReaktoro_1_1Database.html)
+# that provides operations to retrieve physical and thermodynamic data of chemical species. Here,
+# [supcrt07.xml](https://github.com/reaktoro/reaktoro/blob/master/databases/supcrt/supcrt07.xml) database file is used.
+# In addition to that, we initialize parameters in the Debye-Huckel activity model used for aqueous mixtures. Method
+# `setPHREEQC` allows setting parameters *&#229;* and *b* of the ionic species according to those used in PHREEQC v3.
+#
+# To specify how the chemical system should be defined, i.e., defining all phases and the chemical species they
+# contain, one must use [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html) class (see the
+# method `define_chemical_system()` below). Here, we specify two phases, an *aqueous* and a *mineral*. The aqueous phase
+# is defined by specifying the list of elements (so that all possible combinations of these elements are considered when
+# creating a set of chemical species). Function `setChemicalModelDebyeHuckel()` helps to set the chemical model of
+# the phase with the Debye-Huckel equation of state, providing specific parameters `dhModel` defined earlier.
+# The mineral phases are defined by one mineral barite (BaSO<sub>4</sub>).
 
 def define_chemical_system():
 
     # Construct the chemical system with its phases and species
     db = Database('supcrt07.xml')
 
+    # Initialize parameters in the Debye-Huckel activity model and set the corresponding parameters
     dhModel = DebyeHuckelParams()
     dhModel.setPHREEQC()
 
+    # Define the phases of the chemical system
     editor = ChemicalEditor(db)
     editor.addAqueousPhaseWithElements("H Cl S O Ba Ca Sr Na K Mg C Si").\
         setChemicalModelDebyeHuckel(dhModel)
-
     editor.addMineralPhase('Barite')
-    #editor.addMineralPhase('Witherite')
-    #editor.addMineralPhase('Anhydrite')
-    #editor.addMineralPhase('Celestite')
 
+    # Define the chemical system via the chemical editor
     system = ChemicalSystem(editor)
-    #print(system)
 
     return system
 
 # ### Initial condition (IC) of the reactive transport problem
+#
+# The chemical state corresponding to the **initial condition** of the reactive transport simulation is defined in
+# the function `define_initial_condition_fw()`. The composition of the formation water (FW) is taken from the manuscript
+# of Bethke 2008, i.e., Table 30.1 (Miller analysis). We recite this composition in the table below:
+#
+# | Aqueous species  | Amount (mg / kg) |
+# |------------------|------------------|
+# | Na<sup>+</sup>O  | 27250            |
+# | K<sup>+</sup>O   | 1730             |
+# | Mg<sup>2+</sup>O | 110              |
+# | Ca<sup>2+</sup>O | 995              |
+# | Sr<sup>2+</sup>O | 105              |
+# | Ba<sup>2+</sup>O | 995              |
+# | Cl<sup>-</sup>O  | 45150            |
+# | HCO<sub>3</sub><sup>-</sup>O | 1980 |
+# | SO<sub>4</sub><sup>2-</sup>O | 10 · 10<sup>-3</sup>|
+#
+# The main characteristics of the formation water are high concentration of the Ba<sup>2+</sup> and low concentrations
+# of the SO<sub>4</sub><sup>2-</sup>.
 
 def define_initial_condition_fw(system):
 
-    # Formation water at equilbrium:
-    # contain bivalent cations in relative abundance
-    # little sulfate
-    # the Miller analysis:
-    # Na+ = 27250 mg/kg
-    # K+ = 1730 mg/kg
-    # Mg++ = 110 mg/kg
-    # Ca++ = 995 mg/kg
-    # Sr++ = 105 mg/kg
-    # Ba++ = 995 mg/kg
-    # Cl- = 45150 mg/kg
-    # HCO3- = 1980 mg/kg
-    # SO4-- = 10 ug/kg
-    #
-    #  FW → high Ba2+ and low SO42- concentration
-
-    problem_ic = EquilibriumProblem(system)
+    # Define composition of the initial chemical problem
+    problem_ic = EquilibriumInverseProblem(system)
     problem_ic.setTemperature(T, "celsius")
     problem_ic.setPressure(P, "atm")
     problem_ic.add("H2O", water_kg, "kg")
-    problem_ic.add("SO4", 10 * water_kg, "ug")  # SO4-- = 10 ug/kg
-    problem_ic.add("Ca", 995 * water_kg, "mg")  # Ca++ = 995 mg/kg
-    problem_ic.add("Ba", 995 * water_kg, "mg")  # Ba++ = 995 mg/kg
-    problem_ic.add("Sr", 105 * water_kg, "mg")  # Sr++ = 105 mg/kg
-    problem_ic.add("Na", 27250 * water_kg, "mg")  # Na+ = 27250 mg/kg
-    problem_ic.add("K", 1730 * water_kg, "mg")  # K+ = 1730 mg/kg
-    problem_ic.add("Mg", 110 * water_kg, "mg")  # Mg++ = 110 mg/kg
-    problem_ic.add("Cl", 45150 * water_kg, "mg")  # Cl- = 45150 mg/kg
-    problem_ic.add("HCO3", 1980 * water_kg, "mg")  # HCO3- = 1980 mg/kg
+    problem_ic.add("SO4", 10 * water_kg, "ug")
+    problem_ic.add("Ca", 995 * water_kg, "mg")
+    problem_ic.add("Ba", 995 * water_kg, "mg")
+    problem_ic.add("Sr", 105 * water_kg, "mg")
+    problem_ic.add("Na", 27250 * water_kg, "mg")
+    problem_ic.add("K", 1730 * water_kg, "mg")
+    problem_ic.add("Mg", 110 * water_kg, "mg")
+    problem_ic.add("Cl", 45150 * water_kg, "mg")
+    problem_ic.add("HCO3", 1980 * water_kg, "mg")
+    problem_ic.pH(7.0, "HCl", "NaOH")
 
     # Calculate the equilibrium states for the initial conditions
     state_ic = equilibrate(problem_ic)
@@ -255,19 +251,22 @@ def define_initial_condition_fw(system):
     state_ic.scalePhaseVolume('Aqueous', 0.1, 'm3') # 10% of porosity
     state_ic.scaleVolume(1.0, 'm3')
 
+    # Fetch teh value of the ph in the initial chemical state
     props = state_ic.properties()
     evaluate_pH = ChemicalProperty.pH(system)
     pH = evaluate_pH(props)
-
     print("ph(FW) = ", pH.val)
 
     return state_ic
 
 # ### Boundary condition (BC) of the reactive transport problem
 
+# Next, we define the **boundary condition** of the constructed chemical system applied first 45 hours of simulations.
+# The completion brine (CB) is defined by the 7~mol sodium chloride brine.
+
 def define_boundary_condition_cb(system):
 
-    # Define the boundary condition of the reactive transport modeling problem
+    # Define the boundary condition of the reactive transport modeling problem corresponding to completion brine
     problem_bc = EquilibriumProblem(system)
     problem_bc.setTemperature(T, "celsius")
     problem_bc.setPressure(P, "atm")
@@ -279,6 +278,7 @@ def define_boundary_condition_cb(system):
     # Scale the boundary condition state to 1 m3
     state_bc.scaleVolume(1.0, 'm3')
 
+    # Fetch ph of the evaluated chemical state
     props = state_bc.properties()
     evaluate_pH = ChemicalProperty.pH(system)
     pH = evaluate_pH(props)
@@ -286,40 +286,40 @@ def define_boundary_condition_cb(system):
 
     return state_bc
 
+# The rest of the simulation time, we inject the seawater (SW). Simirally, the composition of the seawater (SW)
+# is taken from Bethke 2008, i.e., Table 30.1 (Seawater). Below, we list the quantities of the aqueous species:
+#
+# | Aqueous species  | Amount (mg / kg) |
+# |------------------|------------------|
+# | Na<sup>+</sup>O  | 10760            |
+# | K<sup>+</sup>O   | 399              |
+# | Mg<sup>2+</sup>O | 1290             |
+# | Ca<sup>2+</sup>O | 411              |
+# | Sr<sup>2+</sup>O | 8                |
+# | Ba<sup>2+</sup>O | 0.01             |
+# | Cl<sup>-</sup>O  | 19350            |
+# | HCO<sub>3</sub><sup>-</sup>O | 142  |
+# | SO<sub>4</sub><sup>2-</sup>O | 2710 |
+#
+# Normally, seawater is very rich in sulfate, poor in Ca<sup>2+</sup>, and nearly depleted in Sr<sup>2+</sup> and
+# Ba<sup>2+</sup>. The pH of the seawater sis fixed to 8.1.
+
 def define_boundary_condition_sw(system):
 
-    # Seawater:
-    # rich in sulfate > 2500 mg / kg
-    # poor in Ca++ and
-    # nearly depleted in Sr++ and Ba++
-    # SW → low Ba2+ and high SO42- concentration
-
-    # Seewater from Bethke, Table 30.1:
-    # Cl - = 19350 mg / kg
-    # Ca ++ = 411 mg / kg
-    # Mg ++ = 1290 mg / kg
-    # Na + = 10760 mg / kg
-    # K + = 399 mg / kg
-    # SO4 -- = 2710 mg / kg
-    # HCO3 - = 142 mg / kg
-    # SiO2(aq) = 6 mg / kg
-    # Ca ++ = 411 mg / kg
-    # Sr ++ = 8 mg / kg
-    # Ba ++ = 0.01 mg / kg
-
+    # Define the boundary condition of the reactive transport modeling problem corresponding to seawater
     problem_bc = EquilibriumInverseProblem(system)
     problem_bc.setTemperature(T, "celsius")
     problem_bc.setPressure(P, "atm")
     problem_bc.add("H2O", water_kg, "kg")
-    problem_bc.add("SO4--", 2710 * water_kg, "mg")  # 2710 mg / kg = 2.710 kg / kg * 58 kg = 157.18 kg
-    problem_bc.add("Ca++", 411 * water_kg, "mg")  # 411 mg / kg = 0.411 kg / kg * 58 kg = 23.838 kg
-    problem_bc.add("Ba++", 0.01 * water_kg, "mg")  # 0.01 mg / kg = 0.00001 kg / kg * 58 kg = 0.00058 kg
-    problem_bc.add("Sr++", 8 * water_kg, "mg")  # 8 mg / kg = 0.008 kg / kg * 58 kg = 0.464 kg
-    problem_bc.add("Na+", 10760 * water_kg, "mg")  # 10760  mg / kg = 10.760 kg / kg * 58 kg = 624.08 kg
-    problem_bc.add("K+", 399 * water_kg, "mg")  # 399 mg / kg = 0.399 kg / kg * 58 kg = 23.142 kg
-    problem_bc.add("Mg++", 1290 * water_kg, "mg")  # 1290 mg / kg = 1.29 kg / kg * 58 kg = 74.82 kg
-    problem_bc.add("Cl-", 19350 * water_kg, "mg")  # 19350 mg / kg = 19.350 kg / kg * 58 kg = 1122.3 kg
-    problem_bc.add("HCO3-", 142 * water_kg, "mg")  # 142 mg / kg = 0.142 kg / kg * 58 kg = 8.236 kg
+    problem_bc.add("SO4--", 2710 * water_kg, "mg")
+    problem_bc.add("Ca++", 411 * water_kg, "mg")
+    problem_bc.add("Ba++", 0.01 * water_kg, "mg")
+    problem_bc.add("Sr++", 8 * water_kg, "mg")
+    problem_bc.add("Na+", 10760 * water_kg, "mg")
+    problem_bc.add("K+", 399 * water_kg, "mg")
+    problem_bc.add("Mg++", 1290 * water_kg, "mg")
+    problem_bc.add("Cl-", 19350 * water_kg, "mg")
+    problem_bc.add("HCO3-", 142 * water_kg, "mg")
     problem_bc.pH(8.1, "HCl", "NaOH")
 
     # Calculate the equilibrium states for the boundary conditions
@@ -334,29 +334,12 @@ def define_boundary_condition_sw(system):
 
     return state_bc
 
+# Alternative (sub very similar to the previous) definition of the seawater chemical state can be founds from the official
+# PHREEQC tutorials, i.e., Example 1 (https://wwwbrr.cr.usgs.gov/projects/GWC_coupled/phreeqc/html/final-70.html).
+
 def define_boundary_condition_sw_phreeqc(system):
 
-    # Seawater:
-    # rich in sulfate > 2500 mg / kg
-    # poor in Ca++ and
-    # nearly depleted in Sr++ and Ba++
-    # SW → low Ba2+ and high SO42- concentration
-
-    # Seawater:
-    # Concentration is in ppm (parts per million)
-    # Assuming that 1 ppm = 1 mg/kg
-    #         pH      8.22
-    #         pe      8.451
-    #         density 1.023
-    #         temp    25.0
-    #         Ca              412.3
-    #         Mg              1291.8
-    #         Na              10768.0
-    #         K               399.1
-    #         Si              4.28
-    #         Cl              19353.0
-    #         Alkalinity      141.682 as HCO3
-    #         SO4--           2712.0
+    # Define the boundary condition of the reactive transport modeling problem corresponding to seawater
     problem_bc = EquilibriumInverseProblem(system)
     problem_bc.setTemperature(T, "celsius")
     problem_bc.setPressure(P, "atm")
@@ -370,6 +353,7 @@ def define_boundary_condition_sw_phreeqc(system):
     problem_bc.add("HCO3-", 141.682 * water_kg, "mg")  # 141.682 mg / kg = 0.142682 kg / kg => 0.142682 * 58 = 8.275556
     problem_bc.add("SO4--", 2712 * water_kg, "mg") # 2712.0 mg / kg = 2.712 kg / kg => 2.712 * 58 = 157.296
     problem_bc.pH(8.22, "HCl")
+    problem_bc.pE(8.451)
 
     # Calculate the equilibrium states for the boundary conditions
     state_bc = equilibrate(problem_bc)
@@ -384,10 +368,19 @@ def define_boundary_condition_sw_phreeqc(system):
     return state_bc
 
 # ### Indices of partitioning fluid and solid species
+#
+# We use methods
+# [indicesFluidSpecies](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html#ac2a8b713f46f7a66b2731ba63faa95ad)
+# and [indicesSolidSpecies](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html#a8b0c237fff1d827f7bf2dbc911fa5bbf)
+# of class [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html) to get the indices of the
+# fluid and solid species, to separate mobile from immobile ones, respectively.
 
 def partition_indices(system):
+
+    # Get number of elements
     nelems = system.numElements()
 
+    # Get indices of species in fluids and solid partitions
     ifluid_species = system.indicesFluidSpecies()
     isolid_species = system.indicesSolidSpecies()
 
@@ -395,10 +388,22 @@ def partition_indices(system):
 
 
 # ### Partitioning fluid and solid species
+#
+# Next, we create arrays to track the amounts of elements in the fluid and solid partition.
+# We define the arrays `b`, `bfluid`, `bsolid`, storing the concentrations (mol/m<sup>3</sup>) of each element in the
+# system, as well as those in the fluid partition and in the solid partition at every time step, respectively.
+#
+# The array `b` is initialized with the concentrations of the elements at the initial chemical state, `state_ic`, using
+# method [elementAmounts](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html#a827457e68a90f89920c13f0cc06fda78)
+# of class [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html). The array `b_bc` stores the
+# concentrations of each element on the boundary in mol/m<sup>3</sup><sub>fluid</sub> and is obtained similarly from
+# the `state_bc`.
 
 def partition_elements_in_mesh_cell(ncells, nelems, state_ic, state_bc_cb, state_bc_sw):
+
     # The concentrations of each element in each mesh cell (in the current time step)
     b = np.zeros((ncells, nelems))
+
     # Initialize the concentrations (mol/m3) of the elements in each mesh cell
     b[:] = state_ic.elementAmounts()
 
@@ -420,8 +425,27 @@ def partition_elements_in_mesh_cell(ncells, nelems, state_ic, state_bc_cb, state
 # ### Reactive transport cycle
 #
 # #### Transport
+#
+# This step updates in the fluid partition `bfluid` using the transport equations (without reactions).
+# The `transport_fullimplicit()` function below is responsible for solving an advection-diffusion equation, that is
+# later applied to transport the concentrations (mol/m<sup>3</sup>) of elements in the fluid partition (*a
+# simplification that is possible because of common diffusion coefficients and velocities of the fluid species,
+# otherwise the transport of individual fluid species would be needed*).
+#
+# To match the units of concentrations of the elements in the fluid measure in mol/m<sup>3</sup><sub>bulk</sub> and the
+# imposed concentration `b_bc[j]` mol/m<sup>3</sup><sub>fluid</sub>, we need to scale it by the porosity `phi_bc`
+# on the boundary cell m<sup>3</sup><sub>fluid</sub>/m<sup>3</sup><sub>bulk</sub>. We use function
+# [properties](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html#ad3fa8fd9e1b948da7a698eb020513f3d)
+# of the class [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html) to retrieve fluid volume
+# m<sup>3</sup><sub>fluid</sub> and total volume m<sup>3</sup><sub>bulk</sub> in the inflow boundary cell.
+#
+# Finally, the updated amounts of elements in the fluid partition are summed with the amounts of elements in the solid
+# partition `bsolid`, which remained constant during the transport step), and thus updating the amounts of elements
+# in the chemical system `b`. Reactive transport calculations involve the solution of a system of
+# advection-diffusion-reaction equations.
 
 def transport(states, bfluid, bsolid, b, b_bc, nelems, ifluid_species, isolid_species):
+
     # Collect the amounts of elements from fluid and solid partitions
     for icell in range(ncells):
         bfluid[icell] = states[icell].elementAmountsInSpecies(ifluid_species)
@@ -441,11 +465,26 @@ def transport(states, bfluid, bsolid, b, b_bc, nelems, ifluid_species, isolid_sp
     return bfluid, bsolid, b
 
 
-# ##### Transport calculation with finite-volume scheme
+# ##### Transport calculation with the finite-volume scheme
+#
+# The function `transport()` expects a conservative property (argument `u`) (e.g., the concentration mol/m<sup>3</sup>
+# of *j*th element in the fluid given by `bfluid[j]`), the time step (`dt`), the mesh cell length (`dx`),
+# the fluid velocity (`v`), the diffusion coefficient (`D`), and the boundary condition of the conservative property
+# (`g`) (e.g., the concentration of the *j*th element in the fluid on the left boundary).
+#
+# The transport equations are solved with a finite volume method, where diffusion and convection are treated implicitly.
+# Its discretization in space and time (implicit) results in the constants `alpha` and `beta`. These correspond to
+# the diffusion and advection terms in the equation: `D*dt/dx**2` and `v*dt/dx`.
+#
+# Arrays `a`, `b`, `c` are the diagonals in the tridiagonal matrix that results by writing all discretized equations
+# in a matrix equation. This linear equation system is solved by the tridiagonal matrix algorithm, also known
+# as the Thomas algorithm.
 
 def transport_fullimplicit(u, dt, dx, v, D, ul):
+
     # Number of DOFs
     n = len(u)
+    # Fetch the coefficients bearing the diffusion and advection terms
     alpha = D * dt / dx ** 2
     beta = v * dt / dx
 
@@ -477,6 +516,8 @@ def transport_fullimplicit(u, dt, dx, v, D, ul):
 
 
 # ##### Solving the system of equations obtained from finite volume discretization
+#
+# The tridiagonal matrix equation is solved using the Thomas algorithm (or the TriDiagonal Matrix Algorithm (TDMA)).
 
 def thomas(a, b, c, d):
     n = len(d)
@@ -493,6 +534,11 @@ def thomas(a, b, c, d):
 
 
 # #### Reactive chemistry
+#
+# The chemical equilibrium calculations performed in each mesh cell, using the *Gibbs energy minimization* algorithm
+# (provided by the class [EquilibriumSolver](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumSolver.html)).
+# **Note:** Before providing temperature and pressure to the `solve()` method, we need to convert celsius and atm (atmosphere)
+# to kelvin and bars, respectively.
 
 def reactive_chemistry(solver, states, b):
     # Equilibrating all cells with the updated element amounts
@@ -534,18 +580,22 @@ def outputstate_df(step, system, states):
 
 # ### Plotting of the obtained results
 
+# The library **bokeh** enables the plotting of the results in a Jupyter app.
+# Below, we list auxiliary functions that we use in plotting. Function `titlestr` returns a string for the title
+# of a figure in the  format Time: #h##m
+
 def titlestr(t):
     t = t / minute  # Convert from seconds to minutes
     h = int(t) / 60  # The number of hours
     m = int(t) % 60  # The number of remaining minutes
     return 'Time: %2dh %2dm' % (h, m)
 
-# Routines `plot_figures_ph()`, `plot_figures_pyrrhotite_siderite_volume()`, `plot_figures_pyrrhotite_siderite_amount()`,
-# and 'plot_figures_aqueous_species()' are dedicated to drawing the plots with chemical properties on the selected steps
-# that are specified by the user below.
+# Routines `plot_figures_ph()`, `plot_figures_barite_phase_amount()`, `plot_figures_barite_molality()`,
+# `plot_figues_barite_saturation_index()`, and 'plot_figures_aqueous_species()' drawing the plots with
+# chemical states or properties on the selected steps.
 
 def plot_figures_ph(steps):
-    # Plot ph on the selected steps
+
     plots = []
     for i in steps:
         print("On pH figure at time step: {}".format(i))
@@ -555,10 +605,10 @@ def plot_figures_ph(steps):
         p = figure(plot_width=600, plot_height=250)
         p.line(x='x', y='pH', color='teal', line_width=2, legend_label='pH', source=source)
         p.x_range = Range1d(xl-0.1, xr+0.1)
-        p.y_range = Range1d(7.0, 10.0)
+        p.y_range = Range1d(6.8, 10.0)
         p.xaxis.axis_label = 'Distance [m]'
         p.yaxis.axis_label = 'pH'
-        p.legend.location = 'bottom_right'
+        p.legend.location = 'top_right'
         p.title.text = titlestr(t)
 
         plots.append([p])
@@ -577,7 +627,7 @@ def plot_figures_barite_phase_amount(steps):
         p.line(x='x', y='Barite_phase_amount', color='steelblue', line_width=2, legend_label='Barite',
                muted_color='steelblue', muted_alpha=0.2, source=source)
         p.x_range = Range1d(xl-0.1, xr+0.1)
-        p.y_range = Range1d(-0.001, 0.7)
+        p.y_range = Range1d(-0.0001, 0.7)
         p.xaxis.axis_label = 'Distance [m]'
         p.yaxis.axis_label = 'Mineral Phase Amount [mol]'
         p.legend.location = 'center_right'
@@ -596,40 +646,13 @@ def plot_figures_barite_molality(steps):
         source = ColumnDataSource(df[df['step'] == i])
 
         p = figure(plot_width=600, plot_height=250)
-        p.line(x='x', y='Barite', color='forestgreen', line_width=2, legend_label='Barite',
-               muted_color='forestgreen', muted_alpha=0.2, source=source)
+        p.line(x='x', y='Barite', color='orchid', line_width=2, legend_label='Barite',
+               muted_color='orchid', muted_alpha=0.2, source=source)
         p.x_range = Range1d(xl-0.1, xr+0.1)
-        p.y_range = Range1d(-0.001, 1e-3)
+        p.y_range = Range1d(-1e-5, 8e-4)
         p.xaxis.axis_label = 'Distance [m]'
         p.yaxis.axis_label = 'Contration [molal]'
         p.legend.location = 'center_right'
-        p.title.text = titlestr(t)
-        p.legend.click_policy = 'mute'
-        plots.append([p])
-
-    grid = gridplot(plots)
-    show(grid)
-
-def plot_figures_aqueous_species(steps):
-    plots = []
-    for i in steps:
-        print("On aqueous-species figure at time step: {}".format(i))
-        source = ColumnDataSource(df[df['step'] == i])
-        t = dt * i
-
-        p = figure(plot_width=600, plot_height=300, y_axis_type = 'log',)
-        #p.line(x='x', y='Hcation', color='darkviolet', line_width=2, legend_label='H+', source=source)
-        p.line(x='x', y='Clanion', color='darkcyan', line_width=2, legend_label='Cl-', source=source)
-        p.line(x='x', y='SO4anion', color='darkorange', line_width=2, legend_label='SO4--', source=source)
-        p.line(x='x', y='Bacation', color='seagreen', line_width=2, legend_label='Ba++', source=source)
-        #p.line(x='x', y='Cacation', color='indianred', line_width=2, legend_label='Ca++', source=source)
-        #p.line(x='x', y='Srcation', color='darkblue', line_width=2, legend_label='Sr++', source=source)
-        #p.line(x='x', y='Nacation', color='blue', line_width=2, legend_label='Na+', source=source)
-        p.x_range = Range1d(xl-0.1, xr+0.1)
-        p.y_range = Range1d(1e-8, 1e2)
-        p.xaxis.axis_label = 'Distance [m]'
-        p.yaxis.axis_label = 'Concentration [molal]'
-        p.legend.location = 'top_right'
         p.title.text = titlestr(t)
         p.legend.click_policy = 'mute'
         plots.append([p])
@@ -650,7 +673,34 @@ def plot_figues_barite_saturation_index(steps):
         p.x_range = Range1d(xl-0.1, xr+0.1)
         p.xaxis.axis_label = 'Distance [m]'
         p.yaxis.axis_label = 'SI [-]'
-        p.legend.location = 'center_right'
+        p.legend.location = 'top_right'
+        p.title.text = titlestr(t)
+        p.legend.click_policy = 'mute'
+        plots.append([p])
+
+    grid = gridplot(plots)
+    show(grid)
+
+def plot_figures_aqueous_species(steps):
+    plots = []
+    for i in steps:
+        print("On aqueous-species figure at time step: {}".format(i))
+        source = ColumnDataSource(df[df['step'] == i])
+        t = dt * i
+
+        p = figure(plot_width=600, plot_height=250, y_axis_type = 'log',)
+        #p.line(x='x', y='Hcation', color='darkviolet', line_width=2, legend_label='H+', source=source)
+        p.line(x='x', y='Clanion', color='darkcyan', line_width=2, legend_label='Cl-', source=source)
+        p.line(x='x', y='SO4anion', color='darkorange', line_width=2, legend_label='SO4--', source=source)
+        p.line(x='x', y='Bacation', color='seagreen', line_width=2, legend_label='Ba++', source=source)
+        #p.line(x='x', y='Cacation', color='indianred', line_width=2, legend_label='Ca++', source=source)
+        #p.line(x='x', y='Srcation', color='darkblue', line_width=2, legend_label='Sr++', source=source)
+        #p.line(x='x', y='Nacation', color='blue', line_width=2, legend_label='Na+', source=source)
+        p.x_range = Range1d(xl-0.1, xr+0.1)
+        p.y_range = Range1d(1e-8, 1e2)
+        p.xaxis.axis_label = 'Distance [m]'
+        p.yaxis.axis_label = 'Concentration [molal]'
+        p.legend.location = 'top_right'
         p.title.text = titlestr(t)
         p.legend.click_policy = 'mute'
         plots.append([p])
@@ -660,11 +710,11 @@ def plot_figues_barite_saturation_index(steps):
 
 # # Main parts of the tutorial
 #
-# First, we create folders for the results:
+# First, we create folders for the result files:
 
 make_results_folders()
 
-# # Run the reactive transport simulations:
+# ## Run the reactive transport simulations
 
 # Construct the chemical system with its phases and species
 system = define_chemical_system()
@@ -672,31 +722,34 @@ system = define_chemical_system()
 # Define the initial condition of the reactive transport modeling problem
 state_ic = define_initial_condition_fw(system)
 
-# # Define the boundary condition of the reactive transport modeling problem composed of two different stages
+# Define the boundary condition of the reactive transport modeling problem composed of two different stages:
 
+# +
 # Define the completion brine (CB)
 state_bc_cb = define_boundary_condition_cb(system)
 
 # Define the seawater (SW)
 state_bc_sw = define_boundary_condition_sw(system)
+# -
 
-# Define the seawater (SW)
-# state_bc_sw = define_boundary_condition_sw_phreeqc(system)
+# Generate indices of partitioning fluid and solid species, as well as the vectors of elements, including those in
+# fluid and solid partition, and vector of elements amounts corresponding to the injected completion brine and seawater:
 
-# Generate indices of partitioning fluid and solid species
 nelems, ifluid_species, isolid_species = partition_indices(system)
-
-# Partitioning fluid and solid species
 b, bfluid, bsolid, b_bc_cb, b_bc_sw \
     = partition_elements_in_mesh_cell(ncells, nelems, state_ic, state_bc_cb, state_bc_sw)
 
-# Create a list of chemical states for the mesh cells (one for each cell, initialized to state_ic)
+# Create a list of chemical states for each mesh cell initialized `to state_ic`:
+
 states = [state_ic.clone() for _ in range(ncells + 1)]
 
-# Create the equilibrium solver object for the repeated equilibrium calculation
+# Create the equilibrium solver object for the repeated equilibrium calculation:
+
 solver = EquilibriumSolver(system)
 
-# Running the reactive transport simulation loop
+# Running the reactive transport simulation loop. We start with the completion brine injection:
+
+# +
 step = 0  # the current step number
 t = 0.0  # the current time (in seconds)
 
@@ -720,10 +773,10 @@ with tqdm(total=nsteps_cb, desc="45 hours of completion brine (CB) injection") a
 
         # Update a progress bar
         pbar.update(1)
-
 print(f"time: {t / hour} hours")
+# -
 
-df
+# Simulation continues with the seawater injection:
 
 with tqdm(total=nsteps_sw, desc="855 hours of seawater (SW) injection") as pbar:
     while step < nsteps_cb + nsteps_sw:
@@ -743,53 +796,61 @@ with tqdm(total=nsteps_sw, desc="855 hours of seawater (SW) injection") as pbar:
         # Update a progress bar
         pbar.update(1)
 
-# To inspect the collected data, one can run:
-
-df.shape
-
-df
-
 # To save the results in csv-format, please execute:
 
 df.to_csv(folder_results + '/rt.scaling.csv', index=False)
 
-# Select the steps, on which results must plotted:
-
-selected_steps_to_plot = [20, 45, 46, 60, 120, 260, 300]
-assert all(step <= nsteps for step in selected_steps_to_plot), f"Make sure that selceted steps are less than " \
-                                                               f"total amount of steps {nsteps}"
 
 # Outputting the plots to the notebook requires the call of `output_notebook()` that specifies outputting the plot
 # inline in the Jupyter notebook:
 
 output_notebook()
 
-# Plot ph on the selected steps:
-plot_figures_ph(selected_steps_to_plot)
+# Select the steps, on which results with pH must be output, and plot pH:
 
-# Plot calcite and dolomite on the selected steps:
-#selected_steps_to_plot = [120, 260, 300, 360, 480, 560, 600]
-selected_steps_to_plot = [120, 260, 300, 360, 480, 560, 600]
+selected_steps_to_plot = [45, 60, 300]
 assert all(step <= nsteps for step in selected_steps_to_plot), f"Make sure that selceted steps are less than " \
                                                                f"total amount of steps {nsteps}"
-# Plot barite's phase amount on the selected steps:
-plot_figures_barite_phase_amount(selected_steps_to_plot)
+plot_figures_ph(selected_steps_to_plot)
+
+# Select the steps, on which the rest of the species must be demonstrated and plot them:
+
+selected_steps_to_plot = [120, 300, 600]
+assert all(step <= nsteps for step in selected_steps_to_plot), f"Make sure that selceted steps are less than " \
+                                                               f"total amount of steps {nsteps}"
+
+# On the plots below, we see that the mineral starts to precipitate right after we initiate the
+# injection of seawater. It happens due to the mixing of the groundwater and seawater, which have contrasting
+# compositions. In particular, seawater is low on Ba<sup>2+</sup> and high on SO<sub>4</sub><sup>2-</sup> concentrations,
+# whereas formation water, on the opposite, is high on Ba<sup>2+</sup> and low on SO<sub>4</sub><sup>2-</sup>. During mixing,
+# both of these ions react, creating barite, i.e., Ba<sup>2+</sup> + SO<sub>4</sub><sup>2-</sup> &#8594; BaSO<sub>4</sub>(s).
+# Such side effects of waterflooding (as part of the oil recovery techniques) reduce the near-wellbore permeability and
+# hamper well productivity/injectivity. Other mineral that have potential to scaling are CaCO<sub>3</sub> (calcite),
+# CaSO<sub>4</sub> (calcium sulfate), FeCO<sub>3</sub> (siderite).
 
 # Plot barite's concetration on the selected steps:
 plot_figures_barite_molality(selected_steps_to_plot)
 
-# Plot aqueous species on the selected steps:
-plot_figures_aqueous_species(selected_steps_to_plot)
-
 # Plot barite's saturation index on the selected steps:
 plot_figues_barite_saturation_index(selected_steps_to_plot)
 
-# The data streaming is looped, i.e., we will return to the initial time step when reaching the end of the reactive
-# transport simulations.
+# In the plots of the aqueous species below, we see that during mixing, we have a decrease of Ba<sup>2+</sup>
+# concentrations consumed by the barite. The concentration of SO<sub>4</sub><sup>2-</sup> in seawater is
+# considerably higher than in formation, which explains the increasing curve towards the left boundary. Finally,
+# we observe a slight increase of the Cl<sup>-</sup> concentration due to initial injection of the NaCl-brine for
+# 45 hours.
 
-# +
+# Plot aqueous species on the selected steps:
+plot_figures_aqueous_species(selected_steps_to_plot)
+
+# To study the time-dependent behavior of the chemical properties, we create a Bokeh application using the function
+# `modify_doc(doc)`. It creates Bokeh content and adds it to the app. The speed of streaming of the reactive transport
+# data can be  controlled by the parameter `step` defined below (bigger the step, faster we will run through available
+# data set):
+
 step = 10
 def modify_doc(doc):
+
     # Initialize the data by the initial chemical state
     source = ColumnDataSource(df[df['step'] == 0])
 
@@ -801,18 +862,18 @@ def modify_doc(doc):
         return 'Time: %2dh %2dm' % (h, m)
 
     # Plot for ph
-    p1 = figure(plot_width=600, plot_height=250)
+    p1 = figure(plot_width=500, plot_height=250)
     p1.line(x='x', y='pH', color='teal', line_width=2, legend_label='pH', source=source)
     p1.x_range = Range1d(xl-0.1, xr+0.1)
-    p1.y_range = Range1d(7.0, 10.0)
+    p1.y_range = Range1d(6.8, 10.0)
     p1.xaxis.axis_label = 'Distance [m]'
     p1.yaxis.axis_label = 'pH'
     p1.legend.location = 'bottom_right'
     p1.title.text = titlestr(0 * dt)
 
-    p2 = figure(plot_width=600, plot_height=250)
-    p2.line(x='x', y='Barite', color='forestgreen', line_width=2, legend_label='Barite',
-           muted_color='forestgreen', muted_alpha=0.2, source=source)
+    p2 = figure(plot_width=500, plot_height=250)
+    p2.line(x='x', y='Barite', color='orchid', line_width=2, legend_label='Barite',
+           muted_color='orchid', muted_alpha=0.2, source=source)
     p2.x_range = Range1d(xl, xr - 1)
     p2.y_range = Range1d(0.0, 8e-4)
     p2.xaxis.axis_label = 'Distance [m]'
@@ -821,7 +882,7 @@ def modify_doc(doc):
     p2.title.text = titlestr(0 * dt)
     p2.legend.click_policy = 'mute'
 
-    p3 = figure(plot_width=600, plot_height=300, y_axis_type='log')
+    p3 = figure(plot_width=500, plot_height=250, y_axis_type='log')
     #p3.line(x='x', y='Hcation', color='darkviolet', line_width=2, legend_label='H+', source=source)
     p3.line(x='x', y='Clanion', color='darkcyan', line_width=2, legend_label='Cl-', source=source)
     p3.line(x='x', y='SO4anion', color='darkorange', line_width=2, legend_label='SO4--', source=source)
@@ -830,14 +891,14 @@ def modify_doc(doc):
     #p3.line(x='x', y='Srcation', color='darkblue', line_width=2, legend_label='Sr++', source=source)
     #p3.line(x='x', y='Nacation', color='blue', line_width=2, legend_label='Na+', source=source)
     p3.x_range = Range1d(xl-0.1, xr+0.1)
-    p3.y_range = Range1d(1e-8, 1e2)
+    p3.y_range = Range1d(1e-8, 1e1)
     p3.xaxis.axis_label = 'Distance [m]'
     p3.yaxis.axis_label = 'Concentration [molal]'
     p3.legend.location = 'top_right'
     p3.title.text = titlestr(0 * dt)
     p3.legend.click_policy = 'mute'
 
-    p4 = figure(plot_width=600, plot_height=250)
+    p4 = figure(plot_width=500, plot_height=250)
     p4.line(x='x', y='Barite_SI', color='indianred', line_width=2, legend_label='SI (Barite)',
            muted_color='teal', muted_alpha=0.2, source=source)
     p4.x_range = Range1d(xl, xr - 1)
@@ -847,7 +908,7 @@ def modify_doc(doc):
     p4.title.text = titlestr(0 * dt)
     p4.legend.click_policy = 'mute'
 
-    layout = column(p1, p2, p3, p4)
+    layout =  gridplot([[p1, p2], [p3, p4]])
 
     # Function that return the data dictionary with provided index of the file
     def update():
@@ -883,16 +944,15 @@ def modify_doc(doc):
 
     doc.add_periodic_callback(update, 500)
     doc.add_root(layout)
-# -
 
 # Outputting the plots to the notebook requires the call of `output_notebook()` that specifies outputting the plot
 # inline in the Jupyter notebook. Finally, the function `modify_doc()` must be passed to `show`, so that the app defined
 # by it is displayed inline.
 #
-# > **Important:** If you run this tutorial in the *localhost*, make sure that number provided to the variable
-# `notebook_url` below coincides with the number of the localhost you have in your browser.
+# > **Important:** If this tutorial is executed in the *localhost*, make sure that the number provided to the variable
+# `notebook_url` below coincides with the number of the localhost of the browser.
 #
-# In the app below, we refresh the reactive time step in a loop, which automatically updates the data source for the
+# In the app below, we refresh the reactive time step in a loop, automatically updating the data source for the
 # plots for ph, volume phases of calcite and dolomite, and mollalities of aqueous species (in logarithmic scale).
 
 output_notebook()
