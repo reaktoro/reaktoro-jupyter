@@ -249,7 +249,7 @@ from bokeh.io import output_notebook
 output_notebook()
 
 def custom_figure(title, y_axis_label, y_axis_type='auto'):
-    return figure(plot_width=600, plot_height=300,
+    return figure(plot_width=400, plot_height=200,
                   title=title,
                   x_axis_label='time',
                   y_axis_label=y_axis_label,
