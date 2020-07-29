@@ -806,7 +806,7 @@ output_notebook()
 
 plot_figures_ph(selected_steps_to_plot)
 
-# Plot calcite and dolomite on the selected steps:
+# Plot pyrrhotite and siderite phase amounts on the selected steps:
 
 plot_figures_pyrrhotite_siderite_amount(selected_steps_to_plot)
 
@@ -852,7 +852,7 @@ def modify_doc(doc):
         return 'Time: %2dh %2dm' % (h, m)
 
     # Plot for ph
-    p1 = figure(plot_width=600, plot_height=250)
+    p1 = figure(plot_width=500, plot_height=250)
     p1.line(x='x', y='pH', color='teal', line_width=2, legend_label='pH', source=source)
     p1.x_range = Range1d(-1, 101)
     p1.y_range = Range1d(4.0, 9.0)
@@ -862,7 +862,7 @@ def modify_doc(doc):
     p1.title.text = titlestr(0 * dt)
 
     # Plot for calcite and dolomite
-    p2 = figure(plot_width=600, plot_height=250)
+    p2 = figure(plot_width=500, plot_height=250)
     p2.line(x='x', y='pyrrhotite_phase_volume', color='blue', line_width=2,
             legend_label='Pyrrhotite', muted_color='blue', muted_alpha=0.2,
             source=source)
@@ -876,7 +876,8 @@ def modify_doc(doc):
     p2.legend.location = 'center_right'
     p2.title.text = titlestr(0 * dt)
     p2.legend.click_policy = 'mute'
-    p3 = figure(plot_width=600, plot_height=300, y_axis_type='log')
+
+    p3 = figure(plot_width=500, plot_height=250, y_axis_type='log')
     p3.line(x='x', y='HSanion', color='darkcyan', line_width=2, legend_label='HS-', source=source)
     p3.line(x='x', y='S2anion', color='darkorange', line_width=2, legend_label='S2--', source=source)
     p3.line(x='x', y='CO3anion', color='seagreen', line_width=2, legend_label='CO3--', source=source)
