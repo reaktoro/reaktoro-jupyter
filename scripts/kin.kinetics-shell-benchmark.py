@@ -26,7 +26,7 @@ minute = 60
 # stored):
 
 t0, t1 = 0.0, 10
-result_file_name = "shell-kinetics-benchmark-tfinal-" + str(t1*minute) + ".txt"
+result_file_name = "kineticpath-shell-benchmark-tfinal-" + str(t1*minute) + ".txt"
 
 # Define chemical system:
 
