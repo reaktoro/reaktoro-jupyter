@@ -100,8 +100,8 @@ assert CFL <= 1.0, f"Make sure that CFL = {CFL} is less that 1.0"
 # ## Specifying the quantities and properties to be outputted
 #
 # Before running the reactive transport simulations, we provide a list of parameters we are interested in outputting.
-# In this case, it is `pH`, molality of `H+`, `Cl-`, `SO4--`, `Ba++`, `Ca++`, `Sr++`, `Na+`, as well as the concentration,
-# the phase amount, and the volume of barite (BaSO<sub>4</sub>) mineral.
+# In this case, it is `pH`, molality of `H+`, `Cl-`, `SO4--`, `Ba++`, `Ca++`, `Sr++`, `Na+`, as well as the
+# concentration, the phase amount, and the volume of barite (BaSO<sub>4</sub>) mineral.
 
 output_quantities = """
     pH
@@ -248,8 +248,8 @@ def define_initial_condition_fw(system):
 
 # ### Boundary condition (BC) of the reactive transport problem
 
-# Next, we define the **boundary condition** of the constructed chemical system applied the first 45 hours of simulations.
-# The 7-mol sodium chloride brine below defines completion brine (CB).
+# Next, we define the **boundary condition** of the constructed chemical system applied the first 45 hours of
+# simulations. The 7-mol sodium chloride brine below defines completion brine (CB).
 
 def define_boundary_condition_cb(system):
 
@@ -358,7 +358,8 @@ def define_boundary_condition_sw_phreeqc(system):
 #
 # We use methods
 # [indicesFluidSpecies](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html#ac2a8b713f46f7a66b2731ba63faa95ad)
-# and [indicesSolidSpecies](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html#a8b0c237fff1d827f7bf2dbc911fa5bbf)
+# and
+# [indicesSolidSpecies](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html#a8b0c237fff1d827f7bf2dbc911fa5bbf)
 # of class [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html) to get the indices of the
 # fluid and solid species, to separate mobile from immobile ones.
 
@@ -381,7 +382,8 @@ def partition_indices(system):
 # system, and those in the fluid partition and in the solid partition at every time step.
 #
 # The array `b` is initialized with the concentrations of the elements at the initial chemical state, `state_ic`, using
-# method [elementAmounts](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html#a827457e68a90f89920c13f0cc06fda78)
+# method
+# [elementAmounts](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html#a827457e68a90f89920c13f0cc06fda78)
 # of class [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html). The array `b_bc` stores the
 # concentrations of each element on the boundary in mol/m<sup>3</sup><sub>fluid</sub> and is obtained similarly from
 # the `state_bc`.
@@ -426,9 +428,10 @@ def partition_elements_in_mesh_cell(ncells, nelems, state_ic, state_bc_cb, state
 # of the class [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html) to retrieve fluid volume
 # m<sup>3</sup><sub>fluid</sub> and total volume m<sup>3</sup><sub>bulk</sub> in the inflow boundary cell.
 #
-# Finally, the updated amounts of elements in the fluid partition are summed with the amounts of elements in the solid
-# partition (remained constant during the transport step), and thus updating the amounts of elements in the chemical
-# system `b`. Reactive transport calculations involve the solution of a system of advection-diffusion-reaction equations.
+# Finally, the updated amounts of elements in the fluid partition are summed with the amounts of elements in the
+# solid partition (remained constant during the transport step), and thus updating the amounts of elements in the
+# chemical system `b`. Reactive transport calculations involve the solution of a system of
+# advection-diffusion-reaction equations.
 
 def transport(states, bfluid, bsolid, b, b_bc, nelems, ifluid_species, isolid_species):
 
@@ -504,7 +507,8 @@ def transport_fullimplicit(u, dt, dx, v, D, ul):
 # #### Solving the system of equations obtained from finite volume discretization
 #
 # The tridiagonal matrix equation is solved using the
-# [Thomas algorithm](https://en.wikipedia.org/wiki/Tridiagonal_matrix_algorithm) (or the TriDiagonal Matrix Algorithm (TDMA)).
+# [Thomas algorithm](https://en.wikipedia.org/wiki/Tridiagonal_matrix_algorithm)
+# (or the TriDiagonal Matrix Algorithm (TDMA)).
 
 def thomas(a, b, c, d):
     n = len(d)
@@ -576,8 +580,8 @@ def titlestr(t):
     m = int(t) % 60  # The number of remaining minutes
     return 'Time: %2dh %2dm' % (h, m)
 
-# Routines `plot_figures_ph()`, `plot_figures_barite_phase_amount()`, `plot_figures_barite_concetration()`,
-# `plot_figues_barite_saturation_index()`, and 'plot_figures_aqueous_species()' drawing the plots with
+# Routines `plot_figures_ph()`, `plot_figures_barite_phase_amount()`, `plot_figures_barite_concentration()`,
+# `plot_figures_barite_saturation_index()`, and 'plot_figures_aqueous_species()' drawing the plots with
 # chemical states or properties on the selected steps.
 
 def plot_figures_ph(steps):
@@ -624,7 +628,7 @@ def plot_figures_barite_phase_amount(steps):
     grid = gridplot(plots)
     show(grid)
 
-def plot_figures_barite_concetration(steps):
+def plot_figures_barite_concentration(steps):
     plots = []
     for i in steps:
         print("On barite figure at time step: {}".format(i))
@@ -646,7 +650,7 @@ def plot_figures_barite_concetration(steps):
     grid = gridplot(plots)
     show(grid)
 
-def plot_figues_barite_saturation_index(steps):
+def plot_figures_barite_saturation_index(steps):
     plots = []
     for i in steps:
         print("On barite's SI figure at time step: {}".format(i))
@@ -794,17 +798,17 @@ output_notebook()
 # Select the steps on which results with pH must be output.
 
 selected_steps_to_plot = [45, 60, 300]
-assert all(step <= nsteps for step in selected_steps_to_plot), f"Make sure that selceted steps are less than " \
+assert all(step <= nsteps for step in selected_steps_to_plot), f"Make sure that selected steps are less than " \
                                                                f"total amount of steps {nsteps}"
 plot_figures_ph(selected_steps_to_plot)
 
 # Select the steps on which the rest of the species must be demonstrated.
 
 selected_steps_to_plot = [120, 300, 600]
-assert all(step <= nsteps for step in selected_steps_to_plot), f"Make sure that selceted steps are less than " \
+assert all(step <= nsteps for step in selected_steps_to_plot), f"Make sure that selected steps are less than " \
                                                                f"total amount of steps {nsteps}"
 
-# After the execution of functions `plot_figures_barite_concetration()` and `plot_figues_barite_saturation_index()`,
+# After the execution of functions `plot_figures_barite_concentration()` and `plot_figures_barite_saturation_index()`,
 # we see that the mineral starts to precipitate right after we initiate the injection of seawater. It happens due to
 # the mixing of the formation water (FW) and seawater (SW), which have contrasting compositions. In particular, SW
 # is low on Ba<sup>2+</sup> and high on SO<sub>4</sub><sup>2-</sup> concentrations, whereas FW, on the opposite, is
@@ -814,11 +818,11 @@ assert all(step <= nsteps for step in selected_steps_to_plot), f"Make sure that 
 # hampers well productivity/injectivity. Other mineral that have potential to scaling are CaCO<sub>3</sub> (calcite),
 # CaSO<sub>4</sub> (calcium sulfate), FeCO<sub>3</sub> (siderite).
 
-# Plot barite's concetration on the selected steps:
-plot_figures_barite_concetration(selected_steps_to_plot)
+# Plot barite's concentration on the selected steps:
+plot_figures_barite_concentration(selected_steps_to_plot)
 
 # Plot barite's saturation index on the selected steps:
-plot_figues_barite_saturation_index(selected_steps_to_plot)
+plot_figures_barite_saturation_index(selected_steps_to_plot)
 
 # In the plots of the aqueous species below, we see that we have a decrease of Ba<sup>2+</sup> concentrations during
 # mixing, consumed by the barite. The concentration of SO<sub>4</sub><sup>2-</sup> in SW is considerably
