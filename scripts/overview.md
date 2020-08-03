@@ -47,6 +47,8 @@ chemical equilibrium, chemical kinetics, and reactive transport problems.
 * [Reactive transport modeling along a rock core after injection of the fluid-rock composition](rt.calcite-dolomite.ipynb)
 * [Coupling Reaktoro into other reactive transport codes](rt.coupling-reaktoro-to-transport.ipynb)
 * [Reactive transport modeling of the H<sub>2</sub>S scavenging process along a rock core](rt.scavenging.ipynb)
+* [Reactive transport modeling of the H<sub>2</sub>S scavenging process along a rock core (with hematite and pyrite)](rt.scavenging-with-hematite-and-pyrite.ipynb)
+* [Scaling of barite as a result of the waterflooding](rt.scaling.ipynb)
 
 ### Tutorials on explaining the most important classes in Reaktoro:
 
