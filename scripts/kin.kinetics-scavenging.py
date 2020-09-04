@@ -52,8 +52,13 @@ system = ChemicalSystem(editor)
 # kaolinite using chemical editor:
 
 # +
+# editor.addMineralReaction("Hematite") \
+#     .setEquation("Hematite + 4*H+ = 2*H2O(l) + 2*Fe++ + 0.5*O2(aq)") \
+#     .addMechanism("logk = -14.60 mol/(m2*s); Ea = 66.2 kJ/mol") \
+#     .addMechanism("logk = -9.39 mol/(m2*s); Ea = 66.2 kJ/mol; a[H+] = 1.0") \
+#     .setSpecificSurfaceArea(10, "cm2/g")
 editor.addMineralReaction("Hematite") \
-    .setEquation("Hematite + 4*H+ = 2*H2O(l) + 2*Fe++ + 0.5*O2(aq)") \
+    .setEquation("Hematite + 6*H+ = 3*H2O(l) + 2*Fe+++") \
     .addMechanism("logk = -14.60 mol/(m2*s); Ea = 66.2 kJ/mol") \
     .addMechanism("logk = -9.39 mol/(m2*s); Ea = 66.2 kJ/mol; a[H+] = 1.0") \
     .setSpecificSurfaceArea(10, "cm2/g")
@@ -70,7 +75,8 @@ reactions = ReactionSystem(editor)
 # Specifying the partition including the kinetic species:
 
 partition = Partition(system)
-partition.setKineticSpecies(["Hematite", "Pyrite"])
+#partition.setKineticSpecies(["Hematite", "Pyrite"])
+partition.setKineticSpecies(["Hematite"])
 
 
 T = 25.0 + 273.15       # temperature (in units of celsius)
@@ -166,35 +172,35 @@ fig0 = custom_figure(title="pH w.r.t. time", y_axis_label='pH [-]')
 fig0.line(time, data[ph_indx], line_width=4, color="darkviolet")
 show(fig0)
 
-fig1_1 = custom_figure(title="Minerals molality w.r.t. time", y_axis_label='Molality [molal]', y_axis_type="log")
+fig1_1 = custom_figure(title="Minerals concentrations w.r.t. time", y_axis_label='Concentrations [mol/m3]', y_axis_type="log")
 fig1_1.line(time, data[siderite_indx], line_width=4, color="yellow", legend_label="Siderite")
 show(fig1_1)
 
-fig1_2 = custom_figure(title="Minerals molality w.r.t. time", y_axis_label='Molality [molal]', y_axis_type="log")
+fig1_2 = custom_figure(title="Minerals concentrations w.r.t. time", y_axis_label='Concentrations [mol/m3]', y_axis_type="log")
 fig1_2.line(time, data[pyrite_indx], line_width=4, color="red", legend_label="Pyrite")
 show(fig1_2)
 
-fig1_3 = custom_figure(title="Minerals molality w.r.t. time", y_axis_label='Molality [molal]', y_axis_type="log")
+fig1_3 = custom_figure(title="Minerals concentrations w.r.t. time", y_axis_label='Concentrations [mol/m3]', y_axis_type="log")
 fig1_3.line(time, data[hematite_indx], line_width=4, color="green", legend_label="Hematite")
 show(fig1_3)
 
-fig2_1 = custom_figure(title="Aqueous species molality w.r.t. time", y_axis_label='Molality [mmolal]', y_axis_type="log")
+fig2_1 = custom_figure(title="Aqueous species concentrations w.r.t. time", y_axis_label='Molality [mmolal]', y_axis_type="log")
 fig2_1.line(time, data[hs_speices_indx], line_width=4, legend_label="HS-", color="pink")
 show(fig2_1)
 
-fig2_2 = custom_figure(title="Aqueous species molality w.r.t. time", y_axis_label='Molality [mmolal]', y_axis_type="log")
+fig2_2 = custom_figure(title="Aqueous species concentrations w.r.t. time", y_axis_label='Molality [mmolal]', y_axis_type="log")
 fig2_2.line(time, data[s2_species_indx], line_width=4, legend_label="S2-", color="brown")
 show(fig2_2)
 
-fig2_3 = custom_figure(title="Aqueous species molality w.r.t. time", y_axis_label='Molality [mmolal]', y_axis_type="log")
+fig2_3 = custom_figure(title="Aqueous species concentrations w.r.t. time", y_axis_label='Molality [mmolal]', y_axis_type="log")
 fig2_3.line(time, data[co3_species_indx], line_width=4, legend_label="CO3--", color="gold")
 show(fig2_3)
 
-fig2_4 = custom_figure(title="Aqueous species molality w.r.t. time", y_axis_label='Molality [mmolal]', y_axis_type="log")
+fig2_4 = custom_figure(title="Aqueous species concentrations w.r.t. time", y_axis_label='Molality [mmolal]', y_axis_type="log")
 fig2_4.line(time, data[hso4_species_indx], line_width=4, legend_label="HSO4-", color="olive")
 show(fig2_4)
 
-fig2_5 = custom_figure(title="Aqueous species molality w.r.t. time", y_axis_label='Molality [mmolal]', y_axis_type="log")
+fig2_5 = custom_figure(title="Aqueous species concentrations w.r.t. time", y_axis_label='Molality [mmolal]', y_axis_type="log")
 fig2_5.line(time, data[h2s_species_indx], line_width=4, legend_label="H2S(aq)", color="darkblue")
 show(fig2_5)
 
