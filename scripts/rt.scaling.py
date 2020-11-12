@@ -25,6 +25,7 @@
 
 # +
 from reaktoro import *
+from math import *
 import numpy as np
 from tqdm.notebook import tqdm
 import os
@@ -132,10 +133,11 @@ column_quantities = """
     Barite
     Barite_phase_amount
     Barite_phase_volume
-    Barite_SI
+    Barite_saturation_index
+    Barite_stability_index
 """.split()
 
-# > **Note**: All the properties mentioned above (except barite's saturation/equilibrium index) are available using
+# > **Note**: All the properties mentioned above (except barite's saturation/stability index) are available using
 # the class [ChemicalOutput](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalOutput.html). To retrieve properties
 # that are not included in `ChemicalOutput` functionality, we add several code lines to the `outputstate_df()` function.
 
@@ -155,7 +157,7 @@ def make_results_folders():
 # Subsections below correspond to the methods responsible for each of the functional parts of the reactive transport
 # simulation performed in the main part of the tutorial.
 #
-# ### Construction of the chemical system with its phases and species
+# ### Construction of the chemical system with its phases, species, and barite reactions
 #
 # To define the chemical system, we need to initialize the class
 # [Database](https://reaktoro.org/cpp/classReaktoro_1_1Database.html)
@@ -191,6 +193,20 @@ def define_chemical_system():
     system = ChemicalSystem(editor)
 
     return system
+
+# To evaluate the saturation indices of barite later, we define the corresponding reaction with function below.
+
+def define_chemical_reactions():
+
+    # Define barite reaction equation
+    req_barite = ReactionEquation("Barite = SO4-- + Ba++")
+
+    # Define barite chemical reaction based on the reaction equation and chemical system
+    reaction_barite = Reaction(req_barite, system)
+
+    # Create a list of reactions and return them
+    return [reaction_barite]
+
 
 # ### Initial condition (IC) of the reactive transport problem
 #
@@ -544,7 +560,8 @@ def reactive_chemistry(solver, states, b):
 #
 # Function `outputstate_df` is the auxiliary function to add data to the `DataFrame` instance at each time step.
 
-def outputstate_df(step, system, states):
+def outputstate_df(step, system, reactions, states):
+
     # Define the instance of ChemicalQuantity class
     quantity = ChemicalQuantity(system)
 
@@ -561,10 +578,23 @@ def outputstate_df(step, system, states):
         for quantity_name, i in zip(output_quantities, range(2, len(states))):
             values[i] = quantity.value(quantity_name) * (100 / (1 - phi) if "phaseVolume" in quantity_name else 1)
 
-        # Fetch Barite's saturation index
+        # Fetch Barite's stability index
         phase_SI = state.phaseStabilityIndices()
         barite_phase_index = system.indexPhase("Barite")
         values[-1] = phase_SI[barite_phase_index]
+
+        # Calculate barite's saturation index
+        # Fetch chemical properties
+        props = state.properties()
+        # Calculate equilibrium constant
+        lnK_barite = reactions[0].lnEquilibriumConstant(props)
+        # Calculate reaction quotient
+        lnQ_barite = reactions[0].lnReactionQuotient(props)
+        # Calculate saturation ratio
+        SR_barite = lnQ_barite.val - lnK_barite.val
+        # Calculate saturation index
+        SI_barite = exp(SR_barite)
+        values[-2] = SI_barite
 
         # Add values into the dataframe
         df.loc[len(df)] = values
@@ -581,7 +611,7 @@ def titlestr(t):
     return 'Time: %2dh %2dm' % (h, m)
 
 # Routines `plot_figures_ph()`, `plot_figures_barite_phase_amount()`, `plot_figures_barite_concentration()`,
-# `plot_figures_barite_saturation_index()`, and 'plot_figures_aqueous_species()' drawing the plots with
+# `plot_figures_barite_stability_index()`, and 'plot_figures_aqueous_species()' drawing the plots with
 # chemical states or properties on the selected steps.
 
 def plot_figures_ph(steps):
@@ -650,19 +680,40 @@ def plot_figures_barite_concentration(steps):
     grid = gridplot(plots)
     show(grid)
 
-def plot_figures_barite_saturation_index(steps):
+def plot_figures_barite_stability_index(steps):
     plots = []
     for i in steps:
-        print("On barite's SI figure at time step: {}".format(i))
+        print("On barite's stability index figure at time step: {}".format(i))
         t = i * dt
         source = ColumnDataSource(df[df['step'] == i])
 
         p = figure(plot_width=600, plot_height=250)
-        p.line(x='x', y='Barite_SI', color='indianred', line_width=2, legend_label='SI (Barite)',
+        p.line(x='x', y='Barite_stability_index', color='indianred', line_width=2, legend_label='Barite',
                muted_color='teal', muted_alpha=0.2, source=source)
         p.x_range = Range1d(xl-0.1, xr+0.1)
         p.xaxis.axis_label = 'Distance [m]'
-        p.yaxis.axis_label = 'SI [-]'
+        p.yaxis.axis_label = 'Stability Index [-]'
+        p.legend.location = 'top_right'
+        p.title.text = titlestr(t)
+        p.legend.click_policy = 'mute'
+        plots.append([p])
+
+    grid = gridplot(plots)
+    show(grid)
+
+def plot_figures_barite_saturation_index(steps):
+    plots = []
+    for i in steps:
+        print("On barite's saturation index figure at time step: {}".format(i))
+        t = i * dt
+        source = ColumnDataSource(df[df['step'] == i])
+
+        p = figure(plot_width=600, plot_height=250)
+        p.line(x='x', y='Barite_saturation_index', color='indianred', line_width=2, legend_label='Barite',
+               muted_color='teal', muted_alpha=0.2, source=source)
+        p.x_range = Range1d(xl-0.1, xr+0.1)
+        p.xaxis.axis_label = 'Distance [m]'
+        p.yaxis.axis_label = 'Saturation Index [-]'
         p.legend.location = 'top_right'
         p.title.text = titlestr(t)
         p.legend.click_policy = 'mute'
@@ -707,6 +758,10 @@ make_results_folders()
 
 system = define_chemical_system()
 
+# Define the reaction for the barite mineral.
+
+reactions = define_chemical_reactions()
+
 # Define the initial condition of the reactive transport modeling problem.
 
 state_ic = define_initial_condition_fw(system)
@@ -743,7 +798,7 @@ step = 0  # the current step number
 t = 0.0  # the current time (in seconds)
 
 # Output the initial state of the reactive transport calculation
-outputstate_df(step, system, states)
+outputstate_df(step, system, reactions, states)
 
 with tqdm(total=nsteps_cb, desc="45 hours of completion brine (CB) injection") as pbar:
     while step < nsteps_cb:
@@ -758,7 +813,7 @@ with tqdm(total=nsteps_cb, desc="45 hours of completion brine (CB) injection") a
         step += 1
 
         # Output the current state of the reactive transport calculation
-        outputstate_df(step, system, states)
+        outputstate_df(step, system, reactions, states)
 
         # Update a progress bar
         pbar.update(1)
@@ -780,7 +835,7 @@ with tqdm(total=nsteps_sw, desc="855 hours of seawater (SW) injection") as pbar:
         step += 1
 
         # Output the current state of the reactive transport calculation
-        outputstate_df(step, system, states)
+        outputstate_df(step, system, reactions, states)
 
         # Update a progress bar
         pbar.update(1)
@@ -808,7 +863,7 @@ selected_steps_to_plot = [120, 300, 600]
 assert all(step <= nsteps for step in selected_steps_to_plot), f"Make sure that selected steps are less than " \
                                                                f"total amount of steps {nsteps}"
 
-# After the execution of functions `plot_figures_barite_concentration()` and `plot_figures_barite_saturation_index()`,
+# After the execution of functions `plot_figures_barite_concentration()` and `plot_figures_barite_stability_index()`,
 # we see that the mineral starts to precipitate right after we initiate the injection of seawater. It happens due to
 # the mixing of the formation water (FW) and seawater (SW), which have contrasting compositions. In particular, SW
 # is low on Ba<sup>2+</sup> and high on SO<sub>4</sub><sup>2-</sup> concentrations, whereas FW, on the opposite, is
@@ -820,6 +875,10 @@ assert all(step <= nsteps for step in selected_steps_to_plot), f"Make sure that 
 
 # Plot barite's concentration on the selected steps:
 plot_figures_barite_concentration(selected_steps_to_plot)
+
+# The saturation index of the mineral is defined as a ratio of equilibrium constant and reaction quotient.
+# It is 1 for minerals that are precipitated (i.e., in equilibrium with the solution), SI > 1 for supersaturated minerals,
+# and SI < 1 for undersaturated minerals.
 
 # Plot barite's saturation index on the selected steps:
 plot_figures_barite_saturation_index(selected_steps_to_plot)
@@ -865,7 +924,7 @@ def modify_doc(doc):
     p2.line(x='x', y='Barite', color='darkorchid', line_width=2, legend_label='Barite',
            muted_color='darkorchid', muted_alpha=0.2, source=source)
     p2.x_range = Range1d(xl, xr - 1)
-    p2.y_range = Range1d(0.0, 8e-4)
+    p2.y_range = Range1d(-5e-5, 8e-4)
     p2.xaxis.axis_label = 'Distance [m]'
     p2.yaxis.axis_label = 'Concentration [mol/m3]'
     p2.legend.location = 'center_right'
@@ -888,11 +947,12 @@ def modify_doc(doc):
     p3.legend.click_policy = 'mute'
 
     p4 = figure(plot_width=500, plot_height=250)
-    p4.line(x='x', y='Barite_SI', color='indianred', line_width=2, legend_label='SI (Barite)',
+    p4.line(x='x', y='Barite_saturation_index', color='indianred', line_width=2, legend_label='Barite',
            muted_color='teal', muted_alpha=0.2, source=source)
     p4.x_range = Range1d(xl, xr - 1)
+    p4.y_range = Range1d(-1e-1, 1 + 1e-1)
     p4.xaxis.axis_label = 'Distance [m]'
-    p4.yaxis.axis_label = 'SI [-]'
+    p4.yaxis.axis_label = 'Saturation Index [-]'
     p4.legend.location = 'center_right'
     p4.title.text = titlestr(0 * dt)
     p4.legend.click_policy = 'mute'
@@ -922,7 +982,8 @@ def modify_doc(doc):
                         Nacation=new_source.data['Nacation'],
                         Barite=new_source.data['Barite'],
                         Barite_phase_volume=new_source.data['Barite_phase_volume'],
-                        Barite_SI=new_source.data['Barite_SI'])
+                        Barite_saturation_index=new_source.data['Barite_saturation_index'],
+                        Barite_stability_index=new_source.data['Barite_stability_index'])
 
         p1.title.text = titlestr(step_number * dt)
         p2.title.text = titlestr(step_number * dt)
