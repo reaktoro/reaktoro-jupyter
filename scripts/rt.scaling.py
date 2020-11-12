@@ -578,7 +578,7 @@ def outputstate_df(step, system, reactions, states):
         for quantity_name, i in zip(output_quantities, range(2, len(states))):
             values[i] = quantity.value(quantity_name) * (100 / (1 - phi) if "phaseVolume" in quantity_name else 1)
 
-        # Fetch Barite's stability index
+        # Fetch barite's stability index
         phase_SI = state.phaseStabilityIndices()
         barite_phase_index = system.indexPhase("Barite")
         values[-1] = phase_SI[barite_phase_index]
