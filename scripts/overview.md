@@ -34,11 +34,13 @@ chemical equilibrium, chemical kinetics, and reactive transport problems.
 * [Custom activity model for equilibrium calculations](eq.custom-activity-models.ipynb)
 * [Inverse chemical equilibrium calculation](eq.inverse-equilibrium.ipynb)
 * [Equilibrium path calculation](eq.equilibriumpath.ipynb)
+* [Analysis of the Evian water (with Reaktoro and PHREEQC backend)](eq.evian-water-analysis.ipynb)
 
 ### Tutorials on performing chemical kinetics calculations:
 
 * [Dissolution of calcite in an acidic HCl-solution](kin.calcite-hcl.ipynb)
 * [Dissolution of carbonate minerals in a carbon dioxide saturated brine](kin.carbonates-co2.ipynb)
+* [Precipitation of barite as a result or waterflooding](kin.barite-precipitation.ipynb)
 
 ### Tutorials on performing reactive transport calculations:
 
