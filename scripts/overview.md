@@ -34,11 +34,14 @@ chemical equilibrium, chemical kinetics, and reactive transport problems.
 * [Custom activity model for equilibrium calculations](eq.custom-activity-models.ipynb)
 * [Inverse chemical equilibrium calculation](eq.inverse-equilibrium.ipynb)
 * [Equilibrium path calculation](eq.equilibriumpath.ipynb)
+* [Analysis of the Evian water (with Reaktoro and PHREEQC backend)](eq.evian-water-analysis.ipynb)
+* [Solubility of sodium chloride salt in water (using Setschenow activity model)](eq.equilibrium-setschenow-activity-model.ipynb)
 
 ### Tutorials on performing chemical kinetics calculations:
 
 * [Dissolution of calcite in an acidic HCl-solution](kin.calcite-hcl.ipynb)
 * [Dissolution of carbonate minerals in a carbon dioxide saturated brine](kin.carbonates-co2.ipynb)
+* [Precipitation of barite as a result or waterflooding](kin.barite-precipitation.ipynb)
 
 ### Tutorials on performing reactive transport calculations:
 
@@ -47,6 +50,8 @@ chemical equilibrium, chemical kinetics, and reactive transport problems.
 * [Reactive transport modeling along a rock core after injection of the fluid-rock composition](rt.calcite-dolomite.ipynb)
 * [Coupling Reaktoro into other reactive transport codes](rt.coupling-reaktoro-to-transport.ipynb)
 * [Reactive transport modeling of the H<sub>2</sub>S scavenging process along a rock core](rt.scavenging.ipynb)
+* [Reactive transport modeling of the H<sub>2</sub>S scavenging process along a rock core (with hematite and pyrite)](rt.scavenging-with-hematite-and-pyrite.ipynb)
+* [Scaling of barite as a result of the waterflooding](rt.scaling.ipynb)
 
 ### Tutorials on explaining the most important classes in Reaktoro:
 
