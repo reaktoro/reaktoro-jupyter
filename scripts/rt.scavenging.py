@@ -685,7 +685,7 @@ def plot_figures_pyrrhotite_siderite_volume(steps):
         p.x_range = Range1d(-1, 101)
         p.y_range = Range1d(-0.001, 0.018)
         p.xaxis.axis_label = 'Distance [m]'
-        p.yaxis.axis_label = 'Mineral Volume [%vol]'
+        p.yaxis.axis_label = 'Phase Volume [m3]'
         p.legend.location = 'center_right'
         p.title.text = titlestr(t)
         p.legend.click_policy = 'mute'
@@ -709,7 +709,7 @@ def plot_figures_pyrrhotite_siderite_amount(steps):
         p.x_range = Range1d(-1, 101)
         p.y_range = Range1d(-0.5, 5.5)
         p.xaxis.axis_label = 'Distance [m]'
-        p.yaxis.axis_label = 'Mineral Amount [mol]'
+        p.yaxis.axis_label = 'Phase Amount [mol]'
         p.legend.location = 'center_right'
         p.title.text = titlestr(t)
         p.legend.click_policy = 'mute'
