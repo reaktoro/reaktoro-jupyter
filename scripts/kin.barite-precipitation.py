@@ -23,6 +23,7 @@
 # +
 # Import reaktoro package
 from reaktoro import *
+import numpy as np
 
 # Define time related constants
 second = 1
@@ -34,7 +35,6 @@ day = 60 * hour
 T = 60.0        # temperature (in units of Celsius)
 P = 200.0       # pressure (in units of atm)
 water_kg = 1.00 # water mass
-
 # -
 
 # Next, we construct the chemical system with its phases and species and fetch Debye-Huckel activity model parameters.
@@ -211,9 +211,9 @@ path.solve(state_fw, t0, tfinal, "days")
 
 # For plotting of the results of equilibrium path calculation, we load the results into the `data` array:
 
-filearray = numpy.loadtxt(result_file_name, skiprows=1) # load data from the file skipping the one row
+filearray = np.loadtxt(result_file_name, skiprows=1) # load data from the file skipping the one row
 data = filearray.T  # transpose the matrix with data
-[time_indx, barite_indx] = numpy.arange(0, 2)
+[time_indx, barite_indx] = np.arange(0, 2)
 
 # To visually analyze the obtained reaction path, we export
 # [bokeh](https://docs.bokeh.org/en/latest/docs/gallery.html#standalone-examples) python plotting package.
