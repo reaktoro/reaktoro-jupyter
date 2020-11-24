@@ -15,20 +15,23 @@
 #     name: python3
 # ---
 
-# # Reactive transport modeling of the H<sub>2</sub>S scavenging process along a rock core
+# # Reactive transport modeling of the H<sub>2</sub>S scavenging (with Hematite and  Pyrite)
 #
-# In this tutorial, we show how Reaktoro can be used for sequential reactive transport calculations of the injected
-# H<sub>2</sub>S-rich brine into the siderite bearing reservoir with subsequent pyrrhotite, or otherwise called
-# mackinawite, (FeS) precipitation.
+# In this tutorial is dedicated to sequential reactive transport calculations of the injected
+# H<sub>2</sub>S-rich brine into a siderite- and hematite-bearing reservoir with subsequent pyrite precipitation.
+# All minerals are assumed to be handle by the local equilibrium.
+#
+# > **Note**: Similar example of H<sub>2</sub>S scavenging (with dissolving siderite and precipitating pyrrhotite)
+# > can also be found in the tutorial
+# > [Reactive transport modeling of the H<sub>2</sub>S scavenging process along a rock core](rt.scavenging.ipynb).
 #
 # ## Importing python packages
 #
-# First, we need to import a few Python packages to enable the numerical calculations and plotting.
+# First, we need to import a few Python packages to enable numerical calculations and plotting.
 
 # +
 from reaktoro import *
 import numpy as np
-from natsort import natsorted
 from tqdm.notebook import tqdm
 import os
 
@@ -40,29 +43,30 @@ from bokeh.models import Range1d, ColumnDataSource
 from bokeh.layouts import gridplot
 # -
 
-# We import the **reaktoro** Python package so that we can use its classes and methods for performing chemical
+# In particular, we import the **reaktoro** package to use Reaktoro's classes and methods for performing chemical
 # reaction calculations, **numpy** for working with arrays, **tqdm** for the progress bar functionality and **os**,
-# to provide a portable way of using operating system dependent functionality. For plotting capabilities of obtained
-# results, we use **bokeh** library.
+# to provide a portable way of using operating system dependent functionality. For plotting capabilities,
+# we use **bokeh** library.
 #
 # ## Initializing auxiliary time-related constants
-#
-# In this step, we initialize auxiliary time-related constants from seconds up to days used in the rest of the code.
+# In this step, we initialize auxiliary time-related constants from seconds up to years used in the rest of the code.
 
 second = 1
 minute = 60
 hour = 60 * minute
 day = 24 * hour
+week = 7 * day
+year = 365 * day
 
 # ## Defining parameters for the reactive transport simulation
 #
 # Next, we define reactive transport and numerical discretization parameters. In particular, we specify the considered
 # rock domain by setting coordinates of its left and right boundaries to 0.0 m and 100.0 m, respectively. The
-# discretization parameters, i.e., the number of cells and steps in time, are set to 100 and 1000, respectively.
-# The reactive transport modeling procedure assumes a constant fluid velocity of 1.05 · 10<sup>-5</sup> m/s and
-# the zero diffusion coefficient for all fluid species. The size of the time-step is set to 0.05 days (1.2 hours).
-# Temperature and pressure are set to 25 &deg;C and 1 atm (1.01325 bar), respectively, throughout the tutorial.
-# The porosity fo the rock is set to 10%.
+# discretization parameters, i.e., the number of cells and steps in time, are set to 100 and 2500, respectively.
+# The reactive transport modeling procedure assumes a constant fluid velocity of 3 · 10<sup>-5</sup> m/s and
+# the zero diffusion coefficient for all fluid species. The size of the time-step is set to 0.1 days (2.4 hours).
+# Temperature and pressure are set to 60 &deg;C (333.15 K) and 200 atm (200 * 1.01325 * 1e5), respectively, throughout
+# the tutorial. The porosity of the rock is set to 10%.
 
 # +
 # Discretization parameters
@@ -71,25 +75,24 @@ xr = 100.0              # x-coordinate of the right boundary
 ncells = 100            # number of cells in the discretization
 nsteps = 1000           # number of steps in the reactive transport simulation
 dx = (xr - xl) / ncells # length of the mesh cells (in units of m)
-dt = 0.05*day           # time step
+dt = 0.1*day            # time step
 
 # Physical parameters
 D = 0               # diffusion coefficient (in units of m2/s)
-v = 1.05e-5         # fluid pore velocity (in units of m/s)
-T = 25.0 + 273.15   # temperature (in units of K)
-P = 1.01325 * 1e5   # pressure (in units of Pa)
+v = 3e-5            # fluid pore velocity (in units of m/s)
+T = 60.0 + 273.15   # temperature (in units of K)
+P = 200 * 1.01325 * 1e5   # pressure (in units of Pa)
 phi = 0.1           # the porosity
 # -
 
 # Next, we generate the coordinates of the mesh nodes (array `xcells`) by equally dividing the interval *[xr, xl]* with
-# the number of cells `ncells`. The length between each consecutive mesh node is computed and stored in `dx` (the
-# length of the mesh cells).
+# the number of cells `ncells`. The length of the mesh-node is denoted by `dx`.
 
 xcells = np.linspace(xl, xr, ncells + 1)  # interval [xl, xr] split into ncells
 
-# The boolean variable `dirichlet` is set to `True` or `False` depending on which boundary condition is considered in
+# The boolean variable `dirichlet` is set to `True` or `False`, depending on which boundary condition is considered in
 # the numerical calculation. `False` corresponds to imposing the flux of the injected fluid; otherwise, `True` means
-# imposing the fluid composition on the left boundary.
+# imposing the composition of the fluid on the left boundary.
 
 dirichlet = False  # parameter that determines whether Dirichlet BC must be used
 
@@ -97,13 +100,14 @@ dirichlet = False  # parameter that determines whether Dirichlet BC must be used
 # number, which should be less than 1.0.
 
 CFL = v * dt / dx
+print("CFL = ", CFL)
 assert CFL <= 1.0, f"Make sure that CFL = {CFL} is less that 1.0"
 
 # ## Specifying the quantities and properties to be outputted
 #
-# Before running the reactive transport simulations, we create the list of parameters we are interested in outputting.
-# In this case, it is `pH`, molality of `H+`, `HS-`, `S2--`, `CO3--`, `HSO4-`, `H2S(aq)`, `Fe++`, as well as a phase
-# amount/volume of minerals pyrrhotite and siderite.
+# Before running the reactive transport simulations, we specify the list of parameters to be output, i.e.,
+# `pH`, molality of `H+`, `HS-`, `S2--`, `CO3--`, `HSO4-`, `H2S(aq)`, `Fe++`, as well as the concentrations
+# of siderite, pyrite, and hematite.
 
 output_quantities = """
     pH
@@ -114,14 +118,12 @@ output_quantities = """
     speciesMolality(HSO4-)
     speciesMolality(H2S(aq))
     speciesMolality(Fe++)
-    phaseAmount(Pyrrhotite)
-    phaseAmount(Siderite)
-    phaseVolume(Pyrrhotite)
-    phaseVolume(Siderite)
+    speciesMolality(Pyrite)
+    speciesMolality(Hematite)
 """.split()
 
-# Then, we define the list of names for the DataFrame columns. Note, that they must correspond
-# to the order of the properties defined in the `output_quantities` list:
+# Then, we define the list of names for the DataFrame columns. Note that they must correspond to the order of the
+# properties defined in the `output_quantities` list.
 
 column_quantities = """
     pH
@@ -132,13 +134,11 @@ column_quantities = """
     HSO4anion
     H2Saq
     Fe2cation
-    pyrrhotite_phase_amount
-    siderite_phase_amount
-    pyrrhotite_phase_volume
-    siderite_phase_volume
+    pyrite
+    hematite
 """.split()
 
-# Create the list of columns and initialized with it the instance of dataframe:
+# Create the list of columns and initialize `DataFrame` instance with it.
 
 columns = ['step', 'x'] + column_quantities
 import pandas as pd
@@ -146,10 +146,9 @@ df = pd.DataFrame(columns=columns)
 
 # ## Organization of the program
 #
-# The main part of the program (at the bottom of this tutorial) consists of three parts, each represented by a Python
-# function and documented in the following sections:
-# * creation of folders for the results (function `make_results_folders()`),
-# * simulation of reactive transport problem (method `simulate()`), and
+# The main part of the tutorial consists of three parts documented in the following sections:
+# * creation of folders for the results,
+# * the main part of the reactive transport simulations, and
 # * plotting of the obtained results.
 #
 # ## Creating folders for the outputted results
@@ -157,14 +156,14 @@ df = pd.DataFrame(columns=columns)
 # Using **os** package, we create required folders for outputting the obtained results and for the plot and video
 # files later.
 
-folder_results = 'results-rt-scavenging'
+folder_results = 'results-rt-scavenging-with-hematite'
 def make_results_folders():
     os.system('mkdir -p ' + folder_results)
 
 # ## Performing the reactive transport simulation
 #
-# The reactive transport simulation is performed in the function `simulate`, which consists of several building blocks
-# (functions):
+# The reactive transport simulation is performed below (after all the functions are defined) and consists of several
+# stages:
 # * initialization of the reactive transport problem and
 # * performing the reactive transport simulation along with a defined time interval.
 #
@@ -173,73 +172,24 @@ def make_results_folders():
 # * definition of the initial condition of the reactive transport problem in `define_initial_condition()`,
 # * definition of the boundary condition of the reactive transport problem in `define_initial_condition()`,
 # * generation of auxiliary indices to partition elements using `partition_indices()` and elements' partitioning
-# corresponding to fluid and solid species with function `partition_elements_in_mesh_cell()`, and finally
-# * definition of instance of [EquilibriumSolver](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumSolver.html).
+# corresponding to fluid and solid species with function `partition_elements_in_mesh_cell()`, and, finally,
+# * definition of the instance of [EquilibriumSolver](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumSolver.html).
 #
-# The simulation of the reactive transport problem is represented by the loop over discretized time interval until
+# The simulation of the reactive transport problem is represented by the loop over a discretized time interval until
 # the final time is reached. On each step of this loop, the following functionality of performed:
 # * transport calculations using method `transport()`,
 # * reactive chemical calculations with `reactive_chemistry()` function, and
 # * saving the obtained results using `outputstate()`.
 #
-# Performing the transport and reactive chemistry sequentially is possible due to the *operator splitting
-# procedure*, in which we first update the amounts of elements `b`. These updated amounts of
-# elements in the cell are used to evaluate its new chemical equilibrium state, thus producing new amounts of the
-# species in both the fluid and solid phases (available in the list `states` of
-# [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html) objects). This chemical reaction
-# equilibrium calculation step, at each mesh cell, permits, for example, aqueous species and minerals to react,
-# and thus causes mineral dissolution or precipitation, depending on how much the amount of mineral species changes.
-# This can then be used, for example, to compute new porosity value for the cell.
-
-def simulate():
-    # Construct the chemical system with its phases and species
-    system = define_chemical_system()
-
-    # Define the initial condition of the reactive transport modeling problem
-    state_ic = define_initial_condition(system)
-
-    # Define the boundary condition of the reactive transport modeling problem
-    state_bc = define_boundary_condition(system)
-
-    # Generate indices of partitioning fluid and solid species
-    nelems, ifluid_species, isolid_species = partition_indices(system)
-
-    # Partitioning fluid and solid species
-    b, bfluid, bsolid, b_bc = partition_elements_in_mesh_cell(ncells, nelems, state_ic, state_bc)
-
-    # Create a list of chemical states for the mesh cells (one for each cell, initialized to state_ic)
-    states = [state_ic.clone() for _ in range(ncells + 1)]
-
-    # Create the equilibrium solver object for the repeated equilibrium calculation
-    solver = EquilibriumSolver(system)
-
-    # Running the reactive transport simulation loop
-    step = 0  # the current step number
-    t = 0.0  # the current time (in seconds)
-
-    # Output the initial state of the reactive transport calculation
-    outputstate_df(step, system, states)
-
-    with tqdm(total=nsteps, desc="Reactive transport simulations") as pbar:
-        while step < nsteps:
-            # Perform transport calculations
-            bfluid, bsolid, b = transport(states, bfluid, bsolid, b, b_bc, nelems, ifluid_species, isolid_species)
-
-            # Perform reactive chemical calculations
-            states = reactive_chemistry(solver, states, b)
-
-            # Increment time step and number of time steps
-            t += dt
-            step += 1
-
-            # Output the current state of the reactive transport calculation
-            outputstate_df(step, system, states)
-
-            # Update a progress bar
-            pbar.update(1)
-
-
-# Subsections below correspond to the methods responsible for each of the functional parts of `simulate()` method.
+# Performing of the transport and reactive chemistry sequentially is possible due to the *operator splitting procedure*.
+# First, we update the amount of elements `b` with the transport procedure. Then, `b` are used to evaluate its new
+# chemical equilibrium state, producing new amounts of the species in both the fluid and solid phases (available in
+# the list `states` of [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html) objects).
+# This chemical reaction equilibrium calculation step, at each mesh cell, permits aqueous species and minerals to react,
+# causing mineral dissolution or precipitation, depending on how much the amount of mineral species changes.
+# It can then be used, for example, to compute new porosity value for the cell.
+#
+# Subsections below correspond to the methods responsible for each of the functional parts listed above.
 #
 # ### Construction of the chemical system with its phases and species
 #
@@ -248,61 +198,48 @@ def simulate():
 # that provides operations to retrieve physical and thermodynamic data of chemical species. To achieve that, we use
 # [supcrt07.xml](https://github.com/reaktoro/reaktoro/blob/master/databases/supcrt/supcrt07.xml) database file.
 #
-# **Note:** If filename does not point to a valid database file or the database file is not found, then a default
-# built-in database with the same name will be tried. If no default built-in database exists with a given name,
-# an exception will be thrown.
-#
 # In addition to the database, we also need to initialize parameters in the Debye-Huckel activity model used for aqueous
 # mixtures. Method `setPHREEQC` allows setting parameters *&#229;* and *b* of the ionic species according to those used
 # in PHREEQC v3.
 #
 # Reaktoro is a general-purpose chemical solver that avoids as much as possible presuming specific assumptions about
-# considered problems. Thus, one needs to specify how the chemical system of interest encompasses all phases
-# as well as the chemical species in each phase. Using the
+# considered problems. Thus, one needs to specify how the chemical system of interest, which encompasses the
+# specification of all phases in the system as well as the chemical species that compose each phase. Using the
 # [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html) class, one can conveniently achieve
 # this, as shown below in method `define_chemical_system()`.
 #
 # In this step, we create an object of class [ChemicalEditor](
-# https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html) and specify three phases, an *aqueous* and a
-# *mineral* that should be considered in the chemical system. The aqueous phase is defined by specifying the list of
-# chemical species. Function `setChemicalModelDebyeHuckel()` helps to set the chemical model of the phase with
-# the Debye-Huckel equation of state, providing specific parameters `dhModel` defined earlier. The mineral phases
-# are defined as two mineral species: pyrrhotite (FeS) and siderite (FeCO<sub>3</sub>).
+# https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html) and specify four phases, an *aqueous* and three
+# *mineral* phases that should be considered in the chemical system. The aqueous phase is defined by specifying the
+# list of chemical species. Function `setChemicalModelDebyeHuckel()` helps to set the chemical model of the phase
+# with the Debye-Huckel equation of state, providing specific parameters `dhModel` defined earlier. The mineral
+# phases are defined as two mineral species: siderite (FeCO<sub>3</sub>), hematite (Fe<sub>2</sub>O<sub>3</sub>),
+# and pyrite (FeS<sub>2</sub>).
 #
 # Finally, we create an object of class [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html)
 # using the chemical system definition details stored in the object `editor`.
 #
-# The *activity coefficients* of the aqueous species in this tutorial are calculated using the *Debye-Huckel model*
-# for solvent water and ionic species. The *standard chemical potentials* of the species are calculated using the
-# equations of state of Helgeson and Kirkham (1974), Helgeson et al. (1974), Tanger and Helgeson (1988),
-# Shock and Helgeson (1988), and Shock et al. ( 1992). The database file [slop07.dat](
-# https://github.com/reaktoro/reaktoro/blob/master/databases/supcrt/slop07.dat) from the software SUPCRT07 is used to
-# obtain the parameters for the equations of state. The equation of state of Wagner and Pruss (2002) is used to
-# calculate the *density of water* and its temperature and pressure derivatives. Kinetics of *dissolution* and
-# *precipitation* of both pyrrhotite and siderite is neglected, i.e., the local equilibrium assumption is employed.
 
 def define_chemical_system():
 
     # Construct the chemical system with its phases and species
     db = Database('supcrt07.xml')
-    
+
+    # Set PHREEQC parameters to the model
     dhModel = DebyeHuckelParams()
     dhModel.setPHREEQC()
 
+    # Define the editor
     editor = ChemicalEditor(db)
-    editor.addAqueousPhase(['Ca(HCO3)+', 'CO3--', 'CaCO3(aq)', 'Ca++', 'CaSO4(aq)', 'CaOH+', 'Cl-',
-                            'FeCl++', 'FeCl2(aq)', 'FeCl+', 'Fe++', 'FeOH+', 'FeOH++', 'Fe+++',
-                            'H2S(aq)', 'H2(aq)', 'HS-', 'H2O(l)', 'H+', 'OH-', 'HCO3-', 'HSO4-',
-                            'KSO4-',  'K+',
-                            'Mg++', 'Mg(HCO3)+', 'MgCO3(aq)', 'MgSO4(aq)', 'MgOH+',
-                            'Na+', 'NaSO4-',
-                            'O2(aq)',
-                            'S5--', 'S4--', 'S3--', 'S2--', 'SO4--']).\
+    # Select species of the of the aqueous phase by providing the list of elements
+    editor.addAqueousPhaseWithElements("C Ca Cl Fe H K Mg Na O S").\
         setChemicalModelDebyeHuckel(dhModel)
+    # Select mineral phases
+    editor.addMineralPhase('Pyrite')
+    editor.addMineralPhase('Hematite')
+    editor.addMineralPhase('Quartz')
 
-    editor.addMineralPhase('Pyrrhotite')
-    editor.addMineralPhase('Siderite')
-
+    # Define chemical system
     system = ChemicalSystem(editor)
 
     return system
@@ -311,29 +248,28 @@ def define_chemical_system():
 #
 # We have defined and constructed the chemical system of interest, enabling us to move on to the next step in
 # Reaktoro's modeling workflow: *defining our chemical reaction problems*. Below, we define its **initial condition**
-# with already prescribed equilibrium conditions for *temperature*, *pressure*, and *amounts of elements* consistent
-# with modeling reactive transport of injected hydrogen sulfide brine into the rock-fluid composition of siderite
+# with already prescribed equilibrium conditions for *temperature*, *pressure*, and *amounts of elements* that are
+# consistent to model reactive transport of injected hydrogen sulfide brine into the rock-fluid composition of siderite
 # at 25 &deg;C and 1.01325 bar. The resident fluid in the rock is obtained by the mixture of the aqueous species
 # summarized in the following table:
 #
 # | Aqueous species | Amount (kg)                          |
 # |-----------------|--------------------------------------|
-# | H<sub>2</sub>  | 58.0                                 |
-# | Cl<sup>-</sup> | 1122.3 · 10<sup>-3</sup>             |
-# | Na<sup>+</sup> | 624.08 · 10<sup>-3</sup>             |
-# | SO<sub>4</sub><sup>2-</sup> | 157.18 · 10<sup>-3</sup>|
-# | Mg<sup>2+</sup> | 74.820 · 10<sup>-3</sup>            |
-# | Ca<sup>2+</sup> | 23.838 · 10<sup>-3</sup>            |
-# | K<sup>+</sup> | 23.142 · 10<sup>-3</sup>              |
-# | HCO<sub>3</sub><sup>-</sup> | 8.236 · 10<sup>-3</sup> |
+# | H<sub>2</sub>   | 58.0                                 |
+# | Cl<sup>-</sup>  | 1122.3 · 10<sup>-3</sup>             |
+# | Na<sup>+</sup>  | 624.08 · 10<sup>-3</sup>             |
+# | SO<sub>4</sub><sup>2-</sup> | 157.18 · 10<sup>-3</sup> |
+# | Mg<sup>2+</sup> | 74.820 · 10<sup>-3</sup>             |
+# | Ca<sup>2+</sup> | 23.838 · 10<sup>-3</sup>             |
+# | K<sup>+</sup>   | 23.142 · 10<sup>-3</sup>             |
+# | HCO<sub>3</sub><sup>-</sup> | 8.236 · 10<sup>-3</sup>  |
 # | O<sub>2</sub>(aq) | 58 · 10<sup>-12</sup>              |
 #
-# For that purpose, the class
-# [EquilibriumInverseProblem](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumInverseProblem.html) is used, where
-# specific fixed pH and pE are be prescribed to 8.951 and 8.676, respectively.
+# Both siderite and hematite are added in quantities of 0.5 mol to the reservoir. For equilibrating, the class
+# [EquilibriumInverseProblem](https://reaktoro.org/cpp/classReaktoro_1_1EquilibriumInverseProblem.html) is used,
+# where specific fixed pH and pE are be prescribed to 8.951 and 8.676, respectively.
 
 def define_initial_condition(system):
-
     problem_ic = EquilibriumInverseProblem(system)
     problem_ic.setTemperature(T)
     problem_ic.setPressure(P)
@@ -346,36 +282,24 @@ def define_initial_condition(system):
     problem_ic.add("K+", 23.142e-3, "kg")
     problem_ic.add("HCO3-", 8.236e-3, "kg")
     problem_ic.add("O2(aq)", 58e-12, "kg")
-    problem_ic.add("Pyrrhotite", 0.0, "mol")
-    problem_ic.add("Siderite", 0.5, "mol")
-    problem_ic.pH(8.951)
-    problem_ic.pE(8.676)
-    
+    problem_ic.add("Pyrite", 0.0, "mol")
+    problem_ic.add("Hematite", 0.5, "mol") # 10 % of all minerals
+    problem_ic.add("Quartz", 0.5 * 9, "mol") # 90 % of all minerals
+    problem_ic.pH(8.951, "HCl", "NaOH")
+
     # Calculate the equilibrium states for the initial conditions
     state_ic = equilibrate(problem_ic)
-
-    # Scale the volumes of the phases in the initial condition
-    state_ic.scalePhaseVolume('Aqueous', 0.1, 'm3') # 10% of porosity
+    state_ic.scalePhaseVolume('Aqueous', phi, 'm3')  # 10% of porosity
     state_ic.scaleVolume(1.0, 'm3')
+
+    # Fetch teh value of the ph in the initial chemical state
+    props = state_ic.properties()
+    evaluate_pH = ChemicalProperty.pH(system)
+    pH = evaluate_pH(props)
+    print("ph(IC) = ", pH.val)
 
     return state_ic
 
-# > **Note**: After providing the amounts of substances H<sub>2</sub>O, aqueous species, pyrrhotite, and siderite in
-# > the above code, Reaktoro parses these chemical formulas (using the thermodynamic database) and determines the
-# > elements and their coefficients. Once this is done, the amount of each element stored inside the object
-# > `problem_ic` is incremented according to the given amount of substance and its coefficient in the formula. The
-# > provided element amounts are then used as constraints for the Gibbs energy minimization calculation when
-# > computing the state of chemical equilibrium (i.e., when we try to find the amounts of all species in the system
-# > that corresponds to a state of minimum Gibbs energy while satisfying the *element amounts
-# > constraints*).
-#
-# > **Note**: Please note that we are not condemning the input form shown above in terms of element amounts,
-# > but only telling you to be attentive with the values you input. If you are using Reaktoro as a chemical reaction
-# > solver in a reactive transport simulator, for example, you will most likely need to work directly with given amounts
-# > of elements, which shows that this input form is required in certain cases. For such time-dependent modeling
-# > problems, you often only need to ensure that the initial conditions for elements amounts result in feasible initial
-# > species amounts.
-#
 # To calculate the system's chemical equilibrium state with the given initial conditions, we use the method
 # [equilibrate](https://reaktoro.org/cpp/namespaceReaktoro.html#af2d3b39d3e0b8f9cb5a4d9bbb06b697e), the numerical
 # solution of which is written in the objects `state_ic`. It is an instance of the class
@@ -387,22 +311,19 @@ def define_initial_condition(system):
 # elements have known molar amounts. Their amount's constraints are replaced by other equilibrium constraints such as
 # fixed pH and pE.
 #
-# > *See tutorials [**EquilibriumInverseProblem**](eq.inverse-equilibrium.ipynb) for more detailed explanation of
-# > capabilities of this class*.
-#
 # The function ends with scaling the volume to 1 m<sup>3</sup>. Moreover, we specify the 10% porosity of the rock
 # by calling `state_ic.scalePhaseVolume('Aqueous', 0.1, 'm3')`.
-#
 #
 # ### Boundary condition (BC) of the reactive transport problem
 #
 # Next, we define the **boundary condition** of the constructed chemical system with its *temperature*, *pressure*,
 # and *amounts of elements*. We prescribe the amount of injected hydrogen sulfide brine, in particular,
-# 0.0196504 mol of hydrosulfide ion (HS<sup>-</sup>) and 0.167794 mol of aqueous hydrogen sulfide (H2S(aq)).
-# Here, the ph is lowered in comparison to the initial state to 5.726.
+# 0.0196504 mol of hydrosulfide ion (HS<sup>-</sup>) and 0.167794 mol of aqueous hydrogen sulfide (H<sub>2</sub>S(aq)).
+# None of the minerals are presented in the injected fluid. Here, the ph is lowered in comparison to the initial
+# state to 5.726.
 #
 # After equilibration, the obtained chemical state representing the boundary condition for the injected fluid
-# composition, we scale its volume to 1 m<sup>3</sup>. This is done so that the amounts of the species in the fluid are
+# composition, we scale its volume to 1 m<sup>3</sup>. It is done so that the amounts of the species in the fluid are
 # consistent with a mol/m<sup>3</sup> scale.
 
 def define_boundary_condition(system):
@@ -420,17 +341,22 @@ def define_boundary_condition(system):
     problem_bc.add("K+", 23.142e-3, "kg")
     problem_bc.add("HCO3-", 8.236e-3, "kg")
     problem_bc.add("O2(aq)", 58e-12, "kg")
-    problem_bc.add("Pyrrhotite", 0.0, "mol")
-    problem_bc.add("Siderite", 0.0, "mol")
+    problem_bc.add("Pyrite", 0.0, "mol")
+    problem_bc.add("Hematite", 0.0, "mol")
     problem_bc.add("HS-", 0.0196504, "mol")
     problem_bc.add("H2S(aq)", 0.167794, "mol")
-    problem_bc.pH(5.726)
-    problem_bc.pE(8.220)
+    problem_bc.pH(5.726, "HCl", "NaOH")
 
     # Calculate the equilibrium states for the boundary conditions
     state_bc = equilibrate(problem_bc)
     # Scale the boundary condition state to 1 m3
     state_bc.scaleVolume(1.0, 'm3')
+
+    # Fetch ph of the evaluated chemical state
+    props = state_bc.properties()
+    evaluate_pH = ChemicalProperty.pH(system)
+    pH = evaluate_pH(props)
+    print("ph(BC) = ", pH.val)
 
     return state_bc
 
@@ -442,8 +368,8 @@ def define_boundary_condition(system):
 # [indicesFluidSpecies](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html#ac2a8b713f46f7a66b2731ba63faa95ad)
 # and
 # [indicesSolidSpecies](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html#a8b0c237fff1d827f7bf2dbc911fa5bbf)
-# of class [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html) to get the indices of the
-# fluid and solid species stored in the lists `ifluid_species` and `isolid_species`, respectively.
+# of class [ChemicalSystem](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalSystem.html) to store corresponding data
+# in the lists `ifluid_species` and `isolid_species`, respectively.
 
 def partition_indices(system):
     nelems = system.numElements()
@@ -456,11 +382,10 @@ def partition_indices(system):
 
 # ### Partitioning fluid and solid species
 #
-# In this function, we create arrays to track the amounts of elements in the fluid and solid partition
+# Next, we create arrays to track the amounts of elements in the fluid and solid partition
 # (i.e., the amounts of elements among all fluid phases, here only an aqueous phase, and the amounts of elements among
-# all solid phases, here the mineral phases). The arrays `b`, `bfluid`, and `bsolid` will store, respectively,
-# the concentrations (mol/m<sup>3</sup>) of each element in the system, in the fluid
-# partition, and in the solid partition at every time step.
+# all solid phases, here the mineral phases). Arrays `b`, `bfluid`, and `bsolid`  will store these concentrations
+# (mol/m<sup>3</sup>) at every time step.
 #
 # The array `b` is initialized with the concentrations of the elements at the initial chemical state, `state_ic`,
 # using method
@@ -469,8 +394,10 @@ def partition_indices(system):
 # the concentrations of each element on the boundary in mol/m<sup>3</sup><sub>fluid</sub>.
 
 def partition_elements_in_mesh_cell(ncells, nelems, state_ic, state_bc):
+
     # The concentrations of each element in each mesh cell (in the current time step)
     b = np.zeros((ncells, nelems))
+
     # Initialize the concentrations (mol/m3) of the elements in each mesh cell
     b[:] = state_ic.elementAmounts()
 
@@ -490,11 +417,11 @@ def partition_elements_in_mesh_cell(ncells, nelems, state_ic, state_bc):
 #
 # #### Transport
 #
-# This step updates in the fluid partition `bfluid` using the transport equations (without reactions).
-# The `transport_full_implicit()` function below is responsible for solving an advection-diffusion equation, that is
+# This step updates the fluid partition `bfluid` using the transport equations (without reactions).
+# The `transport_fullimplicit()` function below is responsible for solving an advection-diffusion equation, that is
 # later applied to transport the concentrations (mol/m<sup>3</sup>) of elements in the fluid partition (*a
 # simplification that is possible because of common diffusion coefficients and velocities of the fluid species,
-# otherwise the transport of individual fluid species would be needed*).
+# otherwise, the transport of individual fluid species would be needed*).
 #
 # To match the units of concentrations of the elements in the fluid measure in mol/m<sup>3</sup><sub>bulk</sub> and the
 # imposed concentration `b_bc[j]` mol/m<sup>3</sup><sub>fluid</sub>, e need to multiply it by the porosity `phi_bc`
@@ -520,7 +447,7 @@ def transport(states, bfluid, bsolid, b, b_bc, nelems, ifluid_species, isolid_sp
 
     # Transport each element in the fluid phase
     for j in range(nelems):
-        transport_full_implicit(bfluid[:, j], dt, dx, v, D, phi_bc * b_bc[j])
+        transport_fullimplicit(bfluid[:, j], dt, dx, v, D, phi_bc * b_bc[j])
 
     # Update the amounts of elements in both fluid and solid partitions
     b[:] = bsolid + bfluid
@@ -543,7 +470,8 @@ def transport(states, bfluid, bsolid, b, b_bc, nelems, ifluid_species, isolid_sp
 # in a matrix equation. This system of linear equations is solved by the tridiagonal matrix algorithm, also known
 # as the Thomas algorithm.
 
-def transport_full_implicit(u, dt, dx, v, D, ul):
+def transport_fullimplicit(u, dt, dx, v, D, ul):
+
     # Number of DOFs
     n = len(u)
     alpha = D * dt / dx ** 2
@@ -626,8 +554,80 @@ def outputstate_df(step, system, states):
         # Update the
         quantity.update(state)
         for quantity_name, i in zip(output_quantities, range(2, len(states))):
-            values[i] = quantity.value(quantity_name) * (100 / (1 - phi) if "phaseVolume" in quantity_name else 1)
+            values[i] = quantity.value(quantity_name)
         df.loc[len(df)] = values
+
+# # Main parts of the tutorial
+#
+# First, we create folders for the results.
+
+make_results_folders()
+
+# Construct the chemical system with its phases and species.
+
+system = define_chemical_system()
+
+# Define the initial condition of the reactive transport modeling problem.
+
+state_ic = define_initial_condition(system)
+
+# Define the boundary condition of the reactive transport modeling problem.
+
+state_bc = define_boundary_condition(system)
+
+# Generate indices of partitioning fluid and solid species.
+
+nelems, ifluid_species, isolid_species = partition_indices(system)
+
+# Partitioning fluid and solid species.
+
+b, bfluid, bsolid, b_bc = partition_elements_in_mesh_cell(ncells, nelems, state_ic, state_bc)
+
+# Create a list of chemical states for the mesh cells (one for each cell, initialized to state_ic).
+
+states = [state_ic.clone() for _ in range(ncells + 1)]
+
+# Create the equilibrium solver object for the repeated equilibrium calculation.
+
+solver = EquilibriumSolver(system)
+
+# Running the reactive transport simulation loop.
+
+# +
+step = 0  # the current step number
+t = 0.0  # the current time (in seconds)
+
+# Output the initial state of the reactive transport calculation
+outputstate_df(step, system, states)
+
+with tqdm(total=nsteps, desc="Reactive transport simulations") as pbar:
+    while step < nsteps:
+        # Perform transport calculations
+        bfluid, bsolid, b = transport(states, bfluid, bsolid, b, b_bc, nelems, ifluid_species, isolid_species)
+
+        # Perform reactive chemical calculations
+        states = reactive_chemistry(solver, states, b)
+
+
+        # Increment time step and number of time steps
+        t += dt
+        step += 1
+
+        # Output the current state of the reactive transport calculation
+        outputstate_df(step, system, states)
+
+        # Update a progress bar
+        pbar.update(1)
+# -
+
+# To inspect the collected data, one can run:
+
+df
+
+# To save the results in csv-format, please execute:
+
+df.to_csv(folder_results + '/rt.scavenging-with-hematite.csv', index=False)
+
 
 # ### Plotting of the obtained results
 #
@@ -644,12 +644,12 @@ def titlestr(t):
     m = int(t) % 60  # The number of remaining minutes
     return 'Time: %2dh %2dm' % (h, m)
 
-# Routines `plot_figures_ph()`, `plot_figures_pyrrhotite_siderite_volume()`,
-# `plot_figures_pyrrhotite_siderite_amount()`, and 'plot_figures_aqueous_species()' are dedicated to drawing the
-# plots with chemical properties on the selected steps that are specified by the user below.
+# Routines `plot_figures_ph()`, `plot_figures_minerals()`, and `plot_figures_aqueous_species()' are
+# dedicated to producing the plots with chemical properties on the selected steps that are specified by the user below.
 
+# +
 def plot_figures_ph(steps):
-    # Plot ph on the selected steps
+
     plots = []
     for i in steps:
         print("On pH figure at time step: {}".format(i))
@@ -658,11 +658,11 @@ def plot_figures_ph(steps):
 
         p = figure(plot_width=600, plot_height=250)
         p.line(x='x', y='pH', color='teal', line_width=2, legend_label='pH', source=source)
-        p.x_range = Range1d(-1, 101)
-        p.y_range = Range1d(4, 9.0)
+        p.x_range = Range1d(xl - 1, xr - 1)
+        p.y_range = Range1d(5.0, 10.0)
         p.xaxis.axis_label = 'Distance [m]'
         p.yaxis.axis_label = 'pH'
-        p.legend.location = 'bottom_right'
+        p.legend.location = 'center_right'
         p.title.text = titlestr(t)
 
         plots.append([p])
@@ -670,23 +670,23 @@ def plot_figures_ph(steps):
     grid = gridplot(plots)
     show(grid)
 
-def plot_figures_pyrrhotite_siderite_volume(steps):
+def plot_figures_minerals(steps):
     plots = []
     for i in steps:
-        print("On pyrrhotite-siderite figure at time step: {}".format(i))
+        print("On pyrite-hematite-siderite figure at time step: {}".format(i))
         t = i * dt
         source = ColumnDataSource(df[df['step'] == i])
 
         p = figure(plot_width=600, plot_height=250)
-        p.line(x='x', y='pyrrhotite_phase_volume', color='orange', line_width=2, legend_label='Pyrrhotite',
+        p.line(x='x', y='pyrite', color='blue', line_width=2, legend_label='Pyrite',
+               muted_color='blue', muted_alpha=0.2, source=source)
+        p.line(x='x', y='hematite', color='orange', line_width=2, legend_label='Hematite',
                muted_color='orange', muted_alpha=0.2, source=source)
-        p.line(x='x', y='siderite_phase_volume', color='steelblue', line_width=2, legend_label='Siderite',
-               muted_color='steelblue', muted_alpha=0.2, source=source)
-        p.x_range = Range1d(-1, 101)
-        p.y_range = Range1d(-0.001, 0.018)
+        p.x_range = Range1d(xl - 1, xr - 1)
+        p.y_range = Range1d(-1e-3, 0.012)
         p.xaxis.axis_label = 'Distance [m]'
-        p.yaxis.axis_label = 'Phase Volume [m3]'
-        p.legend.location = 'center_right'
+        p.yaxis.axis_label = 'Concentration [mol/m3]'
+        p.legend.location = 'top_right'
         p.title.text = titlestr(t)
         p.legend.click_policy = 'mute'
         plots.append([p])
@@ -694,23 +694,43 @@ def plot_figures_pyrrhotite_siderite_volume(steps):
     grid = gridplot(plots)
     show(grid)
 
-def plot_figures_pyrrhotite_siderite_amount(steps):
+def plot_figures_pyrite(steps):
     plots = []
     for i in steps:
-        print("On pyrrhotite-siderite figure at time step: {}".format(i))
+        print("On pyrite figure at time step: {}".format(i))
         t = i * dt
         source = ColumnDataSource(df[df['step'] == i])
 
         p = figure(plot_width=600, plot_height=250)
-        p.line(x='x', y='pyrrhotite_phase_amount', color='orange', line_width=2, legend_label='Pyrrhotite',
-               muted_color='orange', muted_alpha=0.2, source=source)
-        p.line(x='x', y='siderite_phase_amount', color='steelblue', line_width=2, legend_label='Siderite',
-               muted_color='steelblue', muted_alpha=0.2, source=source)
-        p.x_range = Range1d(-1, 101)
-        p.y_range = Range1d(-0.5, 5.5)
+        p.line(x='x', y='pyrite', color='blue', line_width=2, legend_label='Pyrite',
+               muted_color='blue', muted_alpha=0.2, source=source)
+        p.x_range = Range1d(xl - 1, xr + 1)
         p.xaxis.axis_label = 'Distance [m]'
-        p.yaxis.axis_label = 'Phase Amount [mol]'
-        p.legend.location = 'center_right'
+        p.yaxis.axis_label = 'Concentration [mol/m3]'
+        p.legend.location = 'top_right'
+        p.title.text = titlestr(t)
+        p.legend.click_policy = 'mute'
+        plots.append([p])
+
+    grid = gridplot(plots)
+    show(grid)
+
+def plot_figures_hematite(steps):
+    plots = []
+    for i in steps:
+        print("On hematite figure at time step: {}".format(i))
+        t = i * dt
+        source = ColumnDataSource(df[df['step'] == i])
+
+        p = figure(plot_width=600, plot_height=250)
+        p.line(x='x', y='hematite', color='orange', line_width=2, legend_label='Hematite',
+               muted_color='orange', muted_alpha=0.2, source=source)
+
+
+        p.x_range = Range1d(xl - 1, xr + 1)
+        p.xaxis.axis_label = 'Distance [m]'
+        p.yaxis.axis_label = 'Concentration [mol/m3]'
+        p.legend.location = 'top_right'
         p.title.text = titlestr(t)
         p.legend.click_policy = 'mute'
         plots.append([p])
@@ -721,20 +741,20 @@ def plot_figures_pyrrhotite_siderite_amount(steps):
 def plot_figures_aqueous_species(steps):
     plots = []
     for i in steps:
-        print("On aqueous-species figure at time step: {}".format(i))
+        print("On aqueous species figure at time step: {}".format(i))
         source = ColumnDataSource(df[df['step'] == i])
         t = dt * i
 
         p = figure(plot_width=600, plot_height=300, y_axis_type = 'log',)
-        p.line(x='x', y='HSanion', color='deepskyblue', line_width=2, legend_label='HS-', source=source)
+        p.line(x='x', y='HSanion', color='darkcyan', line_width=2, legend_label='HS-', source=source)
         p.line(x='x', y='S2anion', color='darkorange', line_width=2, legend_label='S2--', source=source)
         p.line(x='x', y='CO3anion', color='seagreen', line_width=2, legend_label='CO3--', source=source)
         p.line(x='x', y='HSO4anion', color='indianred', line_width=2, legend_label='HSO4-', source=source)
         p.line(x='x', y='H2Saq', color='gray', line_width=2, legend_label='H2S(aq)', source=source)
         p.line(x='x', y='Hcation', color='darkviolet', line_width=2, legend_label='H+', source=source)
         p.line(x='x', y='Fe2cation', color='darkblue', line_width=2, legend_label='Fe++', source=source)
-        p.x_range = Range1d(-1, 101)
-        p.y_range = Range1d(1e-12, 1e-1)
+        p.x_range = Range1d(xl - 1, xr - 1)
+        p.y_range = Range1d(1e-16, 1e-2)
         p.xaxis.axis_label = 'Distance [m]'
         p.yaxis.axis_label = 'Concentration [molal]'
         p.legend.location = 'top_right'
@@ -744,29 +764,11 @@ def plot_figures_aqueous_species(steps):
 
     grid = gridplot(plots)
     show(grid)
-
-
-# # Main parts of the tutorial
-#
-# First, we create folders for the results:
-
-make_results_folders()
-
-# Run the reactive transport simulations:
-
-simulate()
-
-# To inspect the collected data, one can run:
-
-df
-
-# To save the results in csv-format, please execute:
-
-df.to_csv(folder_results + '/rt.scavenging.csv', index=False)
+# -
 
 # Select the steps, on which results must plotted:
 
-selected_steps_to_plot = [60, 120, 960]
+selected_steps_to_plot = [120, 480, 960]
 assert all(step <= nsteps for step in selected_steps_to_plot), f"Make sure that selected steps are less than " \
                                                                f"total amount of steps {nsteps}"
 
@@ -779,36 +781,33 @@ output_notebook()
 
 plot_figures_ph(selected_steps_to_plot)
 
-# Plot pyrrhotite and siderite phase amounts on the selected steps:
+# Plot pyrite, hematite, and siderite on the selected steps:
 
-plot_figures_pyrrhotite_siderite_amount(selected_steps_to_plot)
-
-# One can also call `plot_figures_pyrrhotite_siderite_volume(selected_steps_to_plot)` instead of the function
-# `plot_figures_pyrrhotite_siderite_amount()`.
+plot_figures_minerals(selected_steps_to_plot)
 
 # Plot aqueous species on the selected steps:
 
 plot_figures_aqueous_species(selected_steps_to_plot)
 
-# We see on the plots above that the main chemical reactions can be divided into two parts.
-# On the first step, the iron ions Fe<sup>2+</sup> are being released by the siderite (FeCO<sub>3</sub>) reacting with
-# the H<sub>2</sub>S-brine. On the second one, free Fe<sup>2+</sup> ions are reacting with hydrogen sulfide
-# precipitating iron sulfide (pyrrhotite): Fe<sup>2+</sup> + H<sub>2</sub>S &#8594; FeS<sub>2</sub>.
+# We see on the plots above that the main chemical reactions can be divided into three parts.
+# On the first step, the iron ions Fe<sup>2+</sup> are being released by the siderite (FeCO<sub>3</sub>)
+# reacting with the injected brine. On the second one, some of the free Fe<sup>2+</sup> ions are reacting
+# to slightly precipitate hematite, which also tend to react with injected water and generate Fe<sup>2+</sup>. On the third
+# stage, we observe all Fe<sup>2+</sup> is consumed by the forming pyrite:
+# Fe<sup>2+</sup> + 2HS<sup>-</sup> &#8594; FeS<sub>2</sub> + 2H<sup>+</sup>.
 #
 # The minerals' dissolution and precipitation are accompanied by the formation and dilution of aqueous species.
-# For instance, we see the sharp increase of Fe<sup>2+</sup> at the point of the phase transformation from the siderite
-# phase to pyrrhotite and followed by the gradual decrease as it gets used during the formation of FeS<sub>2</sub>.
 # Both curves representing HS<sup>-</sup> and H<sub>2</sub>S(aq) have two points of the sharp decrease.
-# The first one is where both species are involved in the dissolution of FeCO<sub>3</sub>, and the second one is where
-# they are being exhausted by the reaction with iron ions to form iron sulfide. The CO<sub>3</sub><sup>2-</sup> anion
-# line has an interesting shape: it first locally drops but then increases due to continuous dissolution of siderite.
+# The first and second one is where both species are involved in the dissolution of FeCO<sub>3</sub> and
+# Fe<sub>3</sub>O<sub>2</sub>, whereas the second one is where they are being exhausted by the reaction
+# with iron ions to form iron sulfide.
 #
 # To study the time-dependent behavior of the chemical properties, we create a Bokeh application using the function
 # `modify_doc(doc)`. It creates Bokeh content and adds it to the app. The speed of streaming of reactive transport
-# data can be controlled by the parameter `step` defined below (bigger the step, faster we will run through available
+# data can be  controlled by the parameter `step` defined below (bigger the step, faster we will run through available
 # data set):
 
-step = 10
+step = 25
 
 # The data streaming is looped, i.e., we will return to the initial time step when reaching the end of the reactive
 # transport simulations.
@@ -827,39 +826,38 @@ def modify_doc(doc):
     # Plot for ph
     p1 = figure(plot_width=500, plot_height=250)
     p1.line(x='x', y='pH', color='teal', line_width=2, legend_label='pH', source=source)
-    p1.x_range = Range1d(-1, 101)
-    p1.y_range = Range1d(4.0, 9.0)
+    p1.x_range = Range1d(xl - 1, xr - 1)
+    p1.y_range = Range1d(5.0, 10.0)
     p1.xaxis.axis_label = 'Distance [m]'
     p1.yaxis.axis_label = 'pH'
-    p1.legend.location = 'bottom_right'
+    p1.legend.location = 'center_right'
     p1.title.text = titlestr(0 * dt)
 
     # Plot for calcite and dolomite
+
     p2 = figure(plot_width=500, plot_height=250)
-    p2.line(x='x', y='pyrrhotite_phase_volume', color='orange', line_width=2,
-            legend_label='Pyrrhotite', muted_color='orange', muted_alpha=0.2,
-            source=source)
-    p2.line(x='x', y='siderite_phase_volume', color='steelblue', line_width=2,
-            legend_label='Siderite', muted_color='steelblue', muted_alpha=0.2,
-            source=source)
-    p2.x_range = Range1d(-1, 101)
-    p2.y_range = Range1d(-0.001, 0.018)
+    p2.line(x='x', y='pyrite', color='blue', line_width=2, legend_label='Pyrite', muted_color='blue',
+            muted_alpha=0.2, source=source)
+    p2.line(x='x', y='hematite', color='orange', line_width=2, legend_label='Hematite', muted_color='orange',
+            muted_alpha=0.2, source=source)
+    p2.x_range = Range1d(xl - 1, xr - 1)
+    p2.y_range = Range1d(-1e-3, 0.012)
     p2.xaxis.axis_label = 'Distance [m]'
-    p2.yaxis.axis_label = 'Phase Volume [%vol]'
-    p2.legend.location = 'center_right'
+    p2.yaxis.axis_label = 'Concentrations [mol/m3]'
+    p2.legend.location = 'top_right'
     p2.title.text = titlestr(0 * dt)
     p2.legend.click_policy = 'mute'
 
     p3 = figure(plot_width=500, plot_height=250, y_axis_type='log')
-    p3.line(x='x', y='HSanion', color='deepskyblue', line_width=2, legend_label='HS-', source=source)
+    p3.line(x='x', y='HSanion', color='darkcyan', line_width=2, legend_label='HS-', source=source)
     p3.line(x='x', y='S2anion', color='darkorange', line_width=2, legend_label='S2--', source=source)
     p3.line(x='x', y='CO3anion', color='seagreen', line_width=2, legend_label='CO3--', source=source)
     p3.line(x='x', y='HSO4anion', color='indianred', line_width=2, legend_label='HSO4-', source=source)
     p3.line(x='x', y='H2Saq', color='gray', line_width=2, legend_label='H2S(aq)', source=source)
     p3.line(x='x', y='Hcation', color='darkviolet', line_width=2, legend_label='H+', source=source)
     p3.line(x='x', y='Fe2cation', color='darkblue', line_width=2, legend_label='Fe++', source=source)
-    p3.x_range = Range1d(-1, 101)
-    p3.y_range = Range1d(1e-12, 1e-1)
+    p3.x_range = Range1d(xl - 1, xr - 1)
+    p3.y_range = Range1d(1e-16, 1e-2)
     p3.xaxis.axis_label = 'Distance [m]'
     p3.yaxis.axis_label = 'Concentration [molal]'
     p3.legend.location = 'top_right'
@@ -881,10 +879,8 @@ def modify_doc(doc):
                         step=new_source.data['step'],
                         x=new_source.data['x'],
                         pH=new_source.data['pH'],
-                        pyrrhotite_phase_volume=new_source.data['pyrrhotite_phase_volume'],
-                        siderite_phase_volume=new_source.data['siderite_phase_volume'],
-                        pyrrhotite_phase_amount=new_source.data['pyrrhotite_phase_amount'],
-                        siderite_phase_amount=new_source.data['siderite_phase_amount'],
+                        pyrite=new_source.data['pyrite'],
+                        hematite=new_source.data['hematite'],
                         HSanion=new_source.data['HSanion'],
                         S2anion=new_source.data['S2anion'],
                         CO3anion=new_source.data['CO3anion'],
@@ -903,7 +899,7 @@ def modify_doc(doc):
     doc.add_root(layout)
 
 # Outputting the plots to the notebook requires the call of `output_notebook()` that specifies outputting the plot
-# inline in the Jupyter notebook. Finally, the function `modify_doc()` must be passed to `show`, so that the app defined
+# inline in the Jupyter notebook. Finally, the function `modify_doc()` must be passed to `show` so that the app defined
 # by it is displayed inline.
 #
 # > **Important:** If you run this tutorial in the *localhost*, make sure that number provided to the variable
