@@ -253,7 +253,7 @@ data = filearray.T  # transpose the matrix with data
 [time_indx, ph_indx, ca_elem_indx, mg_elem_indx, calcite_indx, dolomite_indx] \
     = numpy.arange(0, 6) # assign indices of the corresponding data
 
-# To visually analyze the obtained reaction path is with plots. For that, we export
+# To visually analyze the obtained reaction path, we export
 # [bokeh](https://docs.bokeh.org/en/latest/docs/gallery.html#standalone-examples) python plotting package.
 
 from bokeh.plotting import figure, show
