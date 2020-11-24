@@ -102,3 +102,40 @@ species = db.aqueousSpecies("CaCl2(aq)")
 
 print("Charge of CaCl2(aq): ", species.charge())
 print("Dissociation CaCl2(aq): ", species.dissociation())
+
+# Alternatively, one can also use more recent SUPCRT databased from 2017:
+
+db = Database("supcrt07.xml")
+
+# To list all the mineral species, we use:
+
+print("List of all minerals in database SUPCRT07:")
+for minerals in db.mineralSpecies():
+    print(minerals.name())
+
+# Assume that we want to study the properties of pyrrhotite (FeS). To fetch it from the database,
+# access its formula, molar mass, charge, as well as elements, which Pyrrhotite, is constructed from,
+# the following code it used:
+
+# +
+species = db.mineralSpecies("Pyrrhotite")
+
+print("Formula of Pyrrhotite:", species.formula())
+print(f"Molar mass of Pyrrhotite: {species.molarMass():4.4e} kg/mol")
+print("Charge of Pyrrhotite:", species.charge())
+print("Name : Molar mass ")
+for elements in species.elements():
+    print(f"{elements.name():>4} : {elements.molarMass()}")
+# -
+
+# Similar output can be done, for instance, for Siderite (FeCO3):
+
+# +
+species = db.mineralSpecies("Siderite")
+
+print("Formula of Siderite:", species.formula())
+print(f"Molar mass of Siderite: {species.molarMass():4.4e} kg/mol")
+print("Charge of Siderite:", species.charge())
+print("Name : Molar mass ")
+for elements in species.elements():
+    print(f"{elements.name():>4} : {elements.molarMass()}")

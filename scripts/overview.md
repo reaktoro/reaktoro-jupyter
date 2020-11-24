@@ -34,6 +34,8 @@ chemical equilibrium, chemical kinetics, and reactive transport problems.
 * [Custom activity model for equilibrium calculations](eq.custom-activity-models.ipynb)
 * [Inverse chemical equilibrium calculation](eq.inverse-equilibrium.ipynb)
 * [Equilibrium path calculation](eq.equilibriumpath.ipynb)
+* [Solubility of sodium chloride salt in water](eq.eq.sodium-chloride-solubility-in-water.ipynb)
+* [Solubility of carbon dioxide in water](eq.co2-solubility-in-water.ipynb)
 * [Analysis of the Evian water (with Reaktoro and PHREEQC backend)](eq.evian-water-analysis.ipynb)
 * [Solubility of sodium chloride salt in water (using Setschenow activity model)](eq.equilibrium-setschenow-activity-model.ipynb)
 
@@ -63,4 +65,3 @@ Below you find a more interactive documentation of a few selected classes.
 * [**ChemicalSystem**](cl.chemical-system.ipynb)
 * [**EquilibriumSolver**](cl.equilibrium-solver.ipynb)
 * [**Thermo**](cl.thermo.ipynb)
-
