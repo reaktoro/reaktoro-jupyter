@@ -138,4 +138,4 @@ print(f"Molar mass of Siderite: {species.molarMass():4.4e} kg/mol")
 print("Charge of Siderite:", species.charge())
 print("Name : Molar mass ")
 for elements in species.elements():
-    print(f"{elements.name()>4} : {elements.molarMass()}")
+    print(f"{elements.name():>4} : {elements.molarMass()}")
