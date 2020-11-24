@@ -34,6 +34,8 @@ chemical equilibrium, chemical kinetics, and reactive transport problems.
 * [Custom activity model for equilibrium calculations](eq.custom-activity-models.ipynb)
 * [Inverse chemical equilibrium calculation](eq.inverse-equilibrium.ipynb)
 * [Equilibrium path calculation](eq.equilibriumpath.ipynb)
+* [Sodium chloride solubility in water](eq.eq.sodium-chloride-solubility-in-water.ipynb)
+* [CO2 solubility in water](eq.co2-solubility-in-water.ipynb)
 
 ### Tutorials on performing chemical kinetics calculations:
 
@@ -58,10 +60,3 @@ Below you find a more interactive documentation of a few selected classes.
 * [**ChemicalSystem**](cl.chemical-system.ipynb)
 * [**EquilibriumSolver**](cl.equilibrium-solver.ipynb)
 * [**Thermo**](cl.thermo.ipynb)
-
-### Geofluids, Part III tutorials:
-
-* [**Sodium chloride solubility**](eq.mixing-water-and-sodium-chloride.ipynb)
-* [**CO2 solubility**](eq.opening-bottle-with-soda-experiment.ipynb)
-* [**Mass balance and mass action equations**](eq.mass-balance-and-mass-action-equations.ipynb)
-* [**Ionic sterngth and activity coefficients of aqueous species**](eq.ionic-strength-and-activity-coeffs-for-aqueous-species.ipynb)
