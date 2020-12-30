@@ -100,7 +100,6 @@ problem.pH(7.2, "HCl", "NaOH")
 state = equilibrate(problem)
 print(state)
 
-
 # In order to obtain saturation indices of the carbonates and quartz, we need to access chemical properties of the
 # calculated chemical state. The saturation index is defined as a ratio of equilibrium constant and reaction quotient.
 # It is 1 for minerals that are precipitated (i.e., in equilibrium with the solution), SI > 1 for supersaturated minerals,
