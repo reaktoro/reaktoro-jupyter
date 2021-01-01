@@ -145,8 +145,8 @@ print(f"Solubility in water (closed system):")
 delta_calcite_water_P100 = [solubility_of_calcite(water_problem(system, T, P), system) for T in temperatures]
 print(f"Solubility in rainwater (open system):")
 delta_calcite_rainwater_P100 = [solubility_of_calcite(rainwater_problem(system, T, P), system) for T in temperatures]
-np.savetxt('reaktoro-water-delta-calcite-p-' + str(P) + '.txt', delta_calcite_water_P1)
-np.savetxt('reaktoro-rainwater-delta-calcite-p-' + str(P) + '.txt', delta_calcite_rainwater_P1)
+np.savetxt('reaktoro-water-delta-calcite-p-' + str(P) + '.txt', delta_calcite_water_P100)
+np.savetxt('reaktoro-rainwater-delta-calcite-p-' + str(P) + '.txt', delta_calcite_rainwater_P100)
 
 # Plot solubilities of calcite in water and CO2-saturated rainwater for pressure P = 1:
 
