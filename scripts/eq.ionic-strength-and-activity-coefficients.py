@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # ---
 # jupyter:
 #   jupytext:
@@ -26,7 +27,7 @@ from math import *
 
 database = Database("supcrt98.xml")
 editor = ChemicalEditor(database)
-editor.addAqueousPhaseWithElements("H O C Na Cl Ca")
+editor.addAqueousPhaseWithElements("H O C Na Cl Ca").setChemicalModelDebyeHuckel()
 editor.addGaseousPhase(["H2O(g)"])
 system = ChemicalSystem(editor)
 print(system)
@@ -169,3 +170,24 @@ gamma_h2o_davis = exp(ln10/55.5084*A_gamma*(2*(I2 + 2*sqrtI2)/(1 + sqrtI2) - 4 *
 gamma_h2o_ideal = exp(- (1 - x_h2o)/x_h2o)
 print(f"Activity coefficient of water solvent (Davis model) is {gamma_h2o_davis:6.4f}")
 print(f"Activity coefficient of water solvent (ideal model) is {gamma_h2o_ideal:6.4f}")
+
+# ## Demonstration of Coulomb’s law
+#
+# According to Coulomb’s law, the activity coefficient decreases as the concentration increases because the
+# electrostatic forces become stronger as the ions approach. Thus, for more concentrated solutions, the repulsion
+# effect seems to dominate. Let us demonstrate how it can be seen in Reaktoro simulations. First, we access the
+# activity coefficients of the `state2` via its properties obtained earlier:
+
+gamma_1_mol = np.exp(properties.lnActivityCoefficients().val)
+
+# Next, we increase the concentration of CaCl<sub>2</sub> in the mixture and recalculate activity coefficients:
+
+problem2.add("CaCl2", 2, "mol")
+state2 = equilibrate(problem2)
+properties = state2.properties()
+gamma_2_mol = np.exp(properties.lnActivityCoefficients().val)
+
+print(f"Species with decreased activity coeffs. after adding more CaCl2 to the water:")
+for name, gamma_1_mol, gamma_2_mol  in zip(names_aq, gamma_1_mol, gamma_2_mol):
+    if gamma_1_mol > gamma_2_mol:
+        print(f"{name:>10} : {gamma_1_mol:6.4e} -> {gamma_2_mol:6.4e}")
