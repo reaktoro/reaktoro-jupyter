@@ -153,6 +153,7 @@ ax.grid(True)
 ax.set_ylabel('Solubility [mol/kgw]')
 ax.set_xlabel(r'Temperature [$^{\circ}$C]')
 fig.savefig('anhydrite-solubility.png', bbox_inches='tight')
+# -
 
 # We see that anhydrite solubility decreases with increasing temperature.
-# Increasing pressure also increases the solubility of calcium carbonate.
+# Increasing pressure also increases the solubility of calcium sulfate.
