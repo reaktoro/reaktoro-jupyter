@@ -226,8 +226,8 @@ output = path.output()
 output.filename("results.txt")
 output.add("time(units=minute)")
 output.add("pH")
-output.add("elementMolality(Ca units=mmolal)", "Ca [mmolal]")
-output.add("elementMolality(Mg units=mmolal)", "Mg [mmolal]")
+output.add("speciesMolality(Ca++ units=mmolal)", "Ca++ [mmolal]")
+output.add("speciesMolality(Mg++ units=mmolal)", "Mg++ [mmolal]")
 output.add("phaseMass(Calcite units=g)", "Calcite [units=g]")
 output.add("phaseMass(Dolomite units=g)", "Dolomite [units=g]")
 
@@ -250,7 +250,7 @@ path.solve(state0, t0, t1, "hours")
 
 filearray = numpy.loadtxt("results.txt", skiprows=1) # load data from the file skipping the one row
 data = filearray.T  # transpose the matrix with data
-[time_indx, ph_indx, ca_elem_indx, mg_elem_indx, calcite_indx, dolomite_indx] \
+[time_indx, ph_indx, ca_indx, mg_indx, calcite_indx, dolomite_indx] \
     = numpy.arange(0, 6) # assign indices of the corresponding data
 
 # To visually analyze the obtained reaction path, we export
@@ -276,9 +276,9 @@ def custom_figure(title, y_axis_label):
 # increasing and later decreasing. This coincides with the behavior of the mass of minerals on the plots below.
 
 time = data[time_indx, :]  # fetch time from the data matrix
-fig1 = custom_figure(title="Ca and Mg molality w.r.t. time", y_axis_label="Amount of Ca and Mg [mmolal]")
-fig1.line(time, data[ca_elem_indx], line_width=4, legend_label="Ca", color="orange")
-fig1.line(time, data[mg_elem_indx], line_width=4, legend_label="Mg", color="green")
+fig1 = custom_figure(title="Ca++ and Mg++ molality w.r.t. time", y_axis_label="Amount of Ca++ and Mg++ [mmolal]")
+fig1.line(time, data[ca_indx], line_width=4, legend_label="Ca++", color="orange")
+fig1.line(time, data[mg_indx], line_width=4, legend_label="Mg++", color="green")
 show(fig1)
 
 # We see the dissolution of the calcite along the time, which is aligned with the earlier plot, where the amount of Ca
