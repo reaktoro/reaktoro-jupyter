@@ -73,12 +73,12 @@ def solubility_of_anhydrite(problem, system, reaction):
     lnQ = reaction.lnReactionQuotient(props)
 
     # Calculate saturation ratio
-    SR = lnQ.val - lnK.val
-    # Calculate saturation index
-    SI = math.exp(SR)
+    lnSR = lnQ.val - lnK.val
+    # Calculate saturation index as log10(SR)
+    SI = lnSR / math.log(10)
 
     print(f"P = {problem.pressure() * 1e-5:.1f} bar, T = {problem.temperature() - 273.15} C: "
-          f"ph = {pH:.2f}, I = {I * 1e3:.2f} mmolal, lnK = {lnK.val:.4f}, SI = {SI:.2f}")
+          f"ph = {pH:.2f}, I = {I * 1e3:.2f} mmolal, lnK = {lnK.val:.4f}, SI = {SI:e}")
 
     # Fetch the amount of final anhydrite in the equilibrium state
     nAnhydrite = state.speciesAmount("Anhydrite")
@@ -109,7 +109,8 @@ delta_anhydrite_water_P1 = [solubility_of_anhydrite(water_problem(system, T, P),
 np.savetxt('reaktoro-water-delta-anhydrite-p-' + str(P) + '.txt', delta_anhydrite_water_P1)
 
 # Inside the function `solubility_of_anhydrite()`, we also evaluate ph, ionic strength I, equilibrium constant lnK,
-# and saturation index SI. Since the SI > 0, the solution is supersaturated with anhydrite. The obtained solubility in
+# and saturation index SI. If the SI > 0, the solution is supersaturated with anhydrite, whereas if the SI < 0,
+# the solution is undersaturated with it. Finally, SI = 0 indicates equilibrium. The obtained solubility in
 # water is 2.308049 g/L (25 &deg;C), which is considerably higher than for calcite. We use 172.17 g/mol as a
 # molar mass of anhydrite:
 
