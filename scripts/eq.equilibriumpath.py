@@ -17,10 +17,10 @@
 
 # # Performing calculation of reaction path using Reaktoro
 #
-# In this tutorial, we demonstrate how to calculate a reaction path between two different chemical states in
-# equilibrium, which we refer to as *initial state* and *final state*.
+# This tutorial demonstrates how to calculate a reaction path between two different chemical states in
+# equilibrium referred to as the *initial state* and *final state*.
 # These states can have different temperatures, pressures, and/or molar amounts of elements. If we gradually adjust
-# temperature, pressure, and elemental amounts in the system to bring the initial state to the final state, slowly
+# temperature, pressure, and elemental amounts to bring the initial state to the final state, slowly
 # enough so that **every intermediate state is in equilibrium**, the system would trace a co-called *reaction path*.
 #
 # Let the initial state have 1 g of calcite (CaCO<sub>3</sub>) mixed with 1 kg of water. We want to see how the
@@ -46,9 +46,9 @@ from reaktoro import *
 
 editor = ChemicalEditor()
 
-# For the aqueous phases, we list the chemical elements composing the phase instead of the exact names of species.
+# For the aqueous phases, we list the chemical elements composing the phase instead of the species' exact names.
 # Class [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html) searches for all species in
-# the database that can be formed by those elements. Only species corresponding to the phase-type are selected
+# the database that those elements can form. Only species corresponding to the phase-type are selected
 # (e.g., only aqueous species are searched in the current case).
 
 # +
@@ -100,15 +100,15 @@ path = EquilibriumPath(system)
 
 output = path.output()
 output.filename("result.txt")
-output.add("elementAmount(Cl units=mmol)", "Cl [mmol]")
+output.add("speciesAmount(Cl- units=mmol)", "Cl- [mmol]")
 output.add("speciesMolality(CO2(aq) units=mmolal)", "CO2(aq) [mmol]")
 output.add("speciesMolality(CO3-- units=mmolal)", "CO3-- [mmol]")
-output.add("elementMolality(Ca units=mmolal)", "Ca [mmolal]")
+output.add("speciestMolality(Ca++ units=mmolal)", "Ca++ [mmolal]")
 output.add("pH")
 output.add("speciesMass(Calcite units=g)")
 
 # The method [ChemicalOutput::add](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalOutput.html#af3b5a7d6b0fbbc870664d6ad100b10dd)
-# adds a quantity, which we want to be output to the file `result.txt`. The later filename is specified in the call of
+# adds a quantity, which we want to be output to the file `result.txt`. The latter filename is specified in the call of
 # the method [ChemicalOutput::filename](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalOutput.html#ac5cc9d0f90cfe5c6e0972a55b7f7bf5d).
 # Each call to [ChemicalOutput::add](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalOutput.html#af3b5a7d6b0fbbc870664d6ad100b10dd)
 # results in a new column of data in the output file.
@@ -146,32 +146,32 @@ filearray = numpy.loadtxt("result.txt", skiprows=1)
 data = filearray.T
 [cl_indx, co2aq_indx, co3_indx, ca_indx, ph_indx, calcite_indx] = numpy.arange(6)
 
-# The first plot depicts the amount of element Cl in units of mmol (on the *y*-axis) and the pH of
-# the aqueous phase (on the *x*-axis):
+# The first plot depicts the change of pH with the addition of HCl into the system:
 
-fig1 = custom_figure(x_axis_label="pH", y_axis_label="Amount of Cl [mmol]")
-fig1.line(data[ph_indx], data[cl_indx], line_width=4)
+fig1 = custom_figure(x_axis_label="HCl [mmol]", y_axis_label="pH [-]")
+fig1.line(data[cl_indx], data[ph_indx], line_width=4, color="darkviolet")
 show(fig1)
 
-# The second plot sets the *x*-axis to the amount of Cl from added HCl and
-# the *y*-axis to the molality of element Ca, i.e., the molar amount of Ca **in the aqueous
-# phase**, divided by the mass of solvent water H<sub>2</sub>O(l).
+# Adding HCl to the initial state contributes the same amount of Cl<sup>-</sup>. Therefore, we can study the
+# concentrations of aqueous species Ca<sup>2-</sup>. Its growth with respect to the growing amount of Cl<sup>-</sup>
+# indicates that more calcite we can get dissolved in the brine. Or in the other words, the solubility of calcite grows
+# with the addition of HCl.
 
-fig2 = custom_figure(x_axis_label="Amount of Cl [mmol]", y_axis_label="Concentration of Ca [mmolal]")
-fig2.line(data[cl_indx], data[ca_indx], line_width=4, color="coral")
+fig2 = custom_figure(x_axis_label="Amount of Cl- [mmol]", y_axis_label="Concentration of Ca++ [mmolal]")
+fig2.line(data[cl_indx], data[ca_indx], line_width=4, color="darkgreen")
 show(fig2)
 
-# The third plot sets the *x*-axis to pH, but the *y*-axis now contains two plotted quantities: the molality of species
-# CO<sub>2</sub>(aq) and the molality of species CO<sub>3</sub><sup>2-</sup>, both in units of mmolal (i.e., mmol/kg).
+# Simultaneously, we plot the concentration of species CO<sub>3</sub><sup>2-</sup>, which suppose to grow,
+# while calcite is dissolving.
 
-fig3 = custom_figure(x_axis_label="pH", y_axis_label="Concentration [mmolal]")
-fig3.line(data[ph_indx], data[co2aq_indx], line_width=4, legend_label="CO2(aq)", color="green")
-fig3.line(data[ph_indx], data[co3_indx], line_width=4, legend_label="CO3--", color="orange")
+fig3 = custom_figure(x_axis_label="pH", y_axis_label="Concentration of CO3--[mmolal]")
+fig3.line(data[ph_indx], data[co3_indx], line_width=4, color="orange")
 fig3.legend.location = "top_left"
 show(fig3)
 
 # The fourth and last figure plots how the mass of calcite (or calcium carbonate) changes with the addition of
-# HCl in the system. We see clear dissolution of the mineral:
+# HCl in the system. We see that the remaining mass of the mineral after equilibration goes down since its solubility
+# increases with added hydrogen chloride and increasing pH.
 
 fig4 = custom_figure(x_axis_label="HCl [mmol]", y_axis_label="Mass Calcite [g]")
 fig4.line(data[cl_indx], data[calcite_indx], line_width=4, color="darkviolet")
