@@ -15,10 +15,10 @@
 #     name: python3
 # ---
 
-# # Performing calculation of reaction path using Reaktoro
+# # Change of the carbon species in the reaction path vs. pH
 #
-# In this tutorial, we demonstrate how to calculate a reaction path between two different chemical states in
-# equilibrium, which we refer to as *initial state* and *final state*.
+# This tutorial demonstrates how to calculate a reaction path between two different chemical states in
+# equilibrium, referred to as the *initial state* and *final state*.
 # These states can have different temperatures, pressures, and/or molar amounts of elements. If we gradually adjust
 # temperature, pressure, and elemental amounts in the system to bring the initial state to the final state, slowly
 # enough so that **every intermediate state is in equilibrium**, the system would trace a co-called *reaction path*.
@@ -46,9 +46,9 @@ from reaktoro import *
 
 editor = ChemicalEditor()
 
-# For the aqueous phases, we list the chemical elements composing the phase instead of the exact names of species.
+# For the aqueous phases, we list the chemical elements composing the phase instead of the species' exact names.
 # Class [ChemicalEditor](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalEditor.html) searches for all species in
-# the database that can be formed by those elements. Only species corresponding to the phase-type are selected
+# the database those elements can form. Only species corresponding to the phase-type are selected
 # (e.g., only aqueous species are searched in the current case).
 
 # +
@@ -76,7 +76,6 @@ final_problem.setPressure(1.0, "bar")
 final_problem.add("H2O", 1, "kg")
 final_problem.add('CO2', 0.5, 'mol')
 final_problem.add('NaOH', 2, 'mol')
-
 # -
 
 # Two instances of the class [ChemicalState](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalState.html) are created
@@ -115,7 +114,7 @@ output.add('chemicalPotential(CO3-- units=kJ/mol)', 'mu(CO3--) [kJ/mol]')
 output.add("pH")
 
 # The method [ChemicalOutput::add](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalOutput.html#af3b5a7d6b0fbbc870664d6ad100b10dd)
-# adds a quantity, which we want to be output to the file `result.txt`. The later filename is specified in the call of
+# adds a quantity, which we want to be output to the file `result.txt`. The latter filename is specified in the call of
 # the method [ChemicalOutput::filename](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalOutput.html#ac5cc9d0f90cfe5c6e0972a55b7f7bf5d).
 # Each call to [ChemicalOutput::add](https://reaktoro.org/cpp/classReaktoro_1_1ChemicalOutput.html#af3b5a7d6b0fbbc870664d6ad100b10dd)
 # results in a new column of data in the output file.
@@ -154,26 +153,28 @@ data = filearray.T
 [co2aq_indx, h_indx, cl_indx, na_indx, oh_indx, hco3_indx, co3_indx,
  mu_co2aq_indx, mu_hco3_indx, mu_co3_indx, ph_indx] = numpy.arange(11)
 
-# The first plot depicts the amount of element Cl in units of mmol (on the *y*-axis) and the pH of
-# the aqueous phase (on the *x*-axis):
+# The first plot depicts the amount of species Cl<sup>-</sup> and H<sup>+</sup> in units of mmolal (on the *y*-axis)
+# and the pH of the aqueous phase (on the *x*-axis). Below, we see how the concentration of both ions decrease,
+# which is expected, as the initial state contains 1 mol of HCl and the final one none of it.
 
 fig1 = custom_figure(x_axis_label="pH", y_axis_label="Species molality [mmolal]")
 fig1.line(data[ph_indx], data[cl_indx], legend_label="Cl-", line_width=4, color="green")
 fig1.line(data[ph_indx], data[h_indx], legend_label="H+", line_width=4, color="blue")
 show(fig1)
 
-# The second plot sets the *x*-axis to the amount of Cl from added HCl and
-# the *y*-axis to the molality of element Ca, i.e., the molar amount of Ca **in the aqueous
-# phase**, divided by the mass of solvent water H<sub>2</sub>O(l).
+# The second plot sets the *x*-axis to the pH level and
+# the *y*-axis to the molalities of species Na<sup>+</sup> and OH<sup>-</sup>,
+# i.e., the molar amount of Na<sup>+</sup> and OH<sup>-</sup> **in the aqueous
+# phase**, divided by the mass of solvent water H<sub>2</sub>O(l). As expected, we see an increase of the ions amount
+# as pH grows.
 
 fig2 = custom_figure(x_axis_label="pH", y_axis_label="Species molality [mmolal]")
 fig2.line(data[ph_indx], data[na_indx], legend_label="Na+", line_width=4, color="coral")
 fig2.line(data[ph_indx], data[oh_indx], legend_label="OH-", line_width=4, color="gray")
 show(fig2)
 
-# The third plot sets the *x*-axis to pH, but the *y*-axis now contains three plotted quantities: the molality of
-# species CO<sub>2</sub>(aq), HCO<sub>3</sub><sup>-</sup>, and CO<sub>3</sub><sup>2-</sup>, all in units of mmolal (
-# i.e., mmol/kg).
+# The third plot sets the *x*-axis to pH, but the *y*-axis now contains three quantities: the molality of
+# species CO<sub>2</sub>(aq), HCO<sub>3</sub><sup>-</sup>, and CO<sub>3</sub><sup>2-</sup>, all in units of mmolal.
 
 fig3 = custom_figure(x_axis_label="pH", y_axis_label="Species molality [mmolal]")
 fig3.line(data[ph_indx], data[co2aq_indx], legend_label="CO2(aq)", line_width=4, color="rosybrown")
@@ -181,8 +182,20 @@ fig3.line(data[ph_indx], data[hco3_indx], legend_label="HCO3-", line_width=4, co
 fig3.line(data[ph_indx], data[co3_indx], legend_label="CO3--", line_width=4, color="olivedrab")
 show(fig3)
 
-# The fourth and last figure plots how the chemical potential of CO<sub>2</sub>(aq), HCO<sub>3</sub><sup>-</sup>, and
-# CO<sub>3</sub><sup>2-</sup> depends on pH in the considered chemical path.
+# We see here growing molalities of the HCO3<sup>-</sup> species until approximately pH = 7, after which it
+# decreases again. Exactly around the point, where molality of HCO3<sup>-</sup> begins
+# to decrease, molality of CO3<sup>2-</sup> starts increasing. Let us also plot the molality of CO<sub>2</sub>(aq)
+# with respect to pH.
+
+fig4 = custom_figure(x_axis_label="pH", y_axis_label="Species molality [mmolal]")
+fig4.line(data[ph_indx], data[co2aq_indx], legend_label="CO2(aq)", line_width=4, color="rosybrown")
+show(fig4)
+
+# The plot above illustrated expected behaviour, where CO<sub>2</sub>(aq) molality in the brine remains over 25 mmolal
+# until pH = 7 and rapidly drops after that value.
+#
+# Final fourth figure plots how the chemical potential of CO<sub>2</sub>(aq), HCO<sub>3</sub><sup>-</sup>,
+# and CO<sub>3</sub><sup>2-</sup> depends on pH in the considered chemical path.
 
 fig4 = custom_figure(x_axis_label="pH", y_axis_label="Chemical potential [kJ/mol]")
 fig4.line(data[ph_indx], data[mu_co2aq_indx], legend_label="CO2(aq)", line_width=4, color="darkorange")
