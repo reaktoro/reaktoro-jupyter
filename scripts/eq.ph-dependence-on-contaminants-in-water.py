@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.3.2
+#       jupytext_version: 1.13.7
 # ---
 
 # # Dependence of the pH on added contaminant in water
@@ -82,7 +82,7 @@ for i in range(nsteps):
 
 # ### Increasing pH
 #
-# If we add in a chemical contaminant such as ammonia (a compound of nitrogen and hydrogen with the formula NH3,
+# If we add in a chemical contaminant such as ammonia (a compound of nitrogen and hydrogen with the formula NH<sub>3</sub>,
 # colorless gas with a characteristic pungent smell), that can increase the pH and affect fish life.
 
 problem = EquilibriumProblem(system)
@@ -118,7 +118,7 @@ for i in range(nsteps):
     nh3_amounts.append(nh3_amounts[-1] + nh3_delta)
 # -
 
-# Let us plot pH as a function of the HCl and NH<sup>3</sup> amounts:
+# Let us plot pH as a function of the HCl and NH<sub>3</sub> amounts:
 
 # +
 import matplotlib.pyplot as plt
