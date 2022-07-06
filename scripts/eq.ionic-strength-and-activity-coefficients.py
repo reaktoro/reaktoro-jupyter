@@ -8,7 +8,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.3.2
+#       jupytext_version: 1.13.7
 # ---
 
 # # Calculation of ionic strength and activity coefficients of aqueous species
@@ -75,7 +75,7 @@ print(f"Ionic strength of state2 is {I2:f} molal")
 #
 # ## Calculating the ionic strength
 #
-# Below, we explain, which information one needs to fetch from chemical state to be able to calcualte ionic strenght. \
+# Below, we explain, which information one needs to fetch from chemical state to be able to calculate ionic strength. \
 # First, let us fix the molality of 1 kg of solvent water (where 18.0154 * 1e-3 kg/mol is a molar mass of water):
 
 mw_h2o = 1 / 18.0154 / 1e-3
@@ -143,7 +143,7 @@ for name, gamma in zip(names_aq, gammas):
 properties = state2.properties()
 fractions = properties.moleFractions().val
 
-# Let us output only those species that have fractions bigger then machine precision (set here to 10<sup>-16</sup>):
+# Let us output only those species that have fractions bigger than machine precision (set here to 10<sup>-16</sup>):
 
 machine_precision = 1e-16
 print(f"   Species : Mole fractions")
