@@ -7,10 +7,10 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.3.2
+#       jupytext_version: 1.13.7
 # ---
 
-# # Calcite solubility in water and CO2-saturated rainwater
+# # Calcite solubility in water and CO<sub>2</sub>-saturated rainwater
 #
 # In this tutorial, we investigate the dependence of calcite solubility in water (closed system) and carbon-dioxide
 # saturated rainwater (open system) on temperature and pressure change.
@@ -56,7 +56,7 @@ def rainwater_problem(system, T, P):
 
 # Finally, function `water_co2_problem` defines the chemical problem corresponding to an open system, i.e.,
 # the carbon-dioxide saturated water with the partial pressure of the atmosphere pCO2 = 3.408. To convert the amount
-# of CO2 gas from millimeters of mercury to parts per million (ppm) we use the instruction on the
+# of CO<sub>2</sub> gas from millimeters of mercury to parts per million (ppm) we use the instruction on the
 # [following website](https://sciencing.com/calculate-ppm-vapor-pressure-6457861.html). In particular, pCO2 = 3.408
 # corresponds to (3.408 / 760) * 106 = 0.475 ppm, which converts to mol/L by formula 0.475 / 44.01 = 0.010793 mol/L,
 # where 44.01 g/mol is the CO2 molar amount.
@@ -116,7 +116,8 @@ system = ChemicalSystem(editor)
 
 temperatures = np.arange(20.0, 91.0, 5.0)
 
-# Calculate solubilities of calcite in water and CO2-saturated rainwater for pressure P = 1 bar and save it in txt-file:
+# Calculate solubilities of calcite in water and CO<sub>2</sub>-saturated rainwater for pressure P = 1 bar
+# and save it in txt-file:
 
 P = 1.0 # in bar
 print(f"Solubility in water (closed system):")
@@ -137,7 +138,7 @@ print(f"Solubility of calcite in water (closed system) equals to {delta_calcite_
 # The amount of calcite that dissolves is independent of the initial value (provided that it exceeds the solubility
 # limit).
 
-# Calculate solubilities of calcite in water and CO2-saturated rainwater for pressure P = 100 bar and save it in
+# Calculate solubilities of calcite in water and CO<sub>2</sub>-saturated rainwater for pressure P = 100 bar and save it in
 # txt-file:
 
 P = 100.0 # in bar
@@ -148,7 +149,7 @@ delta_calcite_rainwater_P100 = [solubility_of_calcite(rainwater_problem(system, 
 np.savetxt('reaktoro-water-delta-calcite-p-' + str(P) + '.txt', delta_calcite_water_P100)
 np.savetxt('reaktoro-rainwater-delta-calcite-p-' + str(P) + '.txt', delta_calcite_rainwater_P100)
 
-# Plot solubilities of calcite in water and CO2-saturated rainwater for pressure P = 1:
+# Plot solubilities of calcite in water and CO<sub>2</sub>-saturated rainwater for pressure P = 1:
 
 fig, ax = plt.subplots()
 ax.plot(temperatures, delta_calcite_water_P1, label=f"Calcite in water", color='C1')
@@ -191,7 +192,7 @@ fig.savefig('calcite-solubility.png', bbox_inches='tight')
 # We see that increasing pressure also increases the solubility of calcium carbonate.
 
 # Finally, the solubility of calcite in the open system is simulated using the function `water_co2_problem()`,
-# representing pure water and CO<sup>2</sup>. The pressure corresponding to the partial pressure of the atmosphere
+# representing pure water and CO<sub>2</sub>. The pressure corresponding to the partial pressure of the atmosphere
 # pCO2 = 3.408 is equal to 39 = $\mathsf{10^{-3.408}}$ Pa.
 
 P = 39 * 1e-5 # in bar
