@@ -8,7 +8,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.3.2
+#       jupytext_version: 1.13.7
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -591,9 +591,9 @@ def outputstate_df(step, system, reactions, states):
         # Calculate reaction quotient
         lnQ_barite = reactions[0].lnReactionQuotient(props)
         # Calculate saturation ratio
-        SR_barite = lnQ_barite.val - lnK_barite.val
+        lnSR_barite = lnQ_barite.val - lnK_barite.val
         # Calculate saturation index
-        SI_barite = exp(SR_barite)
+        SI_barite = lnSR_barite / log(10)
         values[-2] = SI_barite
 
         # Add values into the dataframe
@@ -876,9 +876,9 @@ assert all(step <= nsteps for step in selected_steps_to_plot), f"Make sure that 
 # Plot barite's concentration on the selected steps:
 plot_figures_barite_concentration(selected_steps_to_plot)
 
-# The saturation index of the mineral is defined as a ratio of equilibrium constant and reaction quotient.
-# It is 1 for minerals that are precipitated (i.e., in equilibrium with the solution), SI > 1 for supersaturated minerals,
-# and SI < 1 for undersaturated minerals.
+# The saturation index of the mineral is defined as a log10 of the ratio of equilibrium constant and reaction quotient.
+# It is 0 for minerals that are precipitated (i.e., in equilibrium with the solution), SI > 0 for supersaturated
+# minerals, and SI < 0 for undersaturated minerals.
 
 # Plot barite's saturation index on the selected steps:
 plot_figures_barite_saturation_index(selected_steps_to_plot)

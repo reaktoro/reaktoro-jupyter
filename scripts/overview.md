@@ -5,8 +5,8 @@ jupyter:
     text_representation:
       extension: .md
       format_name: markdown
-      format_version: '1.2'
-      jupytext_version: 1.3.2
+      format_version: '1.3'
+      jupytext_version: 1.13.7
   kernelspec:
     display_name: Python 3
     language: python
@@ -38,12 +38,18 @@ chemical equilibrium, chemical kinetics, and reactive transport problems.
 * [Solubility of carbon dioxide in water](eq.co2-solubility-in-water.ipynb)
 * [Analysis of the Evian water (with Reaktoro and PHREEQC backend)](eq.evian-water-analysis.ipynb)
 * [Solubility of sodium chloride salt in water (using Setschenow activity model)](eq.equilibrium-setschenow-activity-model.ipynb)
+* [Carbon dioxide gas solubility in the NaCl-brine](eq.co2-solubility-in-nacl-brine.ipynb)
+* [Dependence of the pH on the CO2(g) amount in seawater](eq.ph-dependence-on-co2-in-seawater.ipynb)
+* [Dependence of the pH on added contaminant in water](eq.ph-dependence-on-contaminants-in-water.ipynb)
+* [Change of the carbon species in the reaction path vs pH](eq.equilibriumpath-carbon-species-vs-ph.ipynb)
+* [Calcite solubility in water and CO2-saturated rainwater](eq.calcite-solubility.py)
+* [Gypsum/anhydrite solubility in water](eq.anhydrite-solubility.ipynb)
 
 ### Tutorials on performing chemical kinetics calculations:
 
 * [Dissolution of calcite in an acidic HCl-solution](kin.calcite-hcl.ipynb)
 * [Dissolution of carbonate minerals in a carbon dioxide saturated brine](kin.carbonates-co2.ipynb)
-* [Precipitation of barite as a result or waterflooding](kin.barite-precipitation.ipynb)
+* [Precipitation of barite as a result or water-flooding](kin.barite-precipitation.ipynb)
 
 ### Tutorials on performing reactive transport calculations:
 
@@ -53,7 +59,13 @@ chemical equilibrium, chemical kinetics, and reactive transport problems.
 * [Coupling Reaktoro into other reactive transport codes](rt.coupling-reaktoro-to-transport.ipynb)
 * [Reactive transport modeling of the H<sub>2</sub>S scavenging process along a rock core](rt.scavenging.ipynb)
 * [Reactive transport modeling of the H<sub>2</sub>S scavenging process along a rock core (with hematite and pyrite)](rt.scavenging-with-hematite-and-pyrite.ipynb)
-* [Scaling of barite as a result of the waterflooding](rt.scaling.ipynb)
+* [Scaling of barite as a result of the water-flooding](rt.scaling.ipynb)
+* [Reactive transport in granite simulation](rt.granite.ipynb)
+
+### Tutorials on basic properties related to chemical equilibrium calculations:
+
+* [Calculation of ionic strength and activity coefficients of aqueous species](eq.ionic-strength-and-activity-coefficients.ipynb)
+* [Mass balance and mass action equations and related chemical properties](eq.mass-balance-mass-action.ipynb)
 
 ### Tutorials on explaining the most important classes in Reaktoro:
 

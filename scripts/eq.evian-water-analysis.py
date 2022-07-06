@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.3.2
+#       jupytext_version: 1.13.7
 # ---
 
 # # Analysis of the Evian water
@@ -100,11 +100,10 @@ problem.pH(7.2, "HCl", "NaOH")
 state = equilibrate(problem)
 print(state)
 
-
 # In order to obtain saturation indices of the carbonates and quartz, we need to access chemical properties of the
-# calculated chemical state. The saturation index is defined as a ratio of equilibrium constant and reaction quotient.
-# It is 1 for minerals that are precipitated (i.e., in equilibrium with the solution), SI > 1 for supersaturated minerals,
-# and SI < 1 for undersaturated minerals.
+# calculated chemical state. The saturation index is defined as a log10 of the ratio of equilibrium constant and
+# reaction quotient. It is 0 for minerals that are precipitated (i.e., in equilibrium with the solution), SI > 0 for
+# supersaturated minerals, and SI < 0 for undersaturated minerals.
 
 # +
 # Calculate calcite's saturation index
@@ -116,28 +115,28 @@ lnK_calcite = reaction_calcite.lnEquilibriumConstant(props)
 # Calculate reaction quotient
 lnQ_calcite = reaction_calcite.lnReactionQuotient(props)
 # Calculate saturation ratio
-SR_calcite = lnQ_calcite.val - lnK_calcite.val
-SI_calcite = exp(SR_calcite)
+lnSR_calcite = lnQ_calcite.val - lnK_calcite.val
+SI_calcite = lnSR_calcite / log(10)
 
 # Calculate dolomite's saturation index
 lnK_dolomite = reaction_dolomite.lnEquilibriumConstant(props)
 lnQ_dolomite = reaction_dolomite.lnReactionQuotient(props)
-SR_dolomite = lnQ_dolomite.val - lnK_dolomite.val
-SI_dolomite = exp(SR_dolomite)
+lnSR_dolomite = lnQ_dolomite.val - lnK_dolomite.val
+SI_dolomite = lnSR_dolomite / log(10)
 
 # Calculate quartz's saturation index
 lnK_quartz = reaction_quartz.lnEquilibriumConstant(props)
 lnQ_quartz = reaction_quartz.lnReactionQuotient(props)
-SR_quartz = lnQ_quartz.val - lnK_quartz.val
-SI_quartz = exp(SR_quartz)
+lnSR_quartz = lnQ_quartz.val - lnK_quartz.val
+SI_quartz = lnSR_quartz / log(10)
 
 print("Saturation Index (Calcite) = ", SI_calcite)
 print("Saturation Index (Dolomite) = ", SI_dolomite)
 print("Saturation Index (Quartz) = ", SI_quartz)
 # -
 
-# Based on the obtained results, we see that dolomite and quartz are precipitated and are in equilibrium with the
-# solution, whereas calcite remains undersaturated. Similarly, we can analyze the stability indices of the calcite,
+# Based on the obtained results, we see that the water is saturated with dolomite and quartz. Whereas calcite is
+# undersaturated. Similarly, we can analyze the stability indices of the calcite,
 # dolomite, and quartz phases. It is 0 if the phase is stable, bigger than 0 if the phase is supersaturated, and less
 # than 0 if the phase is undersaturated. Stability indices confirm the results we have obtained for saturation indices.
 
