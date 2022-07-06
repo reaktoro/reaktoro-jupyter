@@ -8,7 +8,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.3.2
+#       jupytext_version: 1.13.7
 # ---
 
 # # Reactive transport in granite simulation
@@ -29,8 +29,6 @@ import os
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from natsort import natsorted
-import time
-from progress.bar import IncrementalBar
 
 # Setup properties or the plotting with the **matplolib** library:
 
