@@ -8,7 +8,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.3.2
+#       jupytext_version: 1.13.7
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -148,6 +148,7 @@ def custom_figure(x_axis_label, y_axis_label):
 
 # To load results from the outputfile, we use `loadtxt` function provided by the `numpy` package:
 
+import numpy
 filearray = numpy.loadtxt("result.txt", skiprows=1)
 data = filearray.T
 [co2aq_indx, h_indx, cl_indx, na_indx, oh_indx, hco3_indx, co3_indx,
