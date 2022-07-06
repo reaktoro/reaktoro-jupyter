@@ -8,13 +8,13 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.3.2
+#       jupytext_version: 1.13.7
 # ---
 
 # # Carbon dioxide gas solubility in the NaCl-brine
 #
-# This tutorial demonstrates how to simulate the solubility of CO2 gas in the NaCl-brine and its dependence of
-# salinity of the brine (also called as a salting-out effect).
+# This tutorial demonstrates how to simulate the solubility of CO<sub>2</sub> gas in the NaCl-brine and its dependence on
+# the salinity of the brine (also called a salting-out effect).
 #
 # First, we import all the necessary packages for further simulations:
 
@@ -22,7 +22,7 @@ from reaktoro import *
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Function `solubility_co2()` returns the concentration of  CO<sup>2</sup>(g) that was dissolved in the brined:
+# Function `solubility_co2()` returns the concentration of  CO<sub>2</sub>(g) that was dissolved in the brined:
 
 def solubility_co2(system, T, P, n0CO2g, mNaCl):
 
@@ -41,6 +41,9 @@ def solubility_co2(system, T, P, n0CO2g, mNaCl):
     # Return the difference of initial amount of the CO2(g) and remaining one after equilibration
     return (n0CO2g - state.speciesAmount("CO2(g)"))
 
+# Below, we set up the chemical system for running the solubility calculations:
+
+# +
 # Define database
 database = Database("supcrt98.xml")
 
@@ -65,8 +68,9 @@ deltaCO2_nacl1 = [solubility_co2(system, t, P, n0CO2g, mNaCl=1.0) for t in T]
 deltaCO2_nacl2 = [solubility_co2(system, t, P, n0CO2g, mNaCl=2.0) for t in T]
 deltaCO2_nacl4 = [solubility_co2(system, t, P, n0CO2g, mNaCl=4.0) for t in T]
 deltaCO2_nacl6 = [solubility_co2(system, t, P, n0CO2g, mNaCl=6.0) for t in T]
+# -
 
-# Plot solubility of CO2(g) as function of temperature for different salinities of NaCl-brine:
+# Plot solubility of CO<sub>2</sub>(g) as a function of temperature for different salinities of NaCl-brine:
 
 fig, ax = plt.subplots()
 ax.plot(T, deltaCO2_nacl1, label=f"1 NaCl molal")
@@ -80,11 +84,11 @@ ax.set(ylabel='Solubility [mol/kgw]')
 ax.set(title='Solubility of CO2 in NaCl brine, P = ' + str(P) + ' bar')
 plt.savefig('co2-solubility-nacl-h2o-vs-temperature-1bar.png', bbox_inches='tight')
 
-# We see the illustration of the so-called salting-out effect. It indicates lower solubility of the CO<sup>2</sup>(g)
-# for more saline NaCl-brines. Moreover, we see that solubility of the carbon dioxide decreases with the growth of the
+# We see the illustration of the so-called salting-out effect. It indicates lower solubility of the CO<sub>2</sub>(g)
+# for more saline NaCl-brines. Moreover, we see that the solubility of carbon dioxide decreases with the growth of the
 # temperature.
 #
-# Alternatively, we can study the dependence of the CO<sup>2</sup>(g) solubility on the pressure increase:
+# Alternatively, we can study the dependence of the CO<sub>2</sub>(g) solubility on the pressure increase:
 
 # Initialize pressure range (in bar)
 P = np.arange(1.0, 300.0, 1.0)
@@ -96,7 +100,7 @@ deltaCO2_nacl2 = [solubility_co2(system, T, p, n0CO2g, mNaCl=2.0) for p in P]
 deltaCO2_nacl4 = [solubility_co2(system, T, p, n0CO2g, mNaCl=4.0) for p in P]
 deltaCO2_nacl6 = [solubility_co2(system, T, p, n0CO2g, mNaCl=6.0) for p in P]
 
-# Plot solubility of CO2(g) as function of pressure for different salinities of NaCl-brine:
+# Below, we plot solubility of CO<sub>2</sub>(g) as a function of pressure for different salinities of NaCl-brine:
 
 fig, ax = plt.subplots()
 ax.plot(P, deltaCO2_nacl1, label=f"1 NaCl molal")
