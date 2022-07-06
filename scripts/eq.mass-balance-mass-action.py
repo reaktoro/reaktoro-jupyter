@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.3.2
+#       jupytext_version: 1.13.7
 # ---
 
 # # Mass balance and mass action equations and related chemical properties
@@ -15,8 +15,8 @@
 # In this tutorial, we clarify how to access certain basic properties of the chemical system and chemical equilibrium
 # state, such as mass balance and mass action equations:
 
-# We start from defining H2O-CO2 chemical system defined as a mixture of 100 mol of H20 and 2 mols of CO2 at T = 100
-# &deg;C and P = 50 bar:
+# We start by defining H<sub>2</sub>O-CO<sub>2</sub> chemical system defined as a mixture of 100 mol of H<sub>2</sub>0
+# and 2 mols of CO<sub>2</sub> at T = 100 &deg;C and P = 50 bar:
 
 # +
 from reaktoro import *
@@ -35,12 +35,12 @@ problem.setPressure(P, "bar")
 problem.setTemperature(T, "celsius")
 problem.add("H2O", 100, "mol")
 problem.add("CO2", 2, "mol")
-# -
 
 # Equilibrate chemical problem
 state = equilibrate(problem)
+# -
 
-# Obtain chemical species, chemical amounts, and formula marix:
+# Obtain chemical species, chemical amounts, and formula matrix:
 
 # +
 b = state.elementAmounts()
@@ -65,19 +65,19 @@ r_norm = np.linalg.norm(r)
 print("||r|| = ", r_norm)
 # -
 
-# How much of the CO2(g) is dissolved as CO2(aq)?
+# How much of the CO<sub>2</sub>(g) is dissolved as CO<sub>2</sub>(aq)?
 
 print(f"CO2(aq) amount is {state.speciesAmount('CO2(aq)'):6.4e} mol")
 
-# How much of the H2O(l) has evaporated as H2O(g)?
+# How much of the H<sub>2</sub>O(l) has evaporated as H<sub>2</sub>O(g)?
 
 print(f"H2O(g) amount is {state.speciesAmount('H2O(g)'):6.4e} mol")
 
-# What is the amount of H+ species?
+# What is the amount of H<sup>+</sup> species?
 
 print(f"H+ amount is {state.speciesAmount('H+'):6.4e} mol")
 
-# Nice output of the formula matrix (where one can control the spacing and format):
+# A nicer output of the formula matrix (where one can control the spacing and format):
 
 rows, cols = A.shape
 for i in range(rows):
@@ -85,8 +85,8 @@ for i in range(rows):
         print(f"{A[i][j]:4.0f}", end="")
     print("\n")
 
-# Rank is the maximal number of linearly independent columns of A
-# and it it equal to the dimension of the vector space spanned by its rows.
+# Rank is the maximal number of linearly independent columns of A,
+# and it is equal to the dimension of the vector space spanned by its rows.
 
 rank = np.linalg.matrix_rank(A)
 print("Rank of A is", rank)
