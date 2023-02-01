@@ -1,4 +1,6 @@
-# Jupyter for Reaktoro
+# Jupyter for Reaktoro v1
+
+### Note: This repository is currently out of date as it relies on Reaktoro v1 instead of Reaktoro v2 or newer versions. Instead, check https://reaktoro.org for tutorials, which are also based on Jupyter notebooks.
 
 Reaktoro is a computational framework developed in C++ and Python that implements numerical methods for modeling
  chemically reactive processes governed by either chemical equilibrium, chemical kinetics, or a combination of both.
